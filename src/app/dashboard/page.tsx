@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, setDoc, collection, query, where, orderBy, runTransaction } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
-import { LogOut, TrendingUp, History, Wallet, Copy, User, Globe, AlertTriangle } from 'lucide-react';
+import { LogOut, TrendingUp, History, Wallet, Copy, User, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import LiveActivity from '@/components/LiveActivity'; // <--- Import the bubble
 
 export default function Dashboard() {
   const { t, lang, setLang } = useLanguage();
@@ -61,6 +62,7 @@ export default function Dashboard() {
         });
         
         // 2. Real-time Transaction History
+        // Note: If you see a red error in console, click the link to create the Index
         const q = query(
             collection(db, "transactions"), 
             where("userId", "==", u.uid), 
@@ -94,8 +96,10 @@ export default function Dashboard() {
         const currentBalance = userDoc.data().balance;
         if (currentBalance < amount) throw "Insufficient Funds!";
 
+        // Deduct
         transaction.update(userRef, { balance: currentBalance - amount });
 
+        // Record
         const newTxRef = doc(collection(db, "transactions"));
         transaction.set(newTxRef, {
           userId: auth.currentUser!.uid,
@@ -141,7 +145,7 @@ export default function Dashboard() {
 
   // --- DASHBOARD UI ---
   return (
-    <div className="min-h-screen bg-black text-white p-6 md:p-10 pb-32 font-sans selection:bg-red-900 selection:text-white">
+    <div className="min-h-screen bg-black text-white p-6 md:p-10 pb-32 font-sans selection:bg-red-900 selection:text-white relative">
       <div className="max-w-7xl mx-auto">
         
         {/* Header */}
@@ -176,14 +180,14 @@ export default function Dashboard() {
         {/* Wealth Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {/* Balance */}
-          <div className="glass p-8 rounded-3xl relative overflow-hidden bg-zinc-900/20 border border-zinc-800">
+          <div className="glass p-8 rounded-3xl relative overflow-hidden bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 transition">
             <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 rounded-full blur-3xl -mr-10 -mt-10"/>
             <p className="text-zinc-400 mb-2 flex items-center gap-2 font-medium"><Wallet className="text-red-500" size={20}/> {t('totalBalance')}</p>
             <h2 className="text-5xl font-bold tracking-tighter text-white">{formatMoney(user.balance)}</h2>
           </div>
 
           {/* Profits */}
-          <div className="glass p-8 rounded-3xl relative overflow-hidden bg-zinc-900/20 border border-zinc-800">
+          <div className="glass p-8 rounded-3xl relative overflow-hidden bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 transition">
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full blur-3xl -mr-10 -mt-10"/>
             <p className="text-zinc-400 mb-2 flex items-center gap-2 font-medium"><TrendingUp className="text-emerald-500" size={20}/> {t('totalProfits')}</p>
             <h2 className="text-5xl font-bold tracking-tighter text-emerald-400">+{formatMoney(user.totalEarned)}</h2>
@@ -262,6 +266,10 @@ export default function Dashboard() {
           </section>
         </div>
       </div>
+      
+      {/* Live Activity Bubble Component */}
+      <LiveActivity />
+
     </div>
   );
 }
