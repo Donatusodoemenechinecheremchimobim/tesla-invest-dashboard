@@ -1,275 +1,170 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { auth, db } from '@/lib/firebase';
-import { doc, onSnapshot, setDoc, collection, query, where, orderBy, runTransaction } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
-import { LogOut, TrendingUp, History, Wallet, Copy, User, AlertTriangle } from 'lucide-react';
-import { useLanguage } from '@/context/LanguageContext';
-import LiveActivity from '@/components/LiveActivity'; // <--- Import the bubble
+import { motion } from 'framer-motion';
+import { TrendingUp, Wallet, ArrowUpRight, ArrowDownLeft, PieChart, Settings, LogOut, Home, Zap, ArrowLeft } from 'lucide-react';
+import PerformanceChart from '@/components/dashboard/PerformanceChart';
+import RealHistory from '@/components/dashboard/RealHistory';
+import ActionModal from '@/components/dashboard/ActionModal';
+import TradingEngine from '@/components/dashboard/TradingEngine';
 
 export default function Dashboard() {
-  const { t, lang, setLang } = useLanguage();
   const [user, setUser] = useState<any>(null);
-  const [investAmount, setInvestAmount] = useState('');
-  const [history, setHistory] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [modalType, setModalType] = useState<'deposit' | 'withdraw' | 'buy_tesla' | null>(null);
+  const [activeTab, setActiveTab] = useState('home'); 
   const router = useRouter();
 
-  // Helper: Format Currency
-  const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0, 
-    }).format(amount);
-  };
-
-  // Authentication & Data Stream
   useEffect(() => {
-    const unsubAuth = auth.onAuthStateChanged(async (u) => {
-      if (!u) {
-        router.push('/auth');
-      } else {
-        // 1. Real-time User Data
-        const unsubDoc = onSnapshot(doc(db, "users", u.uid), async (snapshot) => {
-            if (snapshot.exists()) {
-                setUser(snapshot.data());
-                setLoading(false);
-            } else {
-                // *** SELF-HEALING FIX ***
-                // If user exists in Auth but not in Database, create the profile now
-                console.log("Profile missing... Creating default profile.");
-                try {
-                    await setDoc(doc(db, "users", u.uid), {
-                        email: u.email,
-                        balance: 0,
-                        totalEarned: 0,
-                        refCode: u.uid.slice(0, 6).toUpperCase(), // Generate a simple ref code
-                        createdAt: new Date().toISOString()
-                    });
-                    // The onSnapshot will fire again automatically after this!
-                } catch (err: any) {
-                    console.error("Error creating profile:", err);
-                    setError(err.message);
-                    setLoading(false);
-                }
-            }
-        }, (err) => {
-            console.error("Database Error:", err);
-            setError("Database Connection Failed. Check Console.");
-            setLoading(false);
+    const unsubAuth = auth.onAuthStateChanged((u) => {
+      if (!u) router.push('/auth');
+      else {
+        const unsubDoc = onSnapshot(doc(db, "users", u.uid), (doc) => {
+          if (doc.exists()) {
+             setUser({ ...u, ...doc.data() });
+          } else {
+             setUser(u);
+          }
         });
-        
-        // 2. Real-time Transaction History
-        // Note: If you see a red error in console, click the link to create the Index
-        const q = query(
-            collection(db, "transactions"), 
-            where("userId", "==", u.uid), 
-            orderBy("date", "desc")
-        );
-        
-        const unsubHist = onSnapshot(q, (snap) => {
-            setHistory(snap.docs.map(d => d.data()));
-        }, (error) => {
-            console.log("Index might be missing, ignoring for now...", error);
-        });
-        
-        return () => { unsubDoc(); unsubHist(); }
+        return () => unsubDoc();
       }
     });
     return () => unsubAuth();
   }, [router]);
 
-  // Secure Investment Logic
-  const handleInvest = async () => {
-    const amount = Number(investAmount);
-    if (!investAmount || amount <= 0) return alert("Please enter a valid amount.");
-    if (amount > user.balance) return alert("Insufficient funds in wallet.");
-    
-    try {
-      await runTransaction(db, async (transaction) => {
-        const userRef = doc(db, "users", auth.currentUser!.uid);
-        const userDoc = await transaction.get(userRef);
-        if (!userDoc.exists()) throw "User does not exist!";
-        
-        const currentBalance = userDoc.data().balance;
-        if (currentBalance < amount) throw "Insufficient Funds!";
+  if (!user) return <div className="min-h-screen bg-black flex items-center justify-center text-[#D4AF37] animate-pulse uppercase tracking-widest text-xs">Secure Uplink...</div>;
 
-        // Deduct
-        transaction.update(userRef, { balance: currentBalance - amount });
+  const cash = user.balance || 0;
+  const tesla = user.teslaBalance || 0;
+  const totalEquity = cash + tesla;
 
-        // Record
-        const newTxRef = doc(collection(db, "transactions"));
-        transaction.set(newTxRef, {
-          userId: auth.currentUser!.uid,
-          type: "Investment",
-          asset: "Tesla Stock (TSLA)",
-          amount: amount,
-          date: new Date().toISOString(),
-          status: "Active",
-          roi: "15%" 
-        });
-      });
-      alert("Investment Successful!");
-      setInvestAmount('');
-    } catch (e: any) {
-      console.error(e);
-      alert("Transaction Failed: " + e.message);
-    }
-  };
-
-  // ERROR STATE
-  if (error) {
-    return (
-        <div className="min-h-screen bg-black flex flex-col items-center justify-center text-red-500 gap-4 p-4 text-center">
-            <AlertTriangle size={48} />
-            <h2 className="text-xl font-bold">System Error</h2>
-            <p className="max-w-md bg-zinc-900 p-4 rounded font-mono text-sm">{error}</p>
-            <button onClick={() => window.location.reload()} className="bg-white text-black px-6 py-2 rounded-full font-bold mt-4">
-                Retry Connection
-            </button>
-        </div>
-    );
-  }
-
-  // LOADING STATE
-  if (loading || !user) {
-    return (
-        <div className="min-h-screen bg-black flex flex-col items-center justify-center text-red-600 font-mono gap-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-            <p className="animate-pulse">{t('connectMsg')}</p>
-        </div>
-    );
-  }
-
-  // --- DASHBOARD UI ---
   return (
-    <div className="min-h-screen bg-black text-white p-6 md:p-10 pb-32 font-sans selection:bg-red-900 selection:text-white relative">
-      <div className="max-w-7xl mx-auto">
-        
-        {/* Header */}
-        <header className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 border-b border-zinc-900 pb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">{t('dashboardTitle')}</h1>
-            <p className="text-zinc-500 flex items-center gap-2 font-mono text-sm">
-                <User size={14}/> {user.email}
-            </p>
+    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-[#D4AF37] selection:text-black pb-24 md:pb-10">
+      
+      <ActionModal 
+        isOpen={!!modalType} 
+        onClose={() => setModalType(null)} 
+        type={modalType || 'deposit'} 
+        currentBalance={cash}
+      />
+
+      {/* SIDEBAR (Desktop) */}
+      <aside className="fixed left-0 top-0 h-full w-20 bg-[#0a0a0a] border-r border-white/5 hidden md:flex flex-col items-center py-8 z-50">
+        <div onClick={() => router.push('/')} className="w-10 h-10 bg-[#D4AF37] rounded-lg flex items-center justify-center text-black font-bold text-xl mb-12 cursor-pointer hover:scale-110 transition-transform">T</div>
+        <nav className="flex flex-col gap-8">
+          <button onClick={() => router.push('/')} className="p-3 hover:bg-white/5 rounded-xl text-gray-500 hover:text-white transition group relative">
+            <Home size={24} />
+            <span className="absolute left-full ml-4 px-2 py-1 bg-white text-black text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity">Main</span>
+          </button>
+          <button className="p-3 bg-white/10 rounded-xl text-[#D4AF37]"><PieChart size={24} /></button>
+          <button className="p-3 hover:bg-white/5 rounded-xl text-gray-500 hover:text-white transition"><Settings size={24} /></button>
+        </nav>
+        <button onClick={() => auth.signOut()} className="mt-auto p-3 text-red-500 hover:bg-red-500/10 rounded-xl"><LogOut size={24} /></button>
+      </aside>
+
+      {/* MOBILE NAV */}
+      <nav className="fixed bottom-0 left-0 w-full bg-[#0a0a0a]/90 backdrop-blur-xl border-t border-white/10 z-50 md:hidden flex justify-around py-4 pb-6 px-2">
+        <button onClick={() => router.push('/')} className="flex flex-col items-center gap-1 text-gray-500">
+          <Home size={20} />
+          <span className="text-[9px] uppercase tracking-widest">Main</span>
+        </button>
+        <button onClick={() => setModalType('buy_tesla')} className="flex flex-col items-center gap-1 text-gray-500 hover:text-white">
+          <div className="bg-[#D4AF37] text-black p-2 rounded-full -mt-6 border-4 border-[#050505] shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+            <Zap size={24} fill="black" />
+          </div>
+          <span className="text-[9px] uppercase tracking-widest font-bold text-[#D4AF37] mt-1">Invest</span>
+        </button>
+        <button onClick={() => auth.signOut()} className="flex flex-col items-center gap-1 text-gray-500">
+          <LogOut size={20} />
+          <span className="text-[9px] uppercase tracking-widest">Exit</span>
+        </button>
+      </nav>
+
+      <main className="md:pl-20">
+        <header className="px-6 md:px-8 py-6 flex justify-between items-center border-b border-white/5 bg-[#050505]/80 backdrop-blur-md sticky top-0 z-40">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => router.push('/')}
+              className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition md:hidden"
+            >
+              <ArrowLeft size={18} className="text-[#D4AF37]" />
+            </button>
+            <div>
+              <h1 className="text-lg md:text-xl font-serif text-white">Command <span className="text-[#D4AF37]">Center</span></h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest">System Online</p>
+              </div>
+            </div>
           </div>
           
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            {/* Language Switcher */}
-            <div className="flex bg-zinc-900 rounded-full p-1 border border-zinc-800">
-                {(['en', 'es', 'fr'] as const).map((l) => (
-                    <button 
-                        key={l}
-                        onClick={() => setLang(l)} 
-                        className={`px-3 py-1 rounded-full text-xs font-bold transition uppercase ${lang === l ? 'bg-white text-black shadow-lg' : 'text-zinc-500 hover:text-white'}`}
-                    >
-                        {l}
-                    </button>
-                ))}
-            </div>
-
-             <button onClick={() => auth.signOut()} className="px-6 py-2 rounded-full border border-zinc-800 bg-zinc-900/50 hover:bg-red-600 hover:border-red-600 hover:text-white transition flex items-center gap-2 text-sm font-medium">
-               <LogOut size={16}/> {t('signOut')}
-             </button>
+          <button 
+            onClick={() => router.push('/')}
+            className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition text-[10px] uppercase tracking-widest font-bold text-gray-400 hover:text-white"
+          >
+            <ArrowLeft size={14} /> Back to Terminal
+          </button>
+          
+          <div className="w-8 h-8 rounded-full bg-[#D4AF37] text-black font-bold flex items-center justify-center text-xs shadow-[0_0_15px_rgba(212,175,55,0.4)] md:hidden">
+            {user.email?.[0].toUpperCase()}
           </div>
         </header>
 
-        {/* Wealth Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {/* Balance */}
-          <div className="glass p-8 rounded-3xl relative overflow-hidden bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 transition">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 rounded-full blur-3xl -mr-10 -mt-10"/>
-            <p className="text-zinc-400 mb-2 flex items-center gap-2 font-medium"><Wallet className="text-red-500" size={20}/> {t('totalBalance')}</p>
-            <h2 className="text-5xl font-bold tracking-tighter text-white">{formatMoney(user.balance)}</h2>
+        <div className="p-4 md:p-10 max-w-7xl mx-auto space-y-6 md:space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-[#1a1a1a] to-black border border-white/10 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-20"><Wallet size={60} /></div>
+              <p className="text-gray-500 text-[10px] md:text-xs uppercase tracking-widest mb-2">Total Equity</p>
+              <h2 className="text-4xl md:text-5xl font-serif text-white mb-6 break-words">
+                ${totalEquity.toLocaleString()}
+              </h2>
+              
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between text-xs border-b border-white/5 pb-2">
+                  <span className="text-gray-500">Tesla (TSLA)</span>
+                  <span className="text-[#D4AF37] font-bold">${tesla.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Cash (USD)</span>
+                  <span className="text-white font-bold">${cash.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={() => setModalType('buy_tesla')} className="col-span-2 py-3 bg-[#D4AF37] text-black text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white transition flex justify-center items-center gap-2 shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+                   <Zap size={14} fill="black" /> Buy Tesla Stock
+                </button>
+                <button onClick={() => setModalType('deposit')} className="py-3 bg-white/5 text-white text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white/10 transition">
+                   Deposit
+                </button>
+                <button onClick={() => setModalType('withdraw')} className="py-3 border border-white/20 text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white/5 transition">
+                   Withdraw
+                </button>
+              </div>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="col-span-1 md:col-span-2">
+              <TradingEngine />
+            </motion.div>
           </div>
 
-          {/* Profits */}
-          <div className="glass p-8 rounded-3xl relative overflow-hidden bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 transition">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full blur-3xl -mr-10 -mt-10"/>
-            <p className="text-zinc-400 mb-2 flex items-center gap-2 font-medium"><TrendingUp className="text-emerald-500" size={20}/> {t('totalProfits')}</p>
-            <h2 className="text-5xl font-bold tracking-tighter text-emerald-400">+{formatMoney(user.totalEarned)}</h2>
-          </div>
-
-          {/* Referral */}
-          <div className="glass p-8 rounded-3xl relative overflow-hidden flex flex-col justify-center bg-zinc-900/20 border border-zinc-800">
-             <p className="text-zinc-400 mb-3 font-medium">{t('referralLink')}</p>
-             <div 
-                className="flex bg-black p-4 rounded-xl border border-zinc-800 justify-between items-center cursor-pointer hover:border-red-500/50 transition group"
-                onClick={() => {
-                    navigator.clipboard.writeText(`tesla.com/ref/${user.refCode}`);
-                    alert("Link Copied!");
-                }}
-             >
-               <code className="text-sm text-red-400 font-mono">tesla.com/ref/{user.refCode}</code>
-               <Copy size={16} className="text-zinc-600 group-hover:text-white transition"/>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+             <div className="lg:col-span-2 p-5 md:p-6 rounded-3xl bg-[#0a0a0a] border border-white/10">
+               <h3 className="text-white font-serif mb-4 md:mb-6">Asset Growth</h3>
+               <PerformanceChart />
+             </div>
+             
+             <div className="p-5 md:p-6 rounded-3xl bg-[#0a0a0a] border border-white/10 min-h-[300px] md:h-[400px] overflow-hidden flex flex-col">
+               <h3 className="text-white font-serif mb-4 md:mb-6">Ledger</h3>
+               <div className="overflow-y-auto flex-1 -mr-2 pr-2 custom-scrollbar">
+                 <RealHistory />
+               </div>
              </div>
           </div>
         </div>
-
-        {/* Main Engine Area */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          <section className="lg:col-span-2 space-y-6">
-            <h3 className="text-xl font-bold flex items-center gap-2 text-zinc-300"><TrendingUp size={20} className="text-red-500"/> {t('marketOpp')}</h3>
-            
-            {/* Tesla Card */}
-            <div className="glass-card p-8 rounded-3xl bg-zinc-900/40 border border-zinc-800 relative overflow-hidden backdrop-blur-sm">
-               <div className="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl shadow-lg">{t('hot')}</div>
-               <div className="flex justify-between items-start mb-6">
-                 <div>
-                   <h2 className="text-2xl font-bold text-white">Tesla Inc (TSLA)</h2>
-                   <p className="text-sm text-zinc-400">AI Robotics & EV Division</p>
-                 </div>
-               </div>
-               
-               <div className="flex flex-col sm:flex-row gap-4">
-                 <input 
-                   type="number" 
-                   placeholder="Amount ($)" 
-                   className="bg-black border border-zinc-700 p-4 rounded-xl w-full text-white focus:border-red-500 focus:outline-none transition font-mono"
-                   value={investAmount}
-                   onChange={e => setInvestAmount(e.target.value)}
-                 />
-                 <button onClick={handleInvest} className="bg-red-600 px-8 py-4 rounded-xl font-bold hover:bg-red-700 transition text-white whitespace-nowrap shadow-[0_0_20px_rgba(220,38,38,0.4)]">
-                   {t('investBtn')}
-                 </button>
-               </div>
-            </div>
-          </section>
-
-          <section>
-            <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-zinc-300"><History size={20} className="text-blue-500"/> {t('recentActivity')}</h3>
-            <div className="glass p-6 rounded-3xl min-h-[400px] bg-zinc-900/20 border border-zinc-800">
-              {history.length === 0 ? (
-                <div className="text-center text-zinc-600 mt-20 flex flex-col items-center gap-4">
-                    <History size={48} className="opacity-20"/>
-                    <p>{t('noTrans')}</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {history.map((h, i) => (
-                    <div key={i} className="flex justify-between items-center p-4 bg-black/40 rounded-2xl border border-white/5">
-                      <div>
-                        <p className="font-bold text-sm text-zinc-200">{h.type}</p>
-                        <p className="text-xs text-zinc-500 font-mono">{new Date(h.date).toLocaleDateString()}</p>
-                      </div>
-                      <span className={`font-mono font-bold ${h.type === 'Withdrawal' ? 'text-red-400' : 'text-emerald-400'}`}>
-                        {h.type === 'Withdrawal' ? '-' : '+'}{formatMoney(h.amount)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-        </div>
-      </div>
-      
-      {/* Live Activity Bubble Component */}
-      <LiveActivity />
-
+      </main>
     </div>
   );
 }

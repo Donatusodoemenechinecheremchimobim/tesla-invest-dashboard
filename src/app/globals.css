@@ -3,40 +3,71 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 5, 5, 5;
-  --background-end-rgb: 0, 0, 0;
+  --bg-void: #020204;
+  --gold-primary: #D4AF37;
+  --gold-light: #F9E29C;
+  --nebula-purple: #4c1d95;
+  --nebula-blue: #0ea5e9;
+  --glass-surface: rgba(255, 255, 255, 0.03);
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
-    rgb(var(--background-start-rgb));
-  min-height: 100vh;
+  background-color: var(--bg-void);
+  color: #E5E4E2;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
 }
 
-/* Glass Effect */
-.glass {
-  background: rgba(20, 20, 20, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+/* --- VIBRANT BACKGROUNDS --- */
+.nebula-bg {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(76, 29, 149, 0.2), transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.15), transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.05), transparent 60%);
+  z-index: -1;
+  pointer-events: none;
 }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
+.text-liquid-gold {
+  background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 200% auto;
+  animation: shine 4s linear infinite;
+}
+
+@keyframes shine {
+  to { background-position: 200% center; }
+}
+
+/* --- PRISM CARD EFFECT --- */
+.prism-card {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.3s ease;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
 }
 
-.glass-card:hover {
-  border-color: rgba(220, 38, 38, 0.5); /* Tesla Red */
-  transform: translateY(-4px);
-  box-shadow: 0 10px 40px -10px rgba(220, 38, 38, 0.3);
+.prism-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: 0.5s;
 }
 
-.text-glow {
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+.prism-card:hover::before {
+  left: 100%;
+}
+
+.prism-card:hover {
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 30px rgba(76, 29, 149, 0.3);
+  transform: translateY(-5px);
 }
