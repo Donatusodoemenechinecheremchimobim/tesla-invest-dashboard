@@ -1,117 +1,172 @@
 #!/bin/bash
 
-echo "🛡️ EVOLVING INSURANCE TERMINAL..."
+echo "🚀 UPGRADING DASHBOARD UI & LEDGER..."
 
-cat << 'EOF' > src/app/insurance/page.tsx
+cat << 'EOF' > src/app/dashboard/page.tsx
 'use client';
 
-import { motion } from 'framer-motion';
-import { Shield, Umbrella, Heart, Car, Home, Lock, ChevronRight } from 'lucide-react';
-import Navbar from '@/components/landing/Navbar';
-import Link from 'next/link';
-import { auth } from '@/lib/firebase';
+import GrowthChart from '@/components/dashboard/GrowthChart';
+import TransactionModal from '@/components/dashboard/TransactionModal';
 import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Wallet, History, Activity, TrendingUp, Plus, ShoppingCart, CheckCircle } from 'lucide-react';
+import Navbar from '@/components/landing/Navbar';
 
-const plans = [
-  { icon: Shield, title: "Tesla Protect", desc: "Military-grade encryption for your digital and physical TSLA holdings." },
-  { icon: Umbrella, title: "Portfolio Shield", desc: "Algorithmic protection against Black Swan events and flash crashes." },
-  { icon: Heart, title: "Life & Legacy", desc: "Preserving your generational wealth for the next century and beyond." },
-  { icon: Car, title: "Fleet Insurance", desc: "Proprietary coverage for high-volume Tesla autonomous fleets." },
-  { icon: Home, title: "Smart Asset", desc: "Total protection for Tesla Solar, Powerwall, and Smart Infrastructure." },
-  { icon: Lock, title: "Quantum Vault", desc: "Insuring the physical hardware and keys to your financial soul." }
-];
+export default function Dashboard() {
+  const [profile, setProfile] = useState<any>(null);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [txLoading, setTxLoading] = useState(false);
+  const [showToast, setShowToast] = useState<{ show: boolean; msg: string }>({ show: false, msg: '' });
+  const [modal, setModal] = useState<{ open: boolean; type: 'deposit' | 'buy'; title: string }>({
+    open: false,
+    type: 'deposit',
+    title: ''
+  });
 
-export default function InsurancePage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
+  const TSLA_PRICE = 3500; 
+
+  const fetchData = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.push('/auth'); return; }
+    
+    // Fetch Profile
+    const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    if (profileData) setProfile(profileData);
+
+    // Fetch Transactions
+    const { data: txData } = await supabase.from('transactions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    if (txData) setTransactions(txData);
+
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged((user) => setIsLoggedIn(!!user));
-    return () => unsub();
-  }, []);
+    fetchData();
+
+    // Listen for both Profile and Transaction updates
+    const channel = supabase.channel('dashboard_updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, fetchData)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transactions' }, fetchData)
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [router]);
+
+  const triggerToast = (msg: string) => {
+    setShowToast({ show: true, msg });
+    setTimeout(() => setShowToast({ show: false, msg: '' }), 4000);
+  };
+
+  const handleTransaction = async (amount: number) => {
+    if (isNaN(amount) || amount <= 0) return;
+    
+    setTxLoading(true);
+    try {
+      if (modal.type === 'buy' && amount > profile.balance) throw new Error("Insufficient liquid balance.");
+
+      const newBalance = modal.type === 'deposit' ? profile.balance + amount : profile.balance - amount;
+      const newUnits = modal.type === 'buy' ? (profile.tesla_units || 0) + (amount / TSLA_PRICE) : (profile.tesla_units || 0);
+
+      await supabase.from('profiles').update({ balance: newBalance, tesla_units: newUnits }).eq('id', profile.id);
+      await supabase.from('transactions').insert({
+        user_id: profile.id,
+        type: modal.type === 'deposit' ? 'Deposit' : 'Buy TSLA',
+        amount: amount,
+        direction: modal.type === 'deposit' ? 'in' : 'out'
+      });
+
+      setModal({ ...modal, open: false });
+      triggerToast(`Successfully processed ${modal.type === 'buy' ? '$' + amount + ' TSLA buy' : 'deposit'}`);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setTxLoading(false);
+    }
+  };
+
+  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-[#D4AF37] animate-pulse">Connecting to Quantum Node...</div>;
+
+  const totalEquity = (profile?.balance || 0) + ((profile?.tesla_units || 0) * TSLA_PRICE);
 
   return (
-    <main className="min-h-screen bg-[#050505] overflow-x-hidden">
+    <main className="min-h-screen bg-[#050505] text-white overflow-x-hidden">
       <Navbar />
       
-      <div className="pt-32 pb-40 px-6 max-w-7xl mx-auto">
-        {/* NARRATIVE SECTION */}
-        <div className="max-w-4xl mx-auto text-center mb-20">
-          <motion.span 
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.5em] mb-6 block"
-          >
-            Institutional Security
-          </motion.span>
-          <h1 className="text-4xl md:text-7xl font-serif mb-8 text-white">
-            Our Promise to <span className="text-[#D4AF37]">The 1%.</span>
-          </h1>
-          <p className="text-gray-400 text-base md:text-xl leading-relaxed font-light">
-            At Investment Tesla, we don't just manage assets; we insure the future. 
-            Every client is backed by our <strong className="text-white">Quantum Liquidity Reserve</strong>, 
-            a multi-billion dollar safety net designed to absorb global market shocks. 
-            When you invest with us, you aren't just buying stock—you are entering a 
-            fortress of financial immortality. We assume the risk, so you can enjoy the revolution.
-          </p>
-        </div>
-
-        {/* AUTO-SCROLLING PLANS */}
-        <div className="relative w-full overflow-hidden py-10">
+      {/* SUCCESS TOAST NOTIFICATION */}
+      <AnimatePresence>
+        {showToast.show && (
           <motion.div 
-            className="flex gap-6"
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{ 
-              duration: 30, 
-              repeat: Infinity, 
-              ease: "linear",
-              repeatType: "loop"
-            }}
-            style={{ width: "fit-content" }}
+            initial={{ y: -100, opacity: 0 }} animate={{ y: 20, opacity: 1 }} exit={{ y: -100, opacity: 0 }}
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-[200] bg-[#D4AF37] text-black px-6 py-4 rounded-2xl flex items-center gap-3 shadow-2xl font-bold uppercase tracking-widest text-[10px]"
           >
-            {/* Double the plans to create a seamless loop */}
-            {[...plans, ...plans].map((plan, i) => (
-              <div 
-                key={i} 
-                className="w-[300px] md:w-[380px] p-10 rounded-3xl bg-[#0a0a0a] border border-white/5 flex flex-col items-center text-center shrink-0 group hover:border-[#D4AF37]/40 transition-colors"
-              >
-                <plan.icon className="text-[#D4AF37] mb-6 group-hover:scale-110 transition-transform" size={40} />
-                <h3 className="text-2xl font-serif mb-4 text-white">{plan.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{plan.desc}</p>
-              </div>
-            ))}
+            <CheckCircle size={18} /> {showToast.msg}
           </motion.div>
-          
-          {/* Gradient Fades for the edges */}
-          <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#050505] to-transparent z-10" />
-          <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#050505] to-transparent z-10" />
+        )}
+      </AnimatePresence>
+
+      <TransactionModal isOpen={modal.open} title={modal.title} loading={txLoading} onClose={() => setModal({ ...modal, open: false })} onConfirm={handleTransaction} />
+
+      <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
+        {/* STATS */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="p-8 rounded-3xl bg-[#0a0a0a] border border-white/10">
+            <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-2">Portfolio Equity</p>
+            <h2 className="text-3xl font-serif text-white">${totalEquity.toLocaleString()}</h2>
+          </div>
+          <div className="p-8 rounded-3xl bg-[#0a0a0a] border border-white/10">
+            <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-2">Available USD</p>
+            <h2 className="text-3xl font-serif text-[#D4AF37]">${(profile?.balance || 0).toLocaleString()}</h2>
+          </div>
+          <div className="p-8 rounded-3xl bg-[#0a0a0a] border border-[#D4AF37]/20">
+            <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-2">TSLA Units</p>
+            <h2 className="text-3xl font-serif text-white">{(profile?.tesla_units || 0).toFixed(4)}</h2>
+          </div>
         </div>
 
-        {/* SINGULAR CALL TO ACTION */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-20 flex flex-col items-center"
-        >
-          <Link 
-            href={isLoggedIn ? "/dashboard" : "/auth"}
-            className="group relative px-16 py-6 bg-[#D4AF37] text-black font-bold uppercase tracking-[0.2em] text-sm overflow-hidden rounded-full shadow-[0_0_50px_rgba(212,175,55,0.3)] hover:scale-105 transition-all"
-          >
-            <span className="relative z-10 flex items-center gap-3">
-              Get Insured <ChevronRight size={18} />
-            </span>
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-          </Link>
-          <p className="mt-6 text-gray-600 text-[10px] uppercase tracking-widest">
-            Instant Enrollment via Tesla Quantum Link
-          </p>
-        </motion.div>
+        {/* GRAPH */}
+        <div className="mb-12 p-8 bg-[#0a0a0a] border border-white/10 rounded-[2.5rem]">
+           <GrowthChart />
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* TERMINAL */}
+          <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10">
+            <div className="flex items-center gap-3 mb-10"><Activity className="text-[#D4AF37]" size={20} /> <h3 className="text-sm font-bold uppercase tracking-widest">Trading Hub</h3></div>
+            <div className="space-y-4">
+              <button onClick={() => setModal({ open: true, type: 'buy', title: 'Buy TSLA' })} className="w-full py-6 bg-[#D4AF37] text-black font-black uppercase tracking-widest text-[11px] rounded-2xl">Buy Tesla Stock</button>
+              <button onClick={() => setModal({ open: true, type: 'deposit', title: 'Add Funds' })} className="w-full py-6 bg-white/5 border border-white/10 text-white font-bold uppercase tracking-widest text-[11px] rounded-2xl">Inject Liquidity</button>
+            </div>
+          </div>
+
+          {/* REAL LEDGER HISTORY */}
+          <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10 max-h-[400px] overflow-y-auto">
+            <div className="flex items-center gap-3 mb-10"><History className="text-[#D4AF37]" size={20} /> <h3 className="text-sm font-bold uppercase tracking-widest">Ledger History</h3></div>
+            <div className="space-y-4">
+              {transactions.length > 0 ? transactions.map((tx) => (
+                <div key={tx.id} className="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/5">
+                  <div>
+                    <p className="text-white text-[11px] font-bold uppercase tracking-widest">{tx.type}</p>
+                    <p className="text-gray-500 text-[9px]">{new Date(tx.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <p className={`font-mono text-sm ${tx.direction === 'in' ? 'text-green-500' : 'text-red-500'}`}>
+                    {tx.direction === 'in' ? '+' : '-'}${Number(tx.amount).toLocaleString()}
+                  </p>
+                </div>
+              )) : (
+                <p className="text-gray-600 text-center py-10 uppercase text-[10px] tracking-widest">No activity found</p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   );
 }
 EOF
-
-echo "✅ INSURANCE PAGE RE-ENGINEERED. Syncing..."
-git add .
-git commit -m "Evolution: Unified CTA and auto-scrolling insurance engine"
-git push origin main
