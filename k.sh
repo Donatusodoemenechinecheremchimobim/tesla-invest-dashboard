@@ -1,164 +1,117 @@
 #!/bin/bash
 
-echo "🚀 RESTORING VISIBILITY & UPGRADING TIERS..."
+echo "🛡️ EVOLVING INSURANCE TERMINAL..."
 
-# 1. UPGRADE MEMBERSHIP TIERS (Horizontal Scroll on Mobile)
-cat << 'EOF' > src/components/landing/Membership.tsx
+cat << 'EOF' > src/app/insurance/page.tsx
 'use client';
+
 import { motion } from 'framer-motion';
-import { Check, Zap, Shield, Crown } from 'lucide-react';
+import { Shield, Umbrella, Heart, Car, Home, Lock, ChevronRight } from 'lucide-react';
+import Navbar from '@/components/landing/Navbar';
+import Link from 'next/link';
+import { auth } from '@/lib/firebase';
+import { useEffect, useState } from 'react';
 
-const tiers = [
-  {
-    name: "Standard",
-    price: "1,000",
-    icon: Zap,
-    features: ["Basic Tesla Insights", "Automated Deposits", "Standard Support"]
-  },
-  {
-    name: "Black Tier",
-    price: "25,000",
-    icon: Shield,
-    features: ["Quantum Engine Access", "Priority Withdrawals", "Personal Manager", "No Trade Fees"],
-    popular: true
-  },
-  {
-    name: "Founder",
-    price: "100,000",
-    icon: Crown,
-    features: ["Direct Elon-Sentiment Feed", "Private Concierge", "Off-shore Vaults", "Unlimited Leverage"]
-  }
+const plans = [
+  { icon: Shield, title: "Tesla Protect", desc: "Military-grade encryption for your digital and physical TSLA holdings." },
+  { icon: Umbrella, title: "Portfolio Shield", desc: "Algorithmic protection against Black Swan events and flash crashes." },
+  { icon: Heart, title: "Life & Legacy", desc: "Preserving your generational wealth for the next century and beyond." },
+  { icon: Car, title: "Fleet Insurance", desc: "Proprietary coverage for high-volume Tesla autonomous fleets." },
+  { icon: Home, title: "Smart Asset", desc: "Total protection for Tesla Solar, Powerwall, and Smart Infrastructure." },
+  { icon: Lock, title: "Quantum Vault", desc: "Insuring the physical hardware and keys to your financial soul." }
 ];
 
-export default function Membership() {
-  return (
-    <section id="membership" className="py-24 bg-[#050505]">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-6xl font-serif text-white mb-4">Access <span className="text-[#D4AF37]">Tiers.</span></h2>
-          <p className="text-gray-500 uppercase tracking-[0.3em] text-[10px]">Select your entry point into the future</p>
-        </div>
-
-        {/* Horizontal Mobile Scroll with Snap */}
-        <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto no-scrollbar pb-10 snap-x snap-mandatory">
-          {tiers.map((tier, i) => (
-            <motion.div 
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              className={`min-w-[85vw] md:min-w-0 snap-center p-8 rounded-3xl border ${tier.popular ? 'border-[#D4AF37] bg-[#D4AF37]/5 shadow-[0_0_40px_rgba(212,175,55,0.1)]' : 'border-white/10 bg-[#0a0a0a]'} relative overflow-hidden`}
-            >
-              {tier.popular && <div className="absolute top-0 right-0 bg-[#D4AF37] text-black text-[10px] font-bold px-4 py-1 rounded-bl-xl uppercase tracking-widest">Most Popular</div>}
-              
-              <tier.icon className={`mb-6 ${tier.popular ? 'text-[#D4AF37]' : 'text-gray-500'}`} size={32} />
-              <h3 className="text-2xl font-serif text-white mb-2">{tier.name}</h3>
-              <div className="flex items-baseline gap-1 mb-8">
-                <span className="text-3xl font-serif text-white">${tier.price}</span>
-                <span className="text-gray-500 text-xs">/entry</span>
-              </div>
-
-              <ul className="space-y-4 mb-10">
-                {tier.features.map((f, j) => (
-                  <li key={j} className="flex items-center gap-3 text-sm text-gray-400">
-                    <Check size={14} className="text-[#D4AF37]" /> {f}
-                  </li>
-                ))}
-              </ul>
-
-              <button className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${tier.popular ? 'bg-[#D4AF37] text-black hover:bg-white' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}>
-                Apply for Access
-              </button>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Mobile Indicators */}
-        <div className="flex md:hidden justify-center gap-2 -mt-4">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-          <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-          <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-        </div>
-      </div>
-    </section>
-  );
-}
-EOF
-
-# 2. FINAL REPAIR: LIVE ACTIVITY BUBBLE (Guaranteed Visibility)
-cat << 'EOF' > src/components/ui/LiveActivity.tsx
-'use client';
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Zap, DollarSign, ShieldCheck } from 'lucide-react';
-
-const activities = [
-  { name: "Sarah J.", loc: "Austin, TX", action: "earned", val: "$12,400", type: "profit" },
-  { name: "Michael R.", loc: "London, UK", action: "bought", val: "500 TSLA", type: "buy" },
-  { name: "Chisom E.", loc: "Abuja, NG", action: "withdrew", val: "$1,500", type: "cashout" },
-  { name: "Sebastian L.", loc: "Buenos Aires, AR", action: "earned", val: "$3,000", type: "profit" },
-  { name: "Elena V.", loc: "Berlin, DE", action: "staked", val: "$25,000", type: "stake" }
-];
-
-export default function LiveActivity() {
-  const [index, setIndex] = useState(0);
-  const [show, setShow] = useState(false);
-  const [mounted, setMounted] = useState(false);
+export default function InsurancePage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    // Wait 3 seconds after load to show first bubble
-    const timer = setTimeout(() => setShow(true), 3000);
-
-    const interval = setInterval(() => {
-      setShow(false);
-      setTimeout(() => {
-        setIndex(Math.floor(Math.random() * activities.length));
-        setShow(true);
-      }, 1000);
-    }, 9000);
-
-    return () => { clearTimeout(timer); clearInterval(interval); };
+    const unsub = auth.onAuthStateChanged((user) => setIsLoggedIn(!!user));
+    return () => unsub();
   }, []);
 
-  if (!mounted) return null;
-
-  const item = activities[index];
-
   return (
-    <div 
-      className="fixed bottom-24 md:bottom-8 left-4 md:left-8 pointer-events-none" 
-      style={{ zIndex: 2147483647 }}
-    >
-      <AnimatePresence>
-        {show && (
-          <motion.div
-            initial={{ opacity: 0, x: -50, scale: 0.8 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -50, scale: 0.8 }}
-            className="flex items-center gap-3 p-3 bg-black/95 backdrop-blur-2xl border border-[#D4AF37]/50 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-[280px] md:w-[320px]"
+    <main className="min-h-screen bg-[#050505] overflow-x-hidden">
+      <Navbar />
+      
+      <div className="pt-32 pb-40 px-6 max-w-7xl mx-auto">
+        {/* NARRATIVE SECTION */}
+        <div className="max-w-4xl mx-auto text-center mb-20">
+          <motion.span 
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.5em] mb-6 block"
           >
-            <div className="w-10 h-10 rounded-full bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20">
-               {item.type === 'profit' ? <TrendingUp size={16} className="text-green-400" /> : <Zap size={16} className="text-[#D4AF37]" />}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-gray-500 font-medium truncate pr-4">
-                <span className="text-white font-bold">{item.name}</span> • {item.loc}
-              </p>
-              <p className="text-xs md:text-sm font-bold text-white mt-0.5">
-                {item.action === 'earned' ? 'Profited' : 'Purchased'} 
-                <span className="text-[#D4AF37] ml-1">{item.val}</span>
-              </p>
-            </div>
-            <div className="text-[8px] text-gray-600 font-bold uppercase self-start mt-1 shrink-0">Now</div>
+            Institutional Security
+          </motion.span>
+          <h1 className="text-4xl md:text-7xl font-serif mb-8 text-white">
+            Our Promise to <span className="text-[#D4AF37]">The 1%.</span>
+          </h1>
+          <p className="text-gray-400 text-base md:text-xl leading-relaxed font-light">
+            At Investment Tesla, we don't just manage assets; we insure the future. 
+            Every client is backed by our <strong className="text-white">Quantum Liquidity Reserve</strong>, 
+            a multi-billion dollar safety net designed to absorb global market shocks. 
+            When you invest with us, you aren't just buying stock—you are entering a 
+            fortress of financial immortality. We assume the risk, so you can enjoy the revolution.
+          </p>
+        </div>
+
+        {/* AUTO-SCROLLING PLANS */}
+        <div className="relative w-full overflow-hidden py-10">
+          <motion.div 
+            className="flex gap-6"
+            animate={{ x: ["0%", "-50%"] }}
+            transition={{ 
+              duration: 30, 
+              repeat: Infinity, 
+              ease: "linear",
+              repeatType: "loop"
+            }}
+            style={{ width: "fit-content" }}
+          >
+            {/* Double the plans to create a seamless loop */}
+            {[...plans, ...plans].map((plan, i) => (
+              <div 
+                key={i} 
+                className="w-[300px] md:w-[380px] p-10 rounded-3xl bg-[#0a0a0a] border border-white/5 flex flex-col items-center text-center shrink-0 group hover:border-[#D4AF37]/40 transition-colors"
+              >
+                <plan.icon className="text-[#D4AF37] mb-6 group-hover:scale-110 transition-transform" size={40} />
+                <h3 className="text-2xl font-serif mb-4 text-white">{plan.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{plan.desc}</p>
+              </div>
+            ))}
           </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          
+          {/* Gradient Fades for the edges */}
+          <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#050505] to-transparent z-10" />
+          <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#050505] to-transparent z-10" />
+        </div>
+
+        {/* SINGULAR CALL TO ACTION */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-20 flex flex-col items-center"
+        >
+          <Link 
+            href={isLoggedIn ? "/dashboard" : "/auth"}
+            className="group relative px-16 py-6 bg-[#D4AF37] text-black font-bold uppercase tracking-[0.2em] text-sm overflow-hidden rounded-full shadow-[0_0_50px_rgba(212,175,55,0.3)] hover:scale-105 transition-all"
+          >
+            <span className="relative z-10 flex items-center gap-3">
+              Get Insured <ChevronRight size={18} />
+            </span>
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+          </Link>
+          <p className="mt-6 text-gray-600 text-[10px] uppercase tracking-widest">
+            Instant Enrollment via Tesla Quantum Link
+          </p>
+        </motion.div>
+      </div>
+    </main>
   );
 }
 EOF
 
-echo "✅ FINAL REPAIRS COMPLETE. Syncing to GitHub..."
+echo "✅ INSURANCE PAGE RE-ENGINEERED. Syncing..."
 git add .
-git commit -m "UI: Fixed activity visibility and added horizontal tiers for mobile"
+git commit -m "Evolution: Unified CTA and auto-scrolling insurance engine"
 git push origin main
