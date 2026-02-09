@@ -1,53 +1,76 @@
 'use client';
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { Check, Zap, Shield, Crown } from 'lucide-react';
+
+const tiers = [
+  {
+    name: "Standard",
+    price: "1,000",
+    icon: Zap,
+    features: ["Basic Tesla Insights", "Automated Deposits", "Standard Support"]
+  },
+  {
+    name: "Black Tier",
+    price: "25,000",
+    icon: Shield,
+    features: ["Quantum Engine Access", "Priority Withdrawals", "Personal Manager", "No Trade Fees"],
+    popular: true
+  },
+  {
+    name: "Founder",
+    price: "100,000",
+    icon: Crown,
+    features: ["Direct Elon-Sentiment Feed", "Private Concierge", "Off-shore Vaults", "Unlimited Leverage"]
+  }
+];
 
 export default function Membership() {
   return (
-    <section id="membership" className="py-32 bg-[#080808] border-t border-white/5">
+    <section id="membership" className="py-24 bg-[#050505]">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-20">
-          <span className="text-[#D4AF37] text-xs font-bold tracking-[0.4em] uppercase">Selection Process</span>
-          <h2 className="text-4xl md:text-6xl font-serif text-white mt-4">Access Tiers</h2>
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-6xl font-serif text-white mb-4">Access <span className="text-[#D4AF37]">Tiers.</span></h2>
+          <p className="text-gray-500 uppercase tracking-[0.3em] text-[10px]">Select your entry point into the future</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
-          {/* Gold Tier */}
-          <motion.div 
-            whileHover={{ y: -10 }}
-            className="p-10 border border-white/10 bg-[#111] rounded-3xl relative overflow-hidden group"
-          >
-            <div className="absolute top-0 right-0 p-4 bg-white/5 rounded-bl-2xl text-xs uppercase tracking-widest text-gray-400">Standard</div>
-            <h3 className="text-3xl font-serif text-white mb-2">Gold Reserve</h3>
-            <p className="text-gray-500 mb-8 text-sm">For accredited investors starting their journey.</p>
-            <div className="text-4xl font-bold text-white mb-8">$50k <span className="text-sm font-normal text-gray-600">Min Deposit</span></div>
-            
-            <ul className="space-y-4 mb-10 text-gray-400 text-sm">
-              <li className="flex items-center gap-3"><Check size={16} className="text-[#D4AF37]" /> AI-Driven Portfolio</li>
-              <li className="flex items-center gap-3"><Check size={16} className="text-[#D4AF37]" /> 24/7 Support Ticket</li>
-              <li className="flex items-center gap-3"><Check size={16} className="text-[#D4AF37]" /> Mobile App Access</li>
-            </ul>
-            <button className="w-full py-4 border border-white/20 text-white font-bold uppercase tracking-widest hover:bg-white hover:text-black transition">Apply</button>
-          </motion.div>
+        {/* Horizontal Mobile Scroll with Snap */}
+        <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto no-scrollbar pb-10 snap-x snap-mandatory">
+          {tiers.map((tier, i) => (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className={`min-w-[85vw] md:min-w-0 snap-center p-8 rounded-3xl border ${tier.popular ? 'border-[#D4AF37] bg-[#D4AF37]/5 shadow-[0_0_40px_rgba(212,175,55,0.1)]' : 'border-white/10 bg-[#0a0a0a]'} relative overflow-hidden`}
+            >
+              {tier.popular && <div className="absolute top-0 right-0 bg-[#D4AF37] text-black text-[10px] font-bold px-4 py-1 rounded-bl-xl uppercase tracking-widest">Most Popular</div>}
+              
+              <tier.icon className={`mb-6 ${tier.popular ? 'text-[#D4AF37]' : 'text-gray-500'}`} size={32} />
+              <h3 className="text-2xl font-serif text-white mb-2">{tier.name}</h3>
+              <div className="flex items-baseline gap-1 mb-8">
+                <span className="text-3xl font-serif text-white">${tier.price}</span>
+                <span className="text-gray-500 text-xs">/entry</span>
+              </div>
 
-          {/* Black Tier */}
-          <motion.div 
-            whileHover={{ y: -10 }}
-            className="p-10 border border-[#D4AF37]/50 bg-gradient-to-b from-[#1a1a1a] to-black rounded-3xl relative overflow-hidden shadow-[0_0_50px_rgba(212,175,55,0.1)]"
-          >
-            <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent left-0" />
-            <h3 className="text-3xl font-serif text-white mb-2">Tesla <span className="text-[#D4AF37]">Black</span></h3>
-            <p className="text-gray-500 mb-8 text-sm">Invite-only access for ultra-high net worth.</p>
-            <div className="text-4xl font-bold text-white mb-8">$500k <span className="text-sm font-normal text-gray-600">Min Deposit</span></div>
-            
-            <ul className="space-y-4 mb-10 text-white text-sm">
-              <li className="flex items-center gap-3"><Check size={16} className="text-[#D4AF37]" /> <span className="font-bold">Zero</span> Management Fees</li>
-              <li className="flex items-center gap-3"><Check size={16} className="text-[#D4AF37]" /> Dedicated Wealth Officer</li>
-              <li className="flex items-center gap-3"><Check size={16} className="text-[#D4AF37]" /> Laser-Etched Metal Card</li>
-              <li className="flex items-center gap-3"><Check size={16} className="text-[#D4AF37]" /> SpaceX Launch Invites</li>
-            </ul>
-            <button className="w-full py-4 bg-[#D4AF37] text-black font-bold uppercase tracking-widest hover:bg-white transition shadow-lg shadow-[#D4AF37]/20">Request Invitation</button>
-          </motion.div>
+              <ul className="space-y-4 mb-10">
+                {tier.features.map((f, j) => (
+                  <li key={j} className="flex items-center gap-3 text-sm text-gray-400">
+                    <Check size={14} className="text-[#D4AF37]" /> {f}
+                  </li>
+                ))}
+              </ul>
+
+              <button className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${tier.popular ? 'bg-[#D4AF37] text-black hover:bg-white' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}>
+                Apply for Access
+              </button>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Mobile Indicators */}
+        <div className="flex md:hidden justify-center gap-2 -mt-4">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
+          <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+          <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
         </div>
       </div>
     </section>
