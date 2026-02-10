@@ -1,194 +1,116 @@
 #!/bin/bash
 
-echo "💎 UPDATING TRADING HUB: SINGLE DEPOSIT BUTTON (WHATSAPP)..."
+echo "👁️ ADDING PASSWORD VISIBILITY TOGGLE..."
 
-cat << 'EOF' > src/app/dashboard/page.tsx
+cat << 'EOF' > src/app/auth/page.tsx
 'use client';
 
-import ProctorBanner from '@/components/dashboard/ProctorBanner';
-import GrowthChart from '@/components/dashboard/GrowthChart';
-import TransactionModal from '@/components/dashboard/TransactionModal';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { History, Activity, CheckCircle, ArrowUpRight } from 'lucide-react';
-import Navbar from '@/components/landing/Navbar';
+import { motion } from 'framer-motion';
+import { Lock, Mail, ArrowRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
-export default function Dashboard() {
-  const [profile, setProfile] = useState<any>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [txLoading, setTxLoading] = useState(false);
-  const [showToast, setShowToast] = useState<{ show: boolean; msg: string }>({ show: false, msg: '' });
-  
-  // We keep the modal state in case you want to add 'Buy' back later, 
-  // but for now, it won't be triggered.
-  const [modal, setModal] = useState<{ open: boolean; type: 'deposit' | 'buy'; title: string }>({
-    open: false,
-    type: 'deposit',
-    title: ''
-  });
-
+export default function AuthPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // 👁️ State for visibility
+  const [loading, setLoading] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const router = useRouter();
-  const TSLA_PRICE = 3500; 
 
-  // 📞 WHATSAPP CONFIGURATION
-  const WA_NUMBER = "19803487946";
-  const WA_MESSAGE = encodeURIComponent("Hello, I would like to make a deposit into my investment account.");
-  const WHATSAPP_LINK = `https://wa.me/${WA_NUMBER}?text=${WA_MESSAGE}`;
-
-  const fetchData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push('/auth'); return; }
-    
-    // Fetch Profile
-    const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-    if (profileData) setProfile(profileData);
-
-    // Fetch Transactions
-    const { data: txData } = await supabase.from('transactions')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    if (txData) setTransactions(txData);
-
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchData();
-
-    const channel = supabase.channel('dashboard_updates')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, fetchData)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transactions' }, fetchData)
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [router]);
-
-  const triggerToast = (msg: string) => {
-    setShowToast({ show: true, msg });
-    setTimeout(() => setShowToast({ show: false, msg: '' }), 4000);
-  };
-
-  const handleTransaction = async (amount: number) => {
-    if (isNaN(amount) || amount <= 0) return;
-    setTxLoading(true);
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
     try {
-      if (modal.type === 'buy' && amount > profile.balance) throw new Error("Insufficient liquid balance.");
-
-      const newBalance = modal.type === 'deposit' ? profile.balance + amount : profile.balance - amount;
-      const newUnits = modal.type === 'buy' ? (profile.tesla_units || 0) + (amount / TSLA_PRICE) : (profile.tesla_units || 0);
-
-      await supabase.from('profiles').update({ balance: newBalance, tesla_units: newUnits }).eq('id', profile.id);
-      await supabase.from('transactions').insert({
-        user_id: profile.id,
-        type: modal.type === 'deposit' ? 'Deposit' : 'Buy TSLA',
-        amount: amount,
-        direction: modal.type === 'deposit' ? 'in' : 'out'
-      });
-
-      setModal({ ...modal, open: false });
-      triggerToast(`Successfully processed ${modal.type === 'buy' ? '$' + amount + ' TSLA buy' : 'deposit'}`);
-    } catch (err: any) {
-      alert(err.message);
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        router.push('/dashboard');
+      } else {
+        const { error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: { data: { balance: 0, tesla_units: 0 } }
+        });
+        if (error) throw error;
+        alert('Account created! Please sign in.');
+        setIsLogin(true);
+      }
+    } catch (error: any) {
+      alert(error.message);
     } finally {
-      setTxLoading(false);
+      setLoading(false);
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-[#D4AF37] animate-pulse">Connecting to Quantum Node...</div>;
-
-  const totalEquity = (profile?.balance || 0) + ((profile?.tesla_units || 0) * TSLA_PRICE);
-
   return (
-    <main className="min-h-screen bg-[#050505] text-white overflow-x-hidden">
-      <Navbar />
+    <div className="min-h-screen bg-black flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Background Ambience */}
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,#222,black)] z-0" />
       
-      {/* SUCCESS TOAST NOTIFICATION */}
-      <AnimatePresence>
-        {showToast.show && (
-          <motion.div 
-            initial={{ y: -100, opacity: 0 }} animate={{ y: 20, opacity: 1 }} exit={{ y: -100, opacity: 0 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-[200] bg-[#D4AF37] text-black px-6 py-4 rounded-2xl flex items-center gap-3 shadow-2xl font-bold uppercase tracking-widest text-[10px]"
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        className="w-full max-w-md bg-[#0a0a0a] border border-white/10 p-8 rounded-[2rem] relative z-10 shadow-2xl"
+      >
+        <div className="text-center mb-8">
+          <div className="inline-flex p-3 bg-white/5 rounded-2xl mb-4 border border-white/10">
+            <ShieldCheck size={32} className="text-[#D4AF37]" />
+          </div>
+          <h1 className="text-2xl font-serif text-white">{isLogin ? 'Welcome Back' : 'Join the Elite'}</h1>
+          <p className="text-gray-500 text-xs mt-2 uppercase tracking-widest">Secure Quantum Access</p>
+        </div>
+
+        <form onSubmit={handleAuth} className="space-y-4">
+          <div className="relative">
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+            <input 
+              type="email" 
+              placeholder="Email Address" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-black/50 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white outline-none focus:border-[#D4AF37] transition-all"
+              required 
+            />
+          </div>
+          
+          <div className="relative">
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+            <input 
+              type={showPassword ? "text" : "password"} // 👁️ Toggle Logic
+              placeholder="Password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-black/50 border border-white/10 rounded-xl py-4 pl-12 pr-12 text-white outline-none focus:border-[#D4AF37] transition-all"
+              required 
+            />
+            {/* 👁️ The Clickable Icon */}
+            <button 
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+
+          <button 
+            disabled={loading}
+            className="w-full py-4 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-xs rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2 mt-6"
           >
-            <CheckCircle size={18} /> {showToast.msg}
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {loading ? 'Processing...' : (isLogin ? 'Access Dashboard' : 'Create Portfolio')}
+            {!loading && <ArrowRight size={16} />}
+          </button>
+        </form>
 
-      <TransactionModal isOpen={modal.open} title={modal.title} loading={txLoading} onClose={() => setModal({ ...modal, open: false })} onConfirm={handleTransaction} />
-
-      <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
-        {/* STATS */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="p-8 rounded-3xl bg-[#0a0a0a] border border-white/10">
-            <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-2">Portfolio Equity</p>
-            <h2 className="text-3xl font-serif text-white">${totalEquity.toLocaleString()}</h2>
-          </div>
-          <div className="p-8 rounded-3xl bg-[#0a0a0a] border border-white/10">
-            <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-2">Available USD</p>
-            <h2 className="text-3xl font-serif text-[#D4AF37]">${(profile?.balance || 0).toLocaleString()}</h2>
-          </div>
-          <div className="p-8 rounded-3xl bg-[#0a0a0a] border border-[#D4AF37]/20">
-            <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-2">TSLA Units</p>
-            <h2 className="text-3xl font-serif text-white">{(profile?.tesla_units || 0).toFixed(4)}</h2>
-          </div>
-        </div>
-
-        {/* GRAPH */}
-        <div className="mb-12 p-8 bg-[#0a0a0a] border border-white/10 rounded-[2.5rem]">
-           <GrowthChart />
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* TERMINAL / TRADING HUB */}
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10">
-            <div className="flex items-center gap-3 mb-10"><Activity className="text-[#D4AF37]" size={20} /> <h3 className="text-sm font-bold uppercase tracking-widest">Trading Hub</h3></div>
-            <div className="space-y-4">
-              
-              {/* 🟢 SINGLE DEPOSIT BUTTON -> WHATSAPP 
-                  Replaces the old 'Buy TSLA' and 'Inject Liquidity' buttons.
-              */}
-              <a 
-                href={WHATSAPP_LINK}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-6 bg-[#D4AF37] text-black font-black uppercase tracking-widest text-[11px] rounded-2xl hover:bg-white hover:scale-[1.02] transition-all cursor-pointer shadow-[0_0_20px_rgba(212,175,55,0.2)]"
-              >
-                Deposit <ArrowUpRight size={14} />
-              </a>
-
-            </div>
-          </div>
-
-          {/* REAL LEDGER HISTORY */}
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10 max-h-[400px] overflow-y-auto">
-            <div className="flex items-center gap-3 mb-10"><History className="text-[#D4AF37]" size={20} /> <h3 className="text-sm font-bold uppercase tracking-widest">Ledger History</h3></div>
-            <div className="space-y-4">
-              {transactions.length > 0 ? transactions.map((tx) => (
-                <div key={tx.id} className="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/5">
-                  <div>
-                    <p className="text-white text-[11px] font-bold uppercase tracking-widest">{tx.type}</p>
-                    <p className="text-gray-500 text-[9px]">{new Date(tx.created_at).toLocaleDateString()}</p>
-                  </div>
-                  <p className={`font-mono text-sm ${tx.direction === 'in' ? 'text-green-500' : 'text-red-500'}`}>
-                    {tx.direction === 'in' ? '+' : '-'}${Number(tx.amount).toLocaleString()}
-                  </p>
-                </div>
-              )) : (
-                <p className="text-gray-600 text-center py-10 uppercase text-[10px] tracking-widest">No activity found</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    
-      <ProctorBanner />
-    </main>
+        <p className="text-center mt-6 text-gray-600 text-xs cursor-pointer hover:text-[#D4AF37] transition-colors uppercase tracking-wider" onClick={() => setIsLogin(!isLogin)}>
+          {isLogin ? "New Investor? Apply for Access" : "Already a Member? Login"}
+        </p>
+      </motion.div>
+    </div>
   );
 }
 EOF
 
-echo "✅ DASHBOARD UPDATED: NOW FEATURING SINGLE 'DEPOSIT' BUTTON."
+echo "✅ LOGIN PAGE UPDATED WITH EYE ICON."
