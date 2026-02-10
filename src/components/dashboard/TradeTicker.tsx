@@ -14,8 +14,7 @@ const trades = [
 ];
 
 const TickerItem = ({ item }: { item: any }) => (
-  // INLINE-BLOCK is faster for mobile GPUs than Flexbox
-  <div className="inline-flex items-center gap-4 px-6 align-middle">
+  <div className="flex items-center gap-4 px-6 shrink-0">
     <span className="font-bold text-xs tracking-wider text-gray-500">
       {item.pair}
     </span>
@@ -35,42 +34,40 @@ function TradeTicker() {
   return (
     <div className="w-full bg-[#050505] border-b border-white/5 py-3 relative z-50 overflow-hidden select-none">
       
-      {/* THE "MAGIC" WRAPPER 
-         1. whitespace-nowrap: Forces everything into one long line.
-         2. will-change-transform: Tells mobile browser to prioritize this layer.
-         3. No Flexbox in the parent: Reduces recalculation lag.
-      */}
-      <div 
-        className="whitespace-nowrap w-max animate-infinite-scroll"
-        style={{
-          transform: 'translate3d(0, 0, 0)', // Force Hardware Acceleration
-        }}
-      >
-        {/* QUADRUPLE CLONE STRATEGY 
-           We repeat the list 4 times. This guarantees that even on huge screens 
-           or slow scrolls, the user NEVER sees the "jump" or blank space.
-        */}
-        {trades.map((t, i) => <TickerItem key={`a-${i}`} item={t} />)}
-        {trades.map((t, i) => <TickerItem key={`b-${i}`} item={t} />)}
-        {trades.map((t, i) => <TickerItem key={`c-${i}`} item={t} />)}
-        {trades.map((t, i) => <TickerItem key={`d-${i}`} item={t} />)}
+      {/* THE DUAL-WIELD CONTAINER */}
+      <div className="flex w-full overflow-hidden mask-gradient">
+        
+        {/* LIST 1: Moves from 0% to -100% */}
+        <div className="flex animate-marquee min-w-full shrink-0 items-center justify-around">
+           {trades.map((t, i) => <TickerItem key={`a-${i}`} item={t} />)}
+        </div>
+
+        {/* LIST 2: Moves from 0% to -100% (Follows perfectly) */}
+        <div className="flex animate-marquee min-w-full shrink-0 items-center justify-around">
+           {trades.map((t, i) => <TickerItem key={`b-${i}`} item={t} />)}
+        </div>
+
       </div>
 
       <style jsx>{`
-        @keyframes scroll {
-          0% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(-25%, 0, 0); } /* Move exactly 1/4th (one set) */
+        .mask-gradient {
+          mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
         }
-        
-        .animate-infinite-scroll {
-          display: inline-block; /* Crucial for smoothness */
-          animation: scroll 45s linear infinite; /* Slower = Smoother perception */
-          will-change: transform;
+
+        @keyframes marquee {
+          from { transform: translateX(0); }
+          to { transform: translateX(-100%); }
+        }
+
+        .animate-marquee {
+          /* 60s is extremely slow & smooth. Linear makes it constant. */
+          animation: marquee 60s linear infinite;
+          will-change: transform; /* Tells the mobile GPU to take over */
         }
       `}</style>
     </div>
   );
 }
 
-// Strictly prevent re-renders
+// Stop re-renders
 export default memo(TradeTicker);
