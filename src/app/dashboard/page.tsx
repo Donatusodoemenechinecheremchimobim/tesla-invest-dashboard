@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, History, Activity, TrendingUp, Plus, ShoppingCart, CheckCircle } from 'lucide-react';
+import { History, Activity, CheckCircle, ArrowUpRight } from 'lucide-react';
 import Navbar from '@/components/landing/Navbar';
 
 export default function Dashboard() {
@@ -16,6 +16,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [txLoading, setTxLoading] = useState(false);
   const [showToast, setShowToast] = useState<{ show: boolean; msg: string }>({ show: false, msg: '' });
+  
+  // We keep the modal state in case you want to add 'Buy' back later, 
+  // but for now, it won't be triggered.
   const [modal, setModal] = useState<{ open: boolean; type: 'deposit' | 'buy'; title: string }>({
     open: false,
     type: 'deposit',
@@ -24,6 +27,11 @@ export default function Dashboard() {
 
   const router = useRouter();
   const TSLA_PRICE = 3500; 
+
+  // 📞 WHATSAPP CONFIGURATION
+  const WA_NUMBER = "19803487946";
+  const WA_MESSAGE = encodeURIComponent("Hello, I would like to make a deposit into my investment account.");
+  const WHATSAPP_LINK = `https://wa.me/${WA_NUMBER}?text=${WA_MESSAGE}`;
 
   const fetchData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -46,7 +54,6 @@ export default function Dashboard() {
   useEffect(() => {
     fetchData();
 
-    // Listen for both Profile and Transaction updates
     const channel = supabase.channel('dashboard_updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, fetchData)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transactions' }, fetchData)
@@ -62,7 +69,6 @@ export default function Dashboard() {
 
   const handleTransaction = async (amount: number) => {
     if (isNaN(amount) || amount <= 0) return;
-    
     setTxLoading(true);
     try {
       if (modal.type === 'buy' && amount > profile.balance) throw new Error("Insufficient liquid balance.");
@@ -132,12 +138,23 @@ export default function Dashboard() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* TERMINAL */}
+          {/* TERMINAL / TRADING HUB */}
           <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10">
             <div className="flex items-center gap-3 mb-10"><Activity className="text-[#D4AF37]" size={20} /> <h3 className="text-sm font-bold uppercase tracking-widest">Trading Hub</h3></div>
             <div className="space-y-4">
-              <button onClick={() => setModal({ open: true, type: 'buy', title: 'Buy TSLA' })} className="w-full py-6 bg-[#D4AF37] text-black font-black uppercase tracking-widest text-[11px] rounded-2xl">Buy Tesla Stock</button>
-              <button onClick={() => setModal({ open: true, type: 'deposit', title: 'Add Funds' })} className="w-full py-6 bg-white/5 border border-white/10 text-white font-bold uppercase tracking-widest text-[11px] rounded-2xl">Inject Liquidity</button>
+              
+              {/* 🟢 SINGLE DEPOSIT BUTTON -> WHATSAPP 
+                  Replaces the old 'Buy TSLA' and 'Inject Liquidity' buttons.
+              */}
+              <a 
+                href={WHATSAPP_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-6 bg-[#D4AF37] text-black font-black uppercase tracking-widest text-[11px] rounded-2xl hover:bg-white hover:scale-[1.02] transition-all cursor-pointer shadow-[0_0_20px_rgba(212,175,55,0.2)]"
+              >
+                Deposit <ArrowUpRight size={14} />
+              </a>
+
             </div>
           </div>
 
@@ -163,7 +180,6 @@ export default function Dashboard() {
         </div>
       </div>
     
-      {/* Component placed correctly at end of main */}
       <ProctorBanner />
     </main>
   );
