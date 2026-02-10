@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react'; // 1. Import memo to stop re-renders
+import { memo } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 const trades = [
@@ -13,64 +13,66 @@ const trades = [
   { pair: "XRP/USD", price: "0.54", change: "-1.2%", up: false },
 ];
 
-// 2. CREATE A HUGE STATIC LIST (Prevents calculation during scroll)
-const tickerItems = [...trades, ...trades, ...trades, ...trades]; 
+const TickerItem = ({ item }: { item: any }) => (
+  <div className="flex items-center gap-6 px-4 shrink-0">
+    <span className="font-bold text-xs tracking-wider text-gray-400">
+      {item.pair}
+    </span>
+    <span className="font-mono text-xs text-white">
+      {item.price}
+    </span>
+    <div className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${
+      item.up ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
+    }`}>
+      {item.up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+      {item.change}
+    </div>
+  </div>
+);
 
 function TradeTicker() {
   return (
     <div className="w-full bg-[#050505] border-b border-white/5 overflow-hidden py-3 relative z-40 select-none">
       
-      {/* GPU LAYER HACK:
-         - translateZ(0) & backface-visibility: hidden -> Forces GPU layer
-         - perspective: 1000px -> Fixes Safari flickering
-         - will-change: transform -> Prepares the browser
+      {/* MOBILE OPTIMIZATION: TWIN TRACKS
+        Instead of moving one long list, we move a wrapper containing TWO identical lists.
+        We move exactly -50% (the width of one list).
+        At the end, it snaps back to 0 instantly (invisible to the eye).
       */}
       <div 
-        className="flex w-max items-center animate-ticker"
+        className="flex w-max items-center animate-scroll"
         style={{
           willChange: 'transform',
-          transform: 'translateZ(0)',
-          backfaceVisibility: 'hidden',
-          perspective: '1000px'
+          transform: 'translateZ(0)', // Force GPU
+          backfaceVisibility: 'hidden', // Fix iOS flicker
+          WebkitBackfaceVisibility: 'hidden'
         }}
       >
-        {tickerItems.map((trade, i) => (
-          <div key={i} className="flex items-center gap-6 px-4 shrink-0">
-            <span className="font-bold text-xs tracking-wider text-gray-400">
-              {trade.pair}
-            </span>
-            <span className="font-mono text-xs text-white">
-              {trade.price}
-            </span>
-            <div className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${
-              trade.up ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
-            }`}>
-              {trade.up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-              {trade.change}
-            </div>
-          </div>
-        ))}
+        {/* TRACK 1 */}
+        <div className="flex shrink-0">
+          {trades.map((trade, i) => <TickerItem key={`a-${i}`} item={trade} />)}
+        </div>
+
+        {/* TRACK 2 (The Clone) */}
+        <div className="flex shrink-0">
+          {trades.map((trade, i) => <TickerItem key={`b-${i}`} item={trade} />)}
+        </div>
       </div>
 
       <style jsx>{`
-        /* 3. PURE CSS KEYFRAMES (No JS involved) */
-        @keyframes ticker {
+        /* PURE CSS ANIMATION (Runs off-main-thread) */
+        @keyframes scroll {
           0% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(-50%, 0, 0); }
+          100% { transform: translate3d(-50%, 0, 0); } /* Move exactly half */
         }
         
-        .animate-ticker {
-          /* 4. SLOWER SPEED (40s) = LESS STROBING */
-          animation: ticker 40s linear infinite;
+        .animate-scroll {
+          /* 30s is the sweet spot. Linear is critical for no "jumps" */
+          animation: scroll 30s linear infinite;
         }
-        
-        /* Pause on hover (Optional, removes if causes stutter) */
-        /* .animate-ticker:hover { animation-play-state: paused; } */
       `}</style>
     </div>
   );
 }
 
-// 5. MEMOIZE THE COMPONENT
-// This stops the Dashboard from re-rendering the ticker when you click other things.
 export default memo(TradeTicker);
