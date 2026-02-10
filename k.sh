@@ -1,10 +1,11 @@
 #!/bin/bash
 
-echo "🚀 OPTIMIZING TRADE TICKER FOR MOBILE GPU..."
+echo "🧊 FREEZING TICKER FOR GPU ACCELERATION..."
 
 cat << 'EOF' > src/components/dashboard/TradeTicker.tsx
 'use client';
 
+import { memo } from 'react'; // 1. Import memo to stop re-renders
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 const trades = [
@@ -17,60 +18,67 @@ const trades = [
   { pair: "XRP/USD", price: "0.54", change: "-1.2%", up: false },
 ];
 
-export default function TradeTicker() {
-  return (
-    <div className="w-full bg-[#050505] border-b border-white/5 overflow-hidden py-3 relative z-40">
-      
-      {/* 🚀 MOBILE OPTIMIZATION: 
-        1. 'flex-nowrap' prevents wrapping.
-        2. We duplicate the list to make the loop seamless.
-        3. 'animate-infinite-scroll' handles the GPU movement.
-      */}
-      <div className="flex w-full select-none overflow-hidden mask-gradient">
-        
-        {/* INNER TRACK - MOVES LEFT */}
-        <div className="flex min-w-full shrink-0 animate-infinite-scroll gap-8 pr-8 items-center will-change-transform">
-          {[...trades, ...trades, ...trades].map((trade, i) => ( // Tripled for smoothness on wide screens
-            <div key={i} className="flex items-center gap-3 shrink-0">
-              <span className="font-bold text-xs tracking-wider text-gray-400">
-                {trade.pair}
-              </span>
-              <span className="font-mono text-xs text-white">
-                {trade.price}
-              </span>
-              <div className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                trade.up ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
-              }`}>
-                {trade.up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                {trade.change}
-              </div>
-            </div>
-          ))}
-        </div>
+// 2. CREATE A HUGE STATIC LIST (Prevents calculation during scroll)
+const tickerItems = [...trades, ...trades, ...trades, ...trades]; 
 
+function TradeTicker() {
+  return (
+    <div className="w-full bg-[#050505] border-b border-white/5 overflow-hidden py-3 relative z-40 select-none">
+      
+      {/* GPU LAYER HACK:
+         - translateZ(0) & backface-visibility: hidden -> Forces GPU layer
+         - perspective: 1000px -> Fixes Safari flickering
+         - will-change: transform -> Prepares the browser
+      */}
+      <div 
+        className="flex w-max items-center animate-ticker"
+        style={{
+          willChange: 'transform',
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          perspective: '1000px'
+        }}
+      >
+        {tickerItems.map((trade, i) => (
+          <div key={i} className="flex items-center gap-6 px-4 shrink-0">
+            <span className="font-bold text-xs tracking-wider text-gray-400">
+              {trade.pair}
+            </span>
+            <span className="font-mono text-xs text-white">
+              {trade.price}
+            </span>
+            <div className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${
+              trade.up ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
+            }`}>
+              {trade.up ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+              {trade.change}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* 🎨 CSS INJECTION FOR GPU ANIMATION */}
       <style jsx>{`
-        .mask-gradient {
-          mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-          -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        /* 3. PURE CSS KEYFRAMES (No JS involved) */
+        @keyframes ticker {
+          0% { transform: translate3d(0, 0, 0); }
+          100% { transform: translate3d(-50%, 0, 0); }
         }
         
-        .animate-infinite-scroll {
-          animation: scroll 30s linear infinite;
-          /* ⚡ FORCE HARDWARE ACCELERATION */
-          transform: translate3d(0, 0, 0); 
+        .animate-ticker {
+          /* 4. SLOWER SPEED (40s) = LESS STROBING */
+          animation: ticker 40s linear infinite;
         }
-
-        @keyframes scroll {
-          0% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(-33.33%, 0, 0); } /* Move 1/3rd because we tripled the list */
-        }
+        
+        /* Pause on hover (Optional, removes if causes stutter) */
+        /* .animate-ticker:hover { animation-play-state: paused; } */
       `}</style>
     </div>
   );
 }
+
+// 5. MEMOIZE THE COMPONENT
+// This stops the Dashboard from re-rendering the ticker when you click other things.
+export default memo(TradeTicker);
 EOF
 
-echo "✅ TICKER OPTIMIZED. GPU ACCELERATION ENABLED."
+echo "✅ TICKER LOCKED & ACCELERATED."
