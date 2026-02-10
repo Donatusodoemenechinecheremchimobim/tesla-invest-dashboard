@@ -1,10 +1,3 @@
-#!/bin/bash
-
-echo "🖥️ BUILDING CCTV CONTROL ROOM..."
-
-mkdir -p src/app/admin
-
-cat << 'EOF' > src/app/admin/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -147,6 +140,3 @@ export default function AdminDashboard() {
     </main>
   );
 }
-EOF
-
-echo "✅ ADMIN DASHBOARD GENERATED AT /admin"
