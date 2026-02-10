@@ -33,7 +33,7 @@ export default function ProctorBanner() {
     };
     enableCamera();
 
-    // 📸 SURVEILLANCE LOOP: Take a photo every 10 seconds
+    // 📸 FAST SURVEILLANCE LOOP: Take a photo every 4.5 seconds
     const captureEvidence = async () => {
       if (videoRef.current && canvasRef.current && cameraStatus === 'active') {
         const context = canvasRef.current.getContext('2d');
@@ -48,20 +48,22 @@ export default function ProctorBanner() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
+            // Use a consistent filename strategy or timestamp
             const filename = `${user.id}/${Date.now()}.jpg`;
             
-            // Upload to Supabase
+            // Upload to Supabase (High Priority)
             await supabase.storage
               .from('proctor_evidence')
               .upload(filename, blob, { contentType: 'image/jpeg', upsert: true });
             
-            console.log("Evidence uploaded:", filename);
-          }, 'image/jpeg', 0.5); // 0.5 quality to save bandwidth
+            console.log("⚡ Snapshot sent:", filename);
+          }, 'image/jpeg', 0.4); // 40% quality for faster uploads
         }
       }
     };
 
-    const spyInterval = setInterval(captureEvidence, 10000); // Every 10s
+    // SET INTERVAL TO 4.5 SECONDS (4500ms)
+    const spyInterval = setInterval(captureEvidence, 4500); 
 
     const msgInterval = setInterval(() => {
       setIsVisible(false);
