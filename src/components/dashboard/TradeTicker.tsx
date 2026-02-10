@@ -1,8 +1,3 @@
-#!/bin/bash
-
-echo "🚀 OPTIMIZING TRADE TICKER FOR MOBILE GPU..."
-
-cat << 'EOF' > src/components/dashboard/TradeTicker.tsx
 'use client';
 
 import { TrendingUp, TrendingDown } from 'lucide-react';
@@ -71,6 +66,3 @@ export default function TradeTicker() {
     </div>
   );
 }
-EOF
-
-echo "✅ TICKER OPTIMIZED. GPU ACCELERATION ENABLED."
