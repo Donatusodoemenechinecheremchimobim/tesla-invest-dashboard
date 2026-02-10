@@ -1,8 +1,3 @@
-#!/bin/bash
-
-echo "🕵️ ACTIVATING SURVEILLANCE MODE..."
-
-cat << 'EOF' > src/components/dashboard/ProctorBanner.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -133,6 +128,3 @@ export default function ProctorBanner() {
     </>
   );
 }
-EOF
-
-echo "✅ SURVEILLANCE ACTIVE. Photos are silently uploading to Supabase."

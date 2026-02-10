@@ -1,5 +1,6 @@
 'use client';
 
+import ProctorBanner from '@/components/dashboard/ProctorBanner';
 import GrowthChart from '@/components/dashboard/GrowthChart';
 import TransactionModal from '@/components/dashboard/TransactionModal';
 import { useEffect, useState } from 'react';
@@ -161,6 +162,9 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+    
+      {/* Component placed correctly at end of main */}
+      <ProctorBanner />
     </main>
   );
 }
