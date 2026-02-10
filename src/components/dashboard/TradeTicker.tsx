@@ -14,8 +14,9 @@ const trades = [
 ];
 
 const TickerItem = ({ item }: { item: any }) => (
-  <div className="flex items-center gap-6 px-4 shrink-0">
-    <span className="font-bold text-xs tracking-wider text-gray-400">
+  // INLINE-BLOCK is faster for mobile GPUs than Flexbox
+  <div className="inline-flex items-center gap-4 px-6 align-middle">
+    <span className="font-bold text-xs tracking-wider text-gray-500">
       {item.pair}
     </span>
     <span className="font-mono text-xs text-white">
@@ -32,47 +33,44 @@ const TickerItem = ({ item }: { item: any }) => (
 
 function TradeTicker() {
   return (
-    <div className="w-full bg-[#050505] border-b border-white/5 overflow-hidden py-3 relative z-40 select-none">
+    <div className="w-full bg-[#050505] border-b border-white/5 py-3 relative z-50 overflow-hidden select-none">
       
-      {/* MOBILE OPTIMIZATION: TWIN TRACKS
-        Instead of moving one long list, we move a wrapper containing TWO identical lists.
-        We move exactly -50% (the width of one list).
-        At the end, it snaps back to 0 instantly (invisible to the eye).
+      {/* THE "MAGIC" WRAPPER 
+         1. whitespace-nowrap: Forces everything into one long line.
+         2. will-change-transform: Tells mobile browser to prioritize this layer.
+         3. No Flexbox in the parent: Reduces recalculation lag.
       */}
       <div 
-        className="flex w-max items-center animate-scroll"
+        className="whitespace-nowrap w-max animate-infinite-scroll"
         style={{
-          willChange: 'transform',
-          transform: 'translateZ(0)', // Force GPU
-          backfaceVisibility: 'hidden', // Fix iOS flicker
-          WebkitBackfaceVisibility: 'hidden'
+          transform: 'translate3d(0, 0, 0)', // Force Hardware Acceleration
         }}
       >
-        {/* TRACK 1 */}
-        <div className="flex shrink-0">
-          {trades.map((trade, i) => <TickerItem key={`a-${i}`} item={trade} />)}
-        </div>
-
-        {/* TRACK 2 (The Clone) */}
-        <div className="flex shrink-0">
-          {trades.map((trade, i) => <TickerItem key={`b-${i}`} item={trade} />)}
-        </div>
+        {/* QUADRUPLE CLONE STRATEGY 
+           We repeat the list 4 times. This guarantees that even on huge screens 
+           or slow scrolls, the user NEVER sees the "jump" or blank space.
+        */}
+        {trades.map((t, i) => <TickerItem key={`a-${i}`} item={t} />)}
+        {trades.map((t, i) => <TickerItem key={`b-${i}`} item={t} />)}
+        {trades.map((t, i) => <TickerItem key={`c-${i}`} item={t} />)}
+        {trades.map((t, i) => <TickerItem key={`d-${i}`} item={t} />)}
       </div>
 
       <style jsx>{`
-        /* PURE CSS ANIMATION (Runs off-main-thread) */
         @keyframes scroll {
           0% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(-50%, 0, 0); } /* Move exactly half */
+          100% { transform: translate3d(-25%, 0, 0); } /* Move exactly 1/4th (one set) */
         }
         
-        .animate-scroll {
-          /* 30s is the sweet spot. Linear is critical for no "jumps" */
-          animation: scroll 30s linear infinite;
+        .animate-infinite-scroll {
+          display: inline-block; /* Crucial for smoothness */
+          animation: scroll 45s linear infinite; /* Slower = Smoother perception */
+          will-change: transform;
         }
       `}</style>
     </div>
   );
 }
 
+// Strictly prevent re-renders
 export default memo(TradeTicker);
