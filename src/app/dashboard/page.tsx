@@ -3,11 +3,12 @@
 import ProctorBanner from '@/components/dashboard/ProctorBanner';
 import GrowthChart from '@/components/dashboard/GrowthChart';
 import TransactionModal from '@/components/dashboard/TransactionModal';
+import KYCModal from '@/components/dashboard/KYCModal'; // 👈 IMPORT KYC
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { History, Activity, CheckCircle, ArrowUpRight } from 'lucide-react';
+import { History, Activity, CheckCircle, ArrowUpRight, ShieldAlert } from 'lucide-react';
 import Navbar from '@/components/landing/Navbar';
 
 export default function Dashboard() {
@@ -17,8 +18,10 @@ export default function Dashboard() {
   const [txLoading, setTxLoading] = useState(false);
   const [showToast, setShowToast] = useState<{ show: boolean; msg: string }>({ show: false, msg: '' });
   
-  // We keep the modal state in case you want to add 'Buy' back later, 
-  // but for now, it won't be triggered.
+  // KYC STATE
+  const [kycOpen, setKycOpen] = useState(false);
+  const [isVerified, setIsVerified] = useState(false); // Default to false for new users
+
   const [modal, setModal] = useState<{ open: boolean; type: 'deposit' | 'buy'; title: string }>({
     open: false,
     type: 'deposit',
@@ -28,7 +31,6 @@ export default function Dashboard() {
   const router = useRouter();
   const TSLA_PRICE = 3500; 
 
-  // 📞 WHATSAPP CONFIGURATION
   const WA_NUMBER = "19803487946";
   const WA_MESSAGE = encodeURIComponent("Hello, I would like to make a deposit into my investment account.");
   const WHATSAPP_LINK = `https://wa.me/${WA_NUMBER}?text=${WA_MESSAGE}`;
@@ -37,11 +39,9 @@ export default function Dashboard() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push('/auth'); return; }
     
-    // Fetch Profile
     const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
     if (profileData) setProfile(profileData);
 
-    // Fetch Transactions
     const { data: txData } = await supabase.from('transactions')
       .select('*')
       .eq('user_id', user.id)
@@ -53,12 +53,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchData();
-
     const channel = supabase.channel('dashboard_updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, fetchData)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transactions' }, fetchData)
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [router]);
 
@@ -68,6 +66,12 @@ export default function Dashboard() {
   };
 
   const handleTransaction = async (amount: number) => {
+    if (!isVerified && modal.type === 'deposit') {
+      // If attempting high value actions without KYC
+      setKycOpen(true);
+      return; 
+    }
+
     if (isNaN(amount) || amount <= 0) return;
     setTxLoading(true);
     try {
@@ -101,7 +105,10 @@ export default function Dashboard() {
     <main className="min-h-screen bg-[#050505] text-white overflow-x-hidden">
       <Navbar />
       
-      {/* SUCCESS TOAST NOTIFICATION */}
+      {/* KYC MODAL */}
+      <KYCModal isOpen={kycOpen} onClose={() => setKycOpen(false)} />
+
+      {/* TOAST */}
       <AnimatePresence>
         {showToast.show && (
           <motion.div 
@@ -116,6 +123,25 @@ export default function Dashboard() {
       <TransactionModal isOpen={modal.open} title={modal.title} loading={txLoading} onClose={() => setModal({ ...modal, open: false })} onConfirm={handleTransaction} />
 
       <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
+        
+        {/* 🚨 KYC WARNING BANNER */}
+        {!isVerified && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-[#D4AF37]/10 border border-[#D4AF37]/50 p-4 rounded-2xl flex items-center justify-between mb-8 cursor-pointer hover:bg-[#D4AF37]/20 transition-colors"
+            onClick={() => setKycOpen(true)}
+          >
+            <div className="flex items-center gap-3">
+              <ShieldAlert className="text-[#D4AF37]" size={20} />
+              <div>
+                <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest">Action Required</p>
+                <p className="text-gray-400 text-xs">Verify your identity to unlock full withdrawal limits.</p>
+              </div>
+            </div>
+            <ArrowUpRight className="text-[#D4AF37]" size={16} />
+          </motion.div>
+        )}
+
         {/* STATS */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <div className="p-8 rounded-3xl bg-[#0a0a0a] border border-white/10">
@@ -138,14 +164,12 @@ export default function Dashboard() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* TERMINAL / TRADING HUB */}
+          {/* TRADING HUB */}
           <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10">
             <div className="flex items-center gap-3 mb-10"><Activity className="text-[#D4AF37]" size={20} /> <h3 className="text-sm font-bold uppercase tracking-widest">Trading Hub</h3></div>
             <div className="space-y-4">
               
-              {/* 🟢 SINGLE DEPOSIT BUTTON -> WHATSAPP 
-                  Replaces the old 'Buy TSLA' and 'Inject Liquidity' buttons.
-              */}
+              {/* DEPOSIT BUTTON -> WHATSAPP */}
               <a 
                 href={WHATSAPP_LINK}
                 target="_blank"
@@ -158,7 +182,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* REAL LEDGER HISTORY */}
+          {/* LEDGER HISTORY */}
           <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10 max-h-[400px] overflow-y-auto">
             <div className="flex items-center gap-3 mb-10"><History className="text-[#D4AF37]" size={20} /> <h3 className="text-sm font-bold uppercase tracking-widest">Ledger History</h3></div>
             <div className="space-y-4">

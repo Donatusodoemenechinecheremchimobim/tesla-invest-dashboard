@@ -1,8 +1,3 @@
-#!/bin/bash
-
-echo "🔐 UPGRADING KYC: ADDING SSN & DOCUMENT TYPE SELECTOR..."
-
-cat << 'EOF' > src/components/dashboard/KYCModal.tsx
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -154,6 +149,3 @@ export default function KYCModal({ isOpen, onClose }: { isOpen: boolean; onClose
     </AnimatePresence>
   );
 }
-EOF
-
-echo "✅ KYC MODAL UPGRADED: SSN & DOC SELECTOR ADDED."
