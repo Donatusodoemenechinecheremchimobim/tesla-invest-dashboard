@@ -1,8 +1,3 @@
-#!/bin/bash
-
-echo "📝 UPDATING SPLASH SCREEN TEXT..."
-
-cat << 'EOF' > src/components/intro/SplashScreen.tsx
 'use client';
 
 import { motion } from 'framer-motion';
@@ -66,6 +61,3 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
     </motion.div>
   );
 }
-EOF
-
-echo "✅ SPLASH SCREEN TEXT UPDATED TO 'INVESTMENTTESLA'."
