@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { History, Activity, CheckCircle, ArrowUpRight, ShieldAlert } from 'lucide-react';
+import { History, Activity, CheckCircle, ArrowUpRight, ShieldAlert, Clock, XCircle, Lock } from 'lucide-react';
 import Navbar from '@/components/landing/Navbar';
 
 export default function Dashboard() {
@@ -18,9 +18,9 @@ export default function Dashboard() {
   const [txLoading, setTxLoading] = useState(false);
   const [showToast, setShowToast] = useState<{ show: boolean; msg: string }>({ show: false, msg: '' });
   
-  // 🔐 REAL KYC GATING
+  // KYC STATE
   const [kycOpen, setKycOpen] = useState(false);
-  const [isVerified, setIsVerified] = useState(false); 
+  const [kycStatus, setKycStatus] = useState<'none' | 'pending' | 'rejected' | 'approved'>('none');
 
   const [modal, setModal] = useState<{ open: boolean; type: 'deposit' | 'buy'; title: string }>({
     open: false, type: 'deposit', title: ''
@@ -36,14 +36,10 @@ export default function Dashboard() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push('/auth'); return; }
     
-    // FETCH PROFILE & CHECK VERIFICATION STATUS
     const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
     if (profileData) {
       setProfile(profileData);
-      // 🟢 REAL DB CHECK
-      if (profileData.is_verified === true) {
-         setIsVerified(true);
-      }
+      setKycStatus(profileData.kyc_status || 'none'); // Get status from DB
     }
 
     const { data: txData } = await supabase.from('transactions')
@@ -71,9 +67,12 @@ export default function Dashboard() {
 
   // 🛑 INTERCEPT DEPOSIT
   const handleDepositClick = (e: React.MouseEvent) => {
-    if (!isVerified) {
-      e.preventDefault(); 
-      setKycOpen(true);
+    if (kycStatus !== 'approved') {
+      e.preventDefault();
+      // Only open modal if NOT pending (if pending, they just wait)
+      if (kycStatus !== 'pending') {
+        setKycOpen(true);
+      }
     }
   };
 
@@ -108,7 +107,9 @@ export default function Dashboard() {
   return (
     <main className="min-h-screen bg-[#050505] text-white overflow-x-hidden">
       <Navbar />
-      <KYCModal isOpen={kycOpen} onClose={() => setKycOpen(false)} />
+      
+      {/* PASS STATUS TO MODAL SO IT KNOWS IF REJECTED */}
+      <KYCModal isOpen={kycOpen} status={kycStatus} onClose={() => setKycOpen(false)} />
 
       <AnimatePresence>
         {showToast.show && (
@@ -121,24 +122,26 @@ export default function Dashboard() {
 
       <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
         
-        {/* 🚨 KYC WARNING BANNER */}
-        {!isVerified && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-[#D4AF37]/10 border border-[#D4AF37]/50 p-4 rounded-2xl flex items-center justify-between mb-8 cursor-pointer hover:bg-[#D4AF37]/20 transition-colors"
-            onClick={() => setKycOpen(true)}
-          >
-            <div className="flex items-center gap-3">
-              <ShieldAlert className="text-[#D4AF37]" size={20} />
-              <div>
-                <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest">Verification Required</p>
-                <p className="text-gray-400 text-xs">Deposits and withdrawals are locked until identity verification is complete.</p>
-              </div>
-            </div>
-            <ArrowUpRight className="text-[#D4AF37]" size={16} />
+        {/* 🚦 SMART KYC STATUS BANNER */}
+        {kycStatus === 'none' && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} onClick={() => setKycOpen(true)} className="bg-[#D4AF37]/10 border border-[#D4AF37]/50 p-4 rounded-2xl flex items-center justify-between mb-8 cursor-pointer hover:bg-[#D4AF37]/20 transition-colors">
+            <div className="flex items-center gap-3"><ShieldAlert className="text-[#D4AF37]" size={20} /><div><p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest">Verification Required</p><p className="text-gray-400 text-xs">Identity verification is required to unlock deposits.</p></div></div><ArrowUpRight className="text-[#D4AF37]" size={16} />
           </motion.div>
         )}
 
+        {kycStatus === 'pending' && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-yellow-500/10 border border-yellow-500/50 p-4 rounded-2xl flex items-center justify-between mb-8 cursor-wait">
+            <div className="flex items-center gap-3"><Clock className="text-yellow-500" size={20} /><div><p className="text-yellow-500 text-xs font-bold uppercase tracking-widest">Verification Pending</p><p className="text-gray-400 text-xs">Our compliance team is reviewing your documents (Est. 2-4 hrs).</p></div></div>
+          </motion.div>
+        )}
+
+        {kycStatus === 'rejected' && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} onClick={() => setKycOpen(true)} className="bg-red-500/10 border border-red-500/50 p-4 rounded-2xl flex items-center justify-between mb-8 cursor-pointer hover:bg-red-500/20 transition-colors">
+            <div className="flex items-center gap-3"><XCircle className="text-red-500" size={20} /><div><p className="text-red-500 text-xs font-bold uppercase tracking-widest">Verification Denied</p><p className="text-gray-400 text-xs">Your documents were rejected. Click here to try again.</p></div></div><ArrowUpRight className="text-red-500" size={16} />
+          </motion.div>
+        )}
+
+        {/* STATS */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <div className="p-8 rounded-3xl bg-[#0a0a0a] border border-white/10">
             <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-2">Portfolio Equity</p>
@@ -163,16 +166,22 @@ export default function Dashboard() {
             <div className="flex items-center gap-3 mb-10"><Activity className="text-[#D4AF37]" size={20} /> <h3 className="text-sm font-bold uppercase tracking-widest">Trading Hub</h3></div>
             <div className="space-y-4">
               
-              {/* 🟢 LOCKED DEPOSIT BUTTON */}
+              {/* 🟢 SMART DEPOSIT BUTTON */}
               <a 
-                href={isVerified ? WHATSAPP_LINK : "#"} 
+                href={kycStatus === 'approved' ? WHATSAPP_LINK : "#"} 
                 onClick={handleDepositClick} 
-                target={isVerified ? "_blank" : "_self"}
+                target={kycStatus === 'approved' ? "_blank" : "_self"}
                 rel="noopener noreferrer"
                 className={`flex items-center justify-center gap-2 w-full py-6 font-black uppercase tracking-widest text-[11px] rounded-2xl transition-all shadow-[0_0_20px_rgba(212,175,55,0.2)] 
-                  ${isVerified ? 'bg-[#D4AF37] text-black hover:bg-white hover:scale-[1.02] cursor-pointer' : 'bg-white/5 text-gray-400 cursor-not-allowed hover:bg-white/10 border border-white/10'}`}
+                  ${kycStatus === 'approved' ? 'bg-[#D4AF37] text-black hover:bg-white hover:scale-[1.02] cursor-pointer' : 'bg-white/5 text-gray-500 cursor-not-allowed border border-white/10'}`}
               >
-                {isVerified ? "Deposit" : "Verification Required to Deposit"} {isVerified && <ArrowUpRight size={14} />}
+                {kycStatus === 'approved' ? (
+                   <>Deposit <ArrowUpRight size={14} /></>
+                ) : kycStatus === 'pending' ? (
+                   <><Clock size={14} /> Verification Pending</>
+                ) : (
+                   <><Lock size={14} /> Deposit Locked</>
+                )}
               </a>
 
             </div>
