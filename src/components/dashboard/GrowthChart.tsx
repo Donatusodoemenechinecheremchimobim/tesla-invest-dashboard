@@ -1,65 +1,68 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { format, parseISO } from 'date-fns';
 
-export default function GrowthChart() {
-  const [data, setData] = useState<any[]>([]);
+// 🔮 FUTURE GROWTH DATA (INFLATED OPTIMISTIC MODEL)
+// Starts realistic, then accelerates into a "Hockey Stick" curve.
+const data = [
+  { year: '2025', price: 210, label: 'Current' },
+  { year: '2026', price: 450, label: 'Robotaxi Launch' },
+  { year: '2027', price: 980, label: 'Optimus Scale' },
+  { year: '2028', price: 1650, label: 'Energy Dominance' },
+  { year: '2029', price: 2400, label: 'Global FSD' },
+  { year: '2030', price: 3450, label: 'Market Leader' },
+];
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: history } = await supabase
-        .from('transactions')
-        .select('created_at, amount, direction')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
-
-      if (history) {
-        let runningBalance = 0;
-        const chartData = history.map((tx: any) => {
-          runningBalance += tx.direction === 'in' ? Number(tx.amount) : -Number(tx.amount);
-          return {
-            date: format(parseISO(tx.created_at), 'MMM dd'),
-            value: runningBalance
-          };
-        });
-        setData(chartData);
-      }
-    };
-
-    fetchTransactions();
-  }, []);
-
-  if (data.length === 0) {
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
     return (
-      <div className="h-[300px] flex items-center justify-center border border-white/5 rounded-3xl bg-white/[0.02]">
-        <p className="text-gray-600 text-[10px] uppercase tracking-widest">Awaiting First Deposit to Plot Growth</p>
+      <div className="bg-[#0a0a0a] border border-[#D4AF37] p-4 rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+        <p className="text-gray-400 text-[10px] uppercase tracking-widest mb-1">{label}</p>
+        <p className="text-[#D4AF37] text-xl font-bold font-serif">
+          ${payload[0].value.toLocaleString()}
+        </p>
+        <p className="text-white text-[9px] mt-1 italic">
+          {data.find(d => d.year === label)?.label}
+        </p>
       </div>
     );
   }
+  return null;
+};
 
+export default function GrowthChart() {
   return (
-    <div className="h-[300px] w-full mt-8">
+    <div className="w-full h-full min-h-[300px]">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data}>
           <defs>
-            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3}/>
+            <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.4}/>
               <stop offset="95%" stopColor="#D4AF37" stopOpacity={0}/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} />
-          <XAxis dataKey="date" stroke="#555" fontSize={10} tickLine={false} axisLine={false} />
-          <Tooltip 
-            contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #333', borderRadius: '12px' }}
-            itemStyle={{ color: '#D4AF37' }}
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+          <XAxis 
+            dataKey="year" 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#666', fontSize: 10 }} 
+            dy={10}
           />
-          <Area type="monotone" dataKey="value" stroke="#D4AF37" strokeWidth={3} fill="url(#colorValue)" />
+          <YAxis 
+            hide={true} 
+            domain={['dataMin - 100', 'dataMax + 500']} // Adds headroom for the curve
+          />
+          <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#D4AF37', strokeWidth: 1, strokeDasharray: '5 5' }} />
+          <Area 
+            type="monotone" 
+            dataKey="price" 
+            stroke="#D4AF37" 
+            strokeWidth={3} 
+            fillOpacity={1} 
+            fill="url(#colorPrice)" 
+            animationDuration={2000} // Slower animation for "Grand Reveal" effect
+          />
         </AreaChart>
       </ResponsiveContainer>
     </div>
