@@ -12,12 +12,16 @@ export default function IntroNavbar() {
           </div>
           <span className="text-white font-serif font-bold text-xl tracking-wide">TESLA<span className="text-[#D4AF37]">INV</span></span>
         </Link>
-        <div className="hidden md:flex items-center gap-10 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">
-          <Link href="/why-tesla" className="hover:text-white transition-colors">Why Invest</Link>
+        
+        {/* NEW LINKS ADDED HERE */}
+        <div className="hidden md:flex items-center gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">
+          <Link href="/technology" className="hover:text-white transition-colors">Technology</Link>
           <Link href="/insurance" className="hover:text-white transition-colors">Insurance</Link>
+          <Link href="/faq" className="hover:text-white transition-colors">FAQ</Link>
         </div>
+
         <Link href="/portal" className="flex items-center gap-2 bg-white/5 border border-white/10 px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest text-white hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] transition-all group shadow-lg">
-          Enter Platform <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+          Client Portal <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
     </nav>
