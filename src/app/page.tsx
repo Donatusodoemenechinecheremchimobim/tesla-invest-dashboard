@@ -9,15 +9,14 @@ import GrowthChart from '@/components/dashboard/GrowthChart';
 
 export default function LandingPage() {
   return (
-    // 'gpu-accelerated' class forces mobile smoothness
     <main className="min-h-screen bg-[#050505] text-white overflow-x-hidden gpu-accelerated selection:bg-[#D4AF37] selection:text-black">
       <Navbar />
 
       {/* 1. HERO SECTION */}
-      <section className="relative min-h-screen flex items-center justify-center pt-20 pb-20">
+      <section className="relative min-h-screen flex items-center justify-center pt-24 pb-20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#1a1a1a_0%,#000_100%)] z-0" />
         
-        <div className="relative z-10 text-center px-6 max-w-5xl">
+        <div className="relative z-10 text-center px-6 max-w-5xl w-full">
            <motion.div 
              initial={{ opacity: 0, y: 30 }} 
              animate={{ opacity: 1, y: 0 }} 
@@ -46,8 +45,8 @@ export default function LandingPage() {
               </div>
            </motion.div>
 
-           {/* 📈 RESTORED: GROWTH CHART (GPU OPTIMIZED) */}
-           <div className="relative w-full max-w-4xl mx-auto h-[300px] md:h-[400px] bg-[#0a0a0a] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl overflow-hidden">
+           {/* 📈 GROWTH CHART */}
+           <div className="relative w-full max-w-4xl mx-auto h-[300px] md:h-[400px] bg-[#0a0a0a] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl overflow-hidden mb-20">
               <div className="absolute top-4 left-6 z-10">
                  <h3 className="text-left text-xs font-bold uppercase tracking-widest text-gray-400">Live Performance</h3>
                  <p className="text-left text-2xl font-serif text-[#D4AF37]">+127.4% <span className="text-xs text-gray-500 font-sans tracking-normal">(YTD)</span></p>
@@ -64,20 +63,31 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 2. RESTORED: INVESTMENT PLANS */}
-      <section className="py-24 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
+      {/* 2. INVESTMENT PLANS (SWIPEABLE ON MOBILE) */}
+      <section className="py-24 max-w-7xl mx-auto">
+        <div className="text-center mb-12 px-6">
           <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.3em]">Choose Your Tier</span>
           <h2 className="text-4xl md:text-5xl font-serif mt-4">Investment Portfolios</h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        {/* MOBILE MAGIC: 
+           - flex: Makes them sit in a row
+           - overflow-x-auto: Allows scrolling sideways
+           - snap-x snap-mandatory: Forces the scroll to lock onto a card (premium feel)
+           - no-scrollbar: Hides the ugly scroll bar
+        */}
+        <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto snap-x snap-mandatory px-6 pb-12 w-full no-scrollbar">
+          
           {[
             { name: "Silver", price: "$500", roi: "15% Monthly", features: ["Basic AI Trading", "Weekly Withdrawals", "Email Support"] },
             { name: "Gold", price: "$5,000", roi: "25% Monthly", features: ["Advanced Dojo AI", "Instant Withdrawals", "24/7 Priority Support", "Capital Insured"], popular: true },
             { name: "Diamond", price: "$20,000", roi: "40% Monthly", features: ["Quantum Execution", "Zero Fees", "Dedicated Account Manager", "Full Insurance Coverage"] }
           ].map((plan, i) => (
-            <div key={i} className={`relative bg-[#0a0a0a] border p-8 rounded-[2rem] flex flex-col ${plan.popular ? 'border-[#D4AF37] shadow-[0_0_30px_rgba(212,175,55,0.1)]' : 'border-white/10'}`}>
+            <div key={i} className={`
+                relative flex-shrink-0 w-[85vw] md:w-auto snap-center 
+                bg-[#0a0a0a] border p-8 rounded-[2rem] flex flex-col 
+                ${plan.popular ? 'border-[#D4AF37] shadow-[0_0_30px_rgba(212,175,55,0.1)]' : 'border-white/10'}
+            `}>
               {plan.popular && <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#D4AF37] text-black text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-b-lg">Most Popular</div>}
               
               <h3 className="text-xl font-serif text-gray-400 mb-2">{plan.name}</h3>
@@ -98,10 +108,11 @@ export default function LandingPage() {
               </Link>
             </div>
           ))}
+
         </div>
       </section>
 
-      {/* 3. FEATURES GRID (Keep it simple for mobile speed) */}
+      {/* 3. FEATURES GRID (Simple Grid for Mobile) */}
       <section className="py-24 px-6 max-w-7xl mx-auto bg-black border-t border-white/5">
         <div className="grid md:grid-cols-3 gap-8">
           {[
@@ -118,7 +129,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* STATS SECTION */}
+      {/* STATS */}
       <section className="py-20 border-y border-white/5 bg-[#050505] text-center">
          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto px-6">
             <div><h3 className="text-3xl font-serif text-white">14.5K</h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Clients</p></div>
