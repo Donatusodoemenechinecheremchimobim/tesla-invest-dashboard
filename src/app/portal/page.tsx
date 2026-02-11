@@ -1,12 +1,3 @@
-#!/bin/bash
-
-echo "🔒 SECURING THE FULL OLD SITE AT /portal..."
-
-# 1. RESTORE THE FULL 'OLD' LANDING PAGE TO /portal
-# This contains the Chart, Ticker, Plans, and everything you built before.
-mkdir -p src/app/portal
-
-cat << 'EOF' > src/app/portal/page.tsx
 'use client';
 
 import Navbar from '@/components/landing/Navbar';
@@ -146,6 +137,3 @@ export default function OldSitePortal() {
     </main>
   );
 }
-EOF
-
-echo "✅ OLD SITE SECURED AT /portal. NEW SITE LIVE AT /."
