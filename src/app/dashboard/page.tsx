@@ -3,7 +3,7 @@
 import ProctorBanner from '@/components/dashboard/ProctorBanner';
 import GrowthChart from '@/components/dashboard/GrowthChart';
 import TransactionModal from '@/components/dashboard/TransactionModal';
-import KYCModal from '@/components/dashboard/KYCModal'; // 👈 IMPORT KYC
+import KYCModal from '@/components/dashboard/KYCModal';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -18,19 +18,16 @@ export default function Dashboard() {
   const [txLoading, setTxLoading] = useState(false);
   const [showToast, setShowToast] = useState<{ show: boolean; msg: string }>({ show: false, msg: '' });
   
-  // KYC STATE
+  // 🔐 REAL KYC GATING
   const [kycOpen, setKycOpen] = useState(false);
-  const [isVerified, setIsVerified] = useState(false); // Default to false for new users
+  const [isVerified, setIsVerified] = useState(false); 
 
   const [modal, setModal] = useState<{ open: boolean; type: 'deposit' | 'buy'; title: string }>({
-    open: false,
-    type: 'deposit',
-    title: ''
+    open: false, type: 'deposit', title: ''
   });
 
   const router = useRouter();
   const TSLA_PRICE = 3500; 
-
   const WA_NUMBER = "19803487946";
   const WA_MESSAGE = encodeURIComponent("Hello, I would like to make a deposit into my investment account.");
   const WHATSAPP_LINK = `https://wa.me/${WA_NUMBER}?text=${WA_MESSAGE}`;
@@ -39,8 +36,15 @@ export default function Dashboard() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push('/auth'); return; }
     
+    // FETCH PROFILE & CHECK VERIFICATION STATUS
     const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-    if (profileData) setProfile(profileData);
+    if (profileData) {
+      setProfile(profileData);
+      // 🟢 REAL DB CHECK
+      if (profileData.is_verified === true) {
+         setIsVerified(true);
+      }
+    }
 
     const { data: txData } = await supabase.from('transactions')
       .select('*')
@@ -65,18 +69,19 @@ export default function Dashboard() {
     setTimeout(() => setShowToast({ show: false, msg: '' }), 4000);
   };
 
-  const handleTransaction = async (amount: number) => {
-    if (!isVerified && modal.type === 'deposit') {
-      // If attempting high value actions without KYC
+  // 🛑 INTERCEPT DEPOSIT
+  const handleDepositClick = (e: React.MouseEvent) => {
+    if (!isVerified) {
+      e.preventDefault(); 
       setKycOpen(true);
-      return; 
     }
+  };
 
+  const handleTransaction = async (amount: number) => {
     if (isNaN(amount) || amount <= 0) return;
     setTxLoading(true);
     try {
       if (modal.type === 'buy' && amount > profile.balance) throw new Error("Insufficient liquid balance.");
-
       const newBalance = modal.type === 'deposit' ? profile.balance + amount : profile.balance - amount;
       const newUnits = modal.type === 'buy' ? (profile.tesla_units || 0) + (amount / TSLA_PRICE) : (profile.tesla_units || 0);
 
@@ -98,28 +103,20 @@ export default function Dashboard() {
   };
 
   if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-[#D4AF37] animate-pulse">Connecting to Quantum Node...</div>;
-
   const totalEquity = (profile?.balance || 0) + ((profile?.tesla_units || 0) * TSLA_PRICE);
 
   return (
     <main className="min-h-screen bg-[#050505] text-white overflow-x-hidden">
       <Navbar />
-      
-      {/* KYC MODAL */}
       <KYCModal isOpen={kycOpen} onClose={() => setKycOpen(false)} />
 
-      {/* TOAST */}
       <AnimatePresence>
         {showToast.show && (
-          <motion.div 
-            initial={{ y: -100, opacity: 0 }} animate={{ y: 20, opacity: 1 }} exit={{ y: -100, opacity: 0 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-[200] bg-[#D4AF37] text-black px-6 py-4 rounded-2xl flex items-center gap-3 shadow-2xl font-bold uppercase tracking-widest text-[10px]"
-          >
+          <motion.div initial={{ y: -100, opacity: 0 }} animate={{ y: 20, opacity: 1 }} exit={{ y: -100, opacity: 0 }} className="fixed top-20 left-1/2 -translate-x-1/2 z-[200] bg-[#D4AF37] text-black px-6 py-4 rounded-2xl flex items-center gap-3 shadow-2xl font-bold uppercase tracking-widest text-[10px]">
             <CheckCircle size={18} /> {showToast.msg}
           </motion.div>
         )}
       </AnimatePresence>
-
       <TransactionModal isOpen={modal.open} title={modal.title} loading={txLoading} onClose={() => setModal({ ...modal, open: false })} onConfirm={handleTransaction} />
 
       <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
@@ -134,15 +131,14 @@ export default function Dashboard() {
             <div className="flex items-center gap-3">
               <ShieldAlert className="text-[#D4AF37]" size={20} />
               <div>
-                <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest">Action Required</p>
-                <p className="text-gray-400 text-xs">Verify your identity to unlock full withdrawal limits.</p>
+                <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest">Verification Required</p>
+                <p className="text-gray-400 text-xs">Deposits and withdrawals are locked until identity verification is complete.</p>
               </div>
             </div>
             <ArrowUpRight className="text-[#D4AF37]" size={16} />
           </motion.div>
         )}
 
-        {/* STATS */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <div className="p-8 rounded-3xl bg-[#0a0a0a] border border-white/10">
             <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-2">Portfolio Equity</p>
@@ -158,31 +154,30 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* GRAPH */}
         <div className="mb-12 p-8 bg-[#0a0a0a] border border-white/10 rounded-[2.5rem]">
            <GrowthChart />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* TRADING HUB */}
           <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10">
             <div className="flex items-center gap-3 mb-10"><Activity className="text-[#D4AF37]" size={20} /> <h3 className="text-sm font-bold uppercase tracking-widest">Trading Hub</h3></div>
             <div className="space-y-4">
               
-              {/* DEPOSIT BUTTON -> WHATSAPP */}
+              {/* 🟢 LOCKED DEPOSIT BUTTON */}
               <a 
-                href={WHATSAPP_LINK}
-                target="_blank"
+                href={isVerified ? WHATSAPP_LINK : "#"} 
+                onClick={handleDepositClick} 
+                target={isVerified ? "_blank" : "_self"}
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-6 bg-[#D4AF37] text-black font-black uppercase tracking-widest text-[11px] rounded-2xl hover:bg-white hover:scale-[1.02] transition-all cursor-pointer shadow-[0_0_20px_rgba(212,175,55,0.2)]"
+                className={`flex items-center justify-center gap-2 w-full py-6 font-black uppercase tracking-widest text-[11px] rounded-2xl transition-all shadow-[0_0_20px_rgba(212,175,55,0.2)] 
+                  ${isVerified ? 'bg-[#D4AF37] text-black hover:bg-white hover:scale-[1.02] cursor-pointer' : 'bg-white/5 text-gray-400 cursor-not-allowed hover:bg-white/10 border border-white/10'}`}
               >
-                Deposit <ArrowUpRight size={14} />
+                {isVerified ? "Deposit" : "Verification Required to Deposit"} {isVerified && <ArrowUpRight size={14} />}
               </a>
 
             </div>
           </div>
 
-          {/* LEDGER HISTORY */}
           <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10 max-h-[400px] overflow-y-auto">
             <div className="flex items-center gap-3 mb-10"><History className="text-[#D4AF37]" size={20} /> <h3 className="text-sm font-bold uppercase tracking-widest">Ledger History</h3></div>
             <div className="space-y-4">
@@ -203,7 +198,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-    
       <ProctorBanner />
     </main>
   );
