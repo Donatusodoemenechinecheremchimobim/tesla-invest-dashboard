@@ -9,7 +9,7 @@ import GrowthChart from '@/components/dashboard/GrowthChart';
 
 export default function OldSitePortal() {
   return (
-    // We keep the 'gpu-accelerated' class for that smooth mobile feel
+    // 'gpu-accelerated' class forces mobile smoothness
     <main className="min-h-screen bg-[#050505] text-white overflow-x-hidden gpu-accelerated selection:bg-[#D4AF37] selection:text-black">
       
       {/* ORIGINAL NAVBAR */}

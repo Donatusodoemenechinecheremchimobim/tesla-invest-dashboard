@@ -1,11 +1,11 @@
 #!/bin/bash
 
-echo "🔒 SECURING THE FULL OLD SITE AT /portal..."
+echo "🛡️ RESTORING FULL OLD SITE TO /portal (SAFETY NET)..."
 
-# 1. RESTORE THE FULL 'OLD' LANDING PAGE TO /portal
-# This contains the Chart, Ticker, Plans, and everything you built before.
+# Ensure the folder exists
 mkdir -p src/app/portal
 
+# 📝 WRITE THE FULL OLD SITE CODE DIRECTLY TO PORTAL
 cat << 'EOF' > src/app/portal/page.tsx
 'use client';
 
@@ -18,7 +18,7 @@ import GrowthChart from '@/components/dashboard/GrowthChart';
 
 export default function OldSitePortal() {
   return (
-    // We keep the 'gpu-accelerated' class for that smooth mobile feel
+    // 'gpu-accelerated' class forces mobile smoothness
     <main className="min-h-screen bg-[#050505] text-white overflow-x-hidden gpu-accelerated selection:bg-[#D4AF37] selection:text-black">
       
       {/* ORIGINAL NAVBAR */}
@@ -148,4 +148,4 @@ export default function OldSitePortal() {
 }
 EOF
 
-echo "✅ OLD SITE SECURED AT /portal. NEW SITE LIVE AT /."
+echo "✅ OLD SITE FULLY RESTORED AT /portal."
