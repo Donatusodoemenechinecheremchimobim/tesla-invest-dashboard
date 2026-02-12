@@ -122,5 +122,4 @@ export default function DigitalVoyage() {
   );
 }
 EOF
-
 echo "✅ 'DIGITAL VOYAGER' COMPONENT CREATED."
