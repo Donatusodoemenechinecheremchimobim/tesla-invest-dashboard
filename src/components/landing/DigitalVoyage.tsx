@@ -1,8 +1,3 @@
-#!/bin/bash
-
-echo "🏴‍☠️ DEPLOYING 'THE DIGITAL VOYAGER' ANIMATION..."
-
-cat << 'EOF' > src/components/landing/DigitalVoyage.tsx
 'use client';
 
 import { motion } from 'framer-motion';
@@ -121,6 +116,3 @@ export default function DigitalVoyage() {
     </div>
   );
 }
-EOF
-
-echo "✅ 'DIGITAL VOYAGER' COMPONENT CREATED."
