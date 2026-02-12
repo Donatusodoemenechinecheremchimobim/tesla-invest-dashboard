@@ -13,28 +13,28 @@ export default function FoundersPage() {
       {/* 1. HERO SECTION */}
       <section className="pt-40 pb-20 px-6 max-w-4xl mx-auto text-center">
         
-        {/* ELON MUSK CIRCULAR FRAME */}
+        {/* CIRCULAR ELON FRAME */}
         <motion.div 
           initial={{ scale: 0 }} 
           animate={{ scale: 1 }} 
           transition={{ type: "spring", stiffness: 100 }}
           className="relative w-64 h-64 mx-auto mb-12"
         >
-           {/* Spinning Borders */}
+           {/* Animated Border Ring */}
            <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#D4AF37] animate-spin-slow" style={{ animationDuration: '20s' }} />
            <div className="absolute -inset-4 rounded-full border border-white/10" />
            
-           {/* IMAGE */}
+           {/* The Image - FIXED: ALWAYS COLORED */}
            <div className="w-full h-full rounded-full overflow-hidden border-4 border-[#111] shadow-[0_0_50px_rgba(212,175,55,0.3)] bg-gray-800">
               <img 
                 src="https://upload.wikimedia.org/wikipedia/commons/e/ed/Elon_Musk_Royal_Society.jpg" 
                 alt="Elon Musk" 
-                className="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-700"
+                className="w-full h-full object-cover" 
               />
            </div>
 
-           {/* TITLE BADGE */}
-           <div className="absolute bottom-0 right-4 bg-[#D4AF37] text-black text-[10px] font-bold px-4 py-1 rounded-full uppercase tracking-widest border border-white">
+           {/* Badge */}
+           <div className="absolute bottom-0 right-4 bg-[#D4AF37] text-black text-xs font-bold px-4 py-1 rounded-full uppercase tracking-widest">
               Technoking
            </div>
         </motion.div>
