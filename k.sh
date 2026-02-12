@@ -1,316 +1,155 @@
 #!/bin/bash
 
-echo "🎨 CREATING HIGH-END ANIMATIONS..."
+echo "🎬 INJECTING CINEMATIC CONTENT & ANIMATIONS..."
 
 # ==========================================
-# 1. NEW COMPONENT: ROCKET GRAPH
+# 1. NEW COMPONENT: DOJO CHIP (For Technology Page)
 # ==========================================
-cat << 'EOF' > src/components/landing/RocketGraph.tsx
+cat << 'EOF' > src/components/landing/DojoChip.tsx
 'use client';
-
 import { motion } from 'framer-motion';
-import { Rocket } from 'lucide-react';
 
-export default function RocketGraph() {
+export default function DojoChip() {
   return (
-    <div className="relative w-full max-w-[350px] h-[350px] bg-[#0a0a0a] border border-white/10 rounded-[2rem] overflow-hidden flex items-center justify-center mx-auto shadow-[0_0_50px_rgba(212,175,55,0.1)]">
-      
-      {/* GRID BACKGROUND */}
-      <div className="absolute inset-0 opacity-20" 
-           style={{ backgroundImage: 'linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
-      />
+    <div className="relative w-[300px] h-[300px] flex items-center justify-center mx-auto my-10">
+      {/* PULSING GLOW */}
+      <div className="absolute inset-0 bg-[#D4AF37] opacity-20 blur-[60px] animate-pulse" />
 
-      {/* GRAPH CONTENT */}
-      <div className="relative w-full h-full p-8">
-        <div className="absolute top-6 left-6">
-          <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest">Tesla Growth</p>
-          <h3 className="text-3xl text-white font-serif mt-1">+420%</h3>
-        </div>
-
-        {/* THE PATH */}
-        <svg className="absolute bottom-0 left-0 w-full h-full overflow-visible">
-          <defs>
-            <linearGradient id="rocketGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.5" />
-              <stop offset="100%" stopColor="#D4AF37" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          
-          {/* FILL AREA */}
-          <motion.path 
-            d="M0,350 Q100,300 175,200 T350,50 V350 H0 Z"
-            fill="url(#rocketGradient)"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-          />
-
-          {/* LINE */}
-          <motion.path 
-            d="M0,350 Q100,300 175,200 T350,50"
-            fill="none"
-            stroke="#D4AF37"
-            strokeWidth="3"
-            initial={{ pathLength: 0 }}
-            whileInView={{ pathLength: 1 }}
-            transition={{ duration: 2, ease: "easeInOut" }}
-          />
-        </svg>
-
-        {/* THE ROCKET */}
-        <motion.div
-          className="absolute"
-          initial={{ offsetDistance: "0%" }}
-          whileInView={{ offsetDistance: "100%" }}
-          transition={{ duration: 2, ease: "easeInOut" }}
-          style={{ 
-            offsetPath: "path('M0,350 Q100,300 175,200 T350,50')",
-            offsetRotate: "auto"
-          }}
-        >
-          <div className="relative -rotate-45 transform"> {/* Adjust rotation to align with line */}
-             <Rocket size={32} className="text-white fill-[#D4AF37] drop-shadow-[0_0_15px_rgba(212,175,55,0.8)]" />
-             {/* Engine Flame */}
-             <motion.div 
-               animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-               transition={{ repeat: Infinity, duration: 0.2 }}
-               className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-6 bg-orange-500 rounded-full blur-[2px]"
-             />
-          </div>
-        </motion.div>
-
-      </div>
-    </div>
-  );
-}
-EOF
-
-# ==========================================
-# 2. NEW COMPONENT: CYBER SHIELD
-# ==========================================
-cat << 'EOF' > src/components/landing/CyberShield.tsx
-'use client';
-
-import { motion } from 'framer-motion';
-import { ShieldCheck, Lock } from 'lucide-react';
-
-export default function CyberShield() {
-  return (
-    <div className="relative w-full max-w-[350px] h-[350px] bg-[#0a0a0a] border border-white/10 rounded-[2rem] overflow-hidden flex items-center justify-center mx-auto shadow-[0_0_50px_rgba(212,175,55,0.1)]">
-      
-      {/* SCANNING LINE */}
-      <motion.div 
-        animate={{ top: ["0%", "100%", "0%"] }}
-        transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-        className="absolute left-0 w-full h-[2px] bg-[#D4AF37]/50 shadow-[0_0_20px_#D4AF37] z-10"
-      />
-
-      {/* PULSING RINGS */}
+      {/* ROTATING RINGS */}
       {[1, 2, 3].map((i) => (
         <motion.div
           key={i}
-          animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0, 0.3] }}
-          transition={{ repeat: Infinity, duration: 3, delay: i * 0.5 }}
-          className="absolute w-32 h-32 border border-[#D4AF37]/30 rounded-full"
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 10 + i * 5, ease: "linear" }}
+          className="absolute border border-[#D4AF37]/30 rounded-full"
+          style={{ width: `${100 + i * 60}px`, height: `${100 + i * 60}px` }}
         />
       ))}
 
-      {/* CENTER SHIELD */}
-      <div className="relative z-20 bg-black/50 p-6 rounded-full border border-[#D4AF37] shadow-[0_0_30px_rgba(212,175,55,0.3)]">
-        <ShieldCheck size={64} className="text-[#D4AF37]" />
-        <div className="absolute -bottom-2 -right-2 bg-[#D4AF37] text-black p-1.5 rounded-full">
-           <Lock size={12} />
+      {/* THE CHIP */}
+      <div className="relative z-10 w-40 h-40 bg-[#111] border border-[#D4AF37] rounded-xl flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.4)]">
+        <div className="grid grid-cols-4 gap-1">
+           {[...Array(16)].map((_, i) => (
+             <motion.div 
+               key={i}
+               animate={{ opacity: [0.2, 1, 0.2] }}
+               transition={{ repeat: Infinity, duration: 1, delay: Math.random() }}
+               className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full"
+             />
+           ))}
         </div>
+        <div className="absolute top-2 left-2 w-2 h-2 border-t border-l border-white" />
+        <div className="absolute bottom-2 right-2 w-2 h-2 border-b border-r border-white" />
+        <p className="absolute -bottom-8 text-[#D4AF37] text-[10px] font-mono tracking-widest">DOJO V4</p>
       </div>
-
-      {/* FLOATING PARTICLES */}
-      <div className="absolute inset-0">
-         {[...Array(5)].map((_, i) => (
-            <motion.div 
-              key={i}
-              className="absolute w-1 h-1 bg-white rounded-full"
-              initial={{ x: Math.random() * 300, y: Math.random() * 300, opacity: 0 }}
-              animate={{ y: [null, Math.random() * -50], opacity: [0, 1, 0] }}
-              transition={{ repeat: Infinity, duration: 2 + Math.random() * 2, delay: Math.random() }}
-            />
-         ))}
-      </div>
-      
-      <div className="absolute bottom-6 text-center w-full">
-         <p className="text-[#D4AF37] text-[10px] uppercase tracking-[0.3em] font-bold">256-Bit Encryption</p>
-         <p className="text-gray-500 text-[9px] mt-1">Tesla Security Protocol Active</p>
-      </div>
-
     </div>
   );
 }
 EOF
 
 # ==========================================
-# 3. UPDATE PAGE.TSX (Add Rocket, Shield, & Fix Mobile Phone)
+# 2. NEW COMPONENT: QUANTUM VAULT (For Insurance Page)
 # ==========================================
-cat << 'EOF' > src/app/page.tsx
+cat << 'EOF' > src/components/landing/QuantumVault.tsx
 'use client';
+import { motion } from 'framer-motion';
+import { Lock } from 'lucide-react';
 
-import IntroNavbar from '@/components/intro/IntroNavbar';
-import SplashScreen from '@/components/intro/SplashScreen';
-import LivePayouts from '@/components/landing/LivePayouts';
-import PhoneAnimation from '@/components/landing/PhoneAnimation';
-import RocketGraph from '@/components/landing/RocketGraph'; // 👈 NEW
-import CyberShield from '@/components/landing/CyberShield'; // 👈 NEW
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useRef, useEffect } from 'react';
-import { ShieldCheck, TrendingUp, ArrowRight, Server, Globe } from 'lucide-react';
-import { useInView } from 'framer-motion';
-
-const Counter = ({ to, suffix = "" }: { to: number, suffix?: string }) => {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const isInView = useInView(ref);
-  useEffect(() => {
-    if (isInView) {
-      let start = 0;
-      const duration = 2000; 
-      const timer = setInterval(() => {
-        start += Math.ceil(to / 50);
-        if (start >= to) { setCount(to); clearInterval(timer); } 
-        else { setCount(start); }
-      }, 30);
-      return () => clearInterval(timer);
-    }
-  }, [isInView, to]);
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
-};
-
-export default function LuxuryHome() {
-  const [showSplash, setShowSplash] = useState(true);
-
+export default function QuantumVault() {
   return (
-    <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black overflow-x-hidden">
-      <AnimatePresence>
-        {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
-      </AnimatePresence>
-      <LivePayouts />
+    <div className="relative w-[300px] h-[300px] flex items-center justify-center mx-auto my-10">
+      {/* OUTER LOCK RING */}
+      <motion.div 
+        animate={{ rotate: -360 }}
+        transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+        className="absolute w-64 h-64 border-4 border-dashed border-gray-800 rounded-full"
+      />
+      
+      {/* INNER LOCK RING */}
+      <motion.div 
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
+        className="absolute w-48 h-48 border-t-4 border-b-4 border-[#D4AF37] rounded-full"
+      />
+
+      {/* CENTER VAULT */}
+      <div className="relative z-10 w-24 h-24 bg-[#D4AF37] rounded-full flex items-center justify-center shadow-[0_0_50px_#D4AF37]">
+        <Lock size={40} className="text-black" />
+      </div>
+
+      {/* SECURE TEXT */}
+      <motion.div
+        animate={{ opacity: [0.5, 1, 0.5] }}
+        transition={{ repeat: Infinity, duration: 2 }}
+        className="absolute -bottom-10 text-white text-xs font-bold uppercase tracking-[0.3em]"
+      >
+        Funds SAFU
+      </motion.div>
+    </div>
+  );
+}
+EOF
+
+# ==========================================
+# 3. UPDATE: TECHNOLOGY PAGE
+# ==========================================
+cat << 'EOF' > src/app/technology/page.tsx
+'use client';
+import IntroNavbar from '@/components/intro/IntroNavbar';
+import DojoChip from '@/components/landing/DojoChip';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Cpu, Zap, Activity, Server, Lock, Network } from 'lucide-react';
+
+export default function TechnologyPage() {
+  return (
+    <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black">
       <IntroNavbar />
-
-      {/* HERO SECTION */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#1a1a1a_0%,#000_100%)]" />
+      
+      {/* HERO */}
+      <section className="pt-40 pb-20 px-6 max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+        <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
+          <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.4em]">Powered by Dojo</span>
+          <h1 className="text-5xl md:text-7xl font-serif mt-6 mb-8">Quantum Precision.</h1>
+          <p className="text-xl text-gray-400 leading-relaxed font-light mb-8">
+            The world's first trading system built on Tesla's D1 Chip architecture. 
+            We process 1.1 Exaflops of market data every second, identifying micro-trends 
+            before they even appear on Wall Street terminals.
+          </p>
+          <ul className="space-y-4 mb-8">
+            {["0.04ms Execution Latency", "Self-Healing Neural Networks", "Predictive Sentiment Analysis"].map((item, i) => (
+              <li key={i} className="flex items-center gap-3 text-sm font-bold uppercase tracking-widest text-white">
+                <div className="w-2 h-2 bg-[#D4AF37] rounded-full" /> {item}
+              </li>
+            ))}
+          </ul>
+        </motion.div>
         
-        <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
-          
-          {/* LEFT: TEXT */}
-          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 3.5, duration: 1 }}>
-            <span className="inline-block py-1.5 px-4 rounded-full bg-[#D4AF37]/5 border border-[#D4AF37]/20 text-[#D4AF37] text-[9px] font-bold uppercase tracking-[0.4em] mb-8 animate-pulse">
-              System Online • Dojo V4 Active
-            </span>
-            <h1 className="text-5xl md:text-8xl font-serif mb-8 leading-tight tracking-tight text-white">
-              Invest in <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">The Future.</span>
-            </h1>
-            <p className="text-gray-400 text-sm md:text-lg max-w-xl mb-12 leading-relaxed font-light">
-              Join the elite ecosystem powered by Tesla's algorithmic dominance. 
-              Watch your portfolio grow in real-time.
-            </p>
-            <div className="flex flex-col md:flex-row gap-6">
-              <Link href="/portal" className="px-10 py-5 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-xs rounded-full hover:scale-105 transition-transform shadow-[0_0_40px_rgba(212,175,55,0.3)] text-center">
-                Enter Platform
-              </Link>
-              <Link href="/technology" className="group flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">
-                View Tech <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-          </motion.div>
-
-          {/* RIGHT: PHONE ANIMATION (VISIBLE ON MOBILE NOW) */}
-          <motion.div 
-             initial={{ opacity: 0, scale: 0.8 }} 
-             animate={{ opacity: 1, scale: 1 }} 
-             transition={{ delay: 3.8, duration: 1 }}
-             className="flex justify-center" // Removed 'hidden lg:block'
-          >
-             {/* Scaled down slightly on mobile to fit */}
-             <div className="scale-75 md:scale-100 transform origin-top md:origin-center">
-                <PhoneAnimation />
-             </div>
-          </motion.div>
-
-        </div>
+        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
+           <DojoChip />
+        </motion.div>
       </section>
 
-      {/* STATS STRIP */}
-      <section className="py-20 border-y border-white/5 bg-black">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
-          <div><h3 className="text-4xl font-serif text-white"><Counter to={18500} suffix="+" /></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Active Investors</p></div>
-          <div><h3 className="text-4xl font-serif text-[#D4AF37]">$<Counter to={940} suffix="M" /></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Total Volume</p></div>
-          <div><h3 className="text-4xl font-serif text-white"><Counter to={100} suffix="%" /></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Uptime</p></div>
-          <div><h3 className="text-4xl font-serif text-white">0.04<span className="text-sm">ms</span></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Latency</p></div>
-        </div>
-      </section>
-
-      {/* NEW SECTION: ROCKET & SHIELD SHOWCASE */}
-      <section className="py-32 px-6 max-w-7xl mx-auto">
+      {/* TECH GRID */}
+      <section className="py-20 px-6 max-w-7xl mx-auto bg-black">
         <div className="text-center mb-16">
-           <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.4em]">Visualizing Performance</span>
-           <h2 className="text-5xl font-serif mt-6">Speed & Security</h2>
+          <h2 className="text-4xl font-serif">The Architecture</h2>
         </div>
-
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-           
-           {/* ROCKET CARD */}
-           <div className="bg-[#0a0a0a] p-8 md:p-12 rounded-[3rem] border border-white/10 text-center group hover:border-[#D4AF37]/30 transition-colors">
-              <RocketGraph />
-              <h3 className="text-3xl font-serif mt-8 mb-4">Hyper-Growth</h3>
-              <p className="text-gray-400 text-sm max-w-sm mx-auto">
-                Our AI identifies breakout patterns before they happen, launching your portfolio into new valuation territories.
-              </p>
-           </div>
-
-           {/* SHIELD CARD */}
-           <div className="bg-[#0a0a0a] p-8 md:p-12 rounded-[3rem] border border-white/10 text-center group hover:border-[#D4AF37]/30 transition-colors">
-              <CyberShield />
-              <h3 className="text-3xl font-serif mt-8 mb-4">Ironclad Security</h3>
-              <p className="text-gray-400 text-sm max-w-sm mx-auto">
-                Your assets are protected by military-grade encryption and Tesla's proprietary insurance fund.
-              </p>
-           </div>
-
-        </div>
-      </section>
-
-      {/* GLOBAL MAP */}
-      <section className="py-32 px-6 max-w-7xl mx-auto text-center">
-         <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.4em]">Global Infrastructure</span>
-         <h2 className="text-5xl font-serif mt-6 mb-16">Operating in 140+ Countries</h2>
-         <div className="relative w-full h-[300px] md:h-[500px] bg-[#111] rounded-[3rem] border border-white/5 overflow-hidden flex items-center justify-center">
-            <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg')] bg-cover bg-center opacity-10 grayscale invert" />
-            <div className="absolute top-[30%] left-[20%] w-3 h-3 bg-[#D4AF37] rounded-full animate-ping" />
-            <div className="absolute top-[40%] left-[50%] w-3 h-3 bg-[#D4AF37] rounded-full animate-ping delay-700" />
-            <div className="absolute top-[60%] left-[75%] w-3 h-3 bg-[#D4AF37] rounded-full animate-ping delay-300" />
-            <div className="relative z-10 bg-black/50 backdrop-blur-md p-8 rounded-2xl border border-white/10">
-               <Globe size={48} className="mx-auto mb-4 text-[#D4AF37]" />
-               <h3 className="text-2xl font-serif">Decentralized Nodes</h3>
-               <p className="text-sm text-gray-400 mt-2">Route your trades through the nearest server.</p>
+        <div className="grid md:grid-cols-3 gap-8">
+          {[
+            { icon: <Cpu size={40}/>, title: "Dojo Silicon", desc: "Custom D1 Chips designed specifically for machine learning execution, bypassing traditional CPU bottlenecks." },
+            { icon: <Network size={40}/>, title: "Neural Nets", desc: "A recursive AI that learns from every trade made globally, constantly refining its win-rate." },
+            { icon: <Zap size={40}/>, title: "Zero Latency", desc: "Direct fiber-optic connection to NASDAQ and Binance servers ensures we are always first in line." },
+            { icon: <Lock size={40}/>, title: "Quantum Encrypt", desc: "256-bit military grade encryption protects every transaction from external threats." },
+            { icon: <Server size={40}/>, title: "Decentralized", desc: "Our ledger is distributed across 14,000 nodes, making downtime mathematically impossible." },
+            { icon: <Activity size={40}/>, title: "Predictive V4", desc: "Our AI predicts market movements 3 seconds before they happen with 89% accuracy." }
+          ].map((item, i) => (
+            <div key={i} className="bg-[#111] p-10 rounded-[2rem] border border-white/5 hover:border-[#D4AF37]/50 transition-colors group">
+              <div className="text-gray-600 mb-6 group-hover:text-[#D4AF37] transition-colors">{item.icon}</div>
+              <h3 className="text-xl font-bold mb-4 font-serif">{item.title}</h3>
+              <p className="text-gray-400 leading-relaxed text-sm">{item.desc}</p>
             </div>
-         </div>
-      </section>
-
-      {/* INFO CARDS */}
-      <section className="pb-32 px-6 max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-8">
-          <Link href="/insurance" className="group relative bg-[#111] border border-white/10 p-12 rounded-[3rem] overflow-hidden hover:border-[#D4AF37]/50 transition-all duration-500 cursor-pointer">
-             <ShieldCheck size={48} className="text-[#D4AF37] mb-8" />
-             <h2 className="text-4xl font-serif mb-4">Insured by Tesla</h2>
-             <p className="text-gray-400 mb-8 leading-relaxed max-w-md">Zero risk. 100% principal guarantee.</p>
-             <span className="text-white text-xs font-bold uppercase tracking-widest border-b border-[#D4AF37] pb-1">Read Policy</span>
-          </Link>
-          <Link href="/technology" className="group relative bg-[#111] border border-white/10 p-12 rounded-[3rem] overflow-hidden hover:border-[#D4AF37]/50 transition-all duration-500 cursor-pointer">
-             <Server size={48} className="text-[#D4AF37] mb-8" />
-             <h2 className="text-4xl font-serif mb-4">The Technology</h2>
-             <p className="text-gray-400 mb-8 leading-relaxed max-w-md">Powered by Dojo Supercomputer V4.</p>
-             <span className="text-white text-xs font-bold uppercase tracking-widest border-b border-[#D4AF37] pb-1">Learn More</span>
-          </Link>
+          ))}
         </div>
       </section>
     </main>
@@ -318,4 +157,193 @@ export default function LuxuryHome() {
 }
 EOF
 
-echo "✅ VISUAL UPGRADE COMPLETE: ROCKET, SHIELD, AND MOBILE PHONE ENABLED."
+# ==========================================
+# 4. UPDATE: INSURANCE PAGE
+# ==========================================
+cat << 'EOF' > src/app/insurance/page.tsx
+'use client';
+import IntroNavbar from '@/components/intro/IntroNavbar';
+import QuantumVault from '@/components/landing/QuantumVault';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { ShieldCheck, CheckCircle } from 'lucide-react';
+
+export default function InsurancePage() {
+  return (
+    <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black">
+      <IntroNavbar />
+      
+      <section className="pt-40 pb-20 px-6 max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+         <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
+            <QuantumVault />
+         </motion.div>
+
+         <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
+          <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.4em]">SAFU Protocol</span>
+          <h1 className="text-5xl md:text-7xl font-serif mt-6 mb-8">Capital Protected.</h1>
+          <p className="text-xl text-gray-400 leading-relaxed font-light mb-8">
+            We don't just manage risk; we eliminate it. Every portfolio is backed by our 
+            <strong> $20 Billion Insurance Fund</strong>. If a trade moves against us by more than 0.5%, 
+            the fund automatically covers the difference.
+          </p>
+          <div className="bg-[#111] p-6 rounded-2xl border border-white/10">
+             <div className="flex justify-between mb-2">
+                <span className="text-white text-sm">Insurance Fund Status</span>
+                <span className="text-[#D4AF37] text-sm font-bold">100% SOLVENT</span>
+             </div>
+             <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div className="h-full bg-[#D4AF37] w-full animate-pulse" />
+             </div>
+          </div>
+        </motion.div>
+      </section>
+
+      <section className="py-20 px-6 max-w-4xl mx-auto">
+        <h2 className="text-3xl font-serif text-center mb-12">Coverage Details</h2>
+        <div className="space-y-4">
+          {[
+            "Principal Protection: Your initial deposit is 100% guaranteed.",
+            "Smart Contract Audit: Verified by Certik and Quantstamp.",
+            "Custody: Assets are held in multi-sig cold wallets.",
+            "Instant Liquidity: Withdrawals are processed immediately."
+          ].map((item, i) => (
+             <div key={i} className="flex items-center gap-4 bg-[#111] p-6 rounded-xl border border-white/5">
+                <CheckCircle className="text-[#D4AF37] shrink-0" />
+                <span className="text-gray-300">{item}</span>
+             </div>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}
+EOF
+
+# ==========================================
+# 5. UPDATE: ABOUT PAGE
+# ==========================================
+cat << 'EOF' > src/app/about/page.tsx
+'use client';
+import IntroNavbar from '@/components/intro/IntroNavbar';
+import { motion } from 'framer-motion';
+
+export default function AboutPage() {
+  return (
+    <main className="min-h-screen bg-black text-white selection:bg-[#D4AF37]">
+      <IntroNavbar />
+      
+      <div className="pt-40 px-6 max-w-4xl mx-auto text-center">
+        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-6xl md:text-8xl font-serif mb-8">The Vision.</motion.h1>
+        <p className="text-xl text-gray-400 mb-16 max-w-2xl mx-auto">
+          We believe that high-frequency algorithmic trading should not be limited to Wall Street hedge funds. 
+          By leveraging the Dojo Supercomputer, we bring institutional-grade returns to the individual investor.
+        </p>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-2 gap-12 mb-32">
+         <div className="bg-[#111] p-10 rounded-3xl border border-white/10">
+            <h3 className="text-2xl font-serif mb-4">Our Mission</h3>
+            <p className="text-gray-400 leading-relaxed">
+              To democratize wealth generation. For decades, the best trading algorithms were locked behind 
+              the closed doors of Renaissance Technologies and Citadel. We broke the lock.
+            </p>
+         </div>
+         <div className="bg-[#111] p-10 rounded-3xl border border-white/10">
+            <h3 className="text-2xl font-serif mb-4">Our Tech</h3>
+            <p className="text-gray-400 leading-relaxed">
+              Built on the backbone of Tesla's AI infrastructure. We utilize idle compute power from the 
+              Dojo network to solve complex market inefficiencies.
+            </p>
+         </div>
+      </div>
+    </main>
+  );
+}
+EOF
+
+# ==========================================
+# 6. UPDATE: PRESS PAGE
+# ==========================================
+cat << 'EOF' > src/app/press/page.tsx
+'use client';
+import IntroNavbar from '@/components/intro/IntroNavbar';
+import { ArrowUpRight } from 'lucide-react';
+
+export default function PressPage() {
+  const news = [
+    { date: "Feb 12, 2026", title: "TeslaInv Reports Record Q1 Earnings Growth of 145%", source: "Bloomberg" },
+    { date: "Jan 28, 2026", title: "Dojo V4 Chip Integration Complete: Latency Drops by 40%", source: "TechCrunch" },
+    { date: "Jan 15, 2026", title: "Global Expansion: New Nodes Active in Singapore & Dubai", source: "Reuters" },
+    { date: "Dec 10, 2025", title: "The End of Hedge Funds? How AI is Taking Over.", source: "Forbes" }
+  ];
+
+  return (
+    <main className="min-h-screen bg-black text-white">
+      <IntroNavbar />
+      <div className="pt-40 px-6 max-w-4xl mx-auto">
+        <h1 className="text-6xl font-serif mb-16 text-center">Press Room</h1>
+        
+        <div className="space-y-4">
+           {news.map((item, i) => (
+             <div key={i} className="group flex flex-col md:flex-row md:items-center justify-between bg-[#111] p-8 rounded-2xl border border-white/5 hover:border-[#D4AF37] transition-all cursor-pointer">
+               <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-widest">{item.source}</span>
+                    <span className="text-gray-600 text-[10px]">•</span>
+                    <span className="text-gray-500 text-[10px] uppercase tracking-widest">{item.date}</span>
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold group-hover:text-[#D4AF37] transition-colors">{item.title}</h3>
+               </div>
+               <ArrowUpRight className="text-gray-600 group-hover:text-[#D4AF37] transition-colors mt-4 md:mt-0" />
+             </div>
+           ))}
+        </div>
+      </div>
+    </main>
+  );
+}
+EOF
+
+# ==========================================
+# 7. UPDATE: CONTACT PAGE
+# ==========================================
+cat << 'EOF' > src/app/contact/page.tsx
+'use client';
+import IntroNavbar from '@/components/intro/IntroNavbar';
+import { Mail, Phone, MapPin } from 'lucide-react';
+
+export default function ContactPage() {
+  return (
+    <main className="min-h-screen bg-black text-white">
+      <IntroNavbar />
+      <div className="pt-40 px-6 max-w-4xl mx-auto text-center">
+        <h1 className="text-6xl font-serif mb-8">Private Concierge</h1>
+        <p className="text-gray-400 mb-16">
+          Our VIP support team is available 24/7 for Diamond Tier members. 
+          Please use your dedicated line for immediate assistance.
+        </p>
+
+        <div className="grid md:grid-cols-3 gap-8">
+           <div className="bg-[#111] p-10 rounded-3xl border border-white/10 flex flex-col items-center">
+              <Mail className="text-[#D4AF37] mb-4" size={32} />
+              <h3 className="font-bold mb-2">Email</h3>
+              <p className="text-gray-400 text-sm">vip@teslainv.com</p>
+           </div>
+           <div className="bg-[#111] p-10 rounded-3xl border border-white/10 flex flex-col items-center">
+              <Phone className="text-[#D4AF37] mb-4" size={32} />
+              <h3 className="font-bold mb-2">Priority Line</h3>
+              <p className="text-gray-400 text-sm">+1 (888) 4-DOJO-AI</p>
+           </div>
+           <div className="bg-[#111] p-10 rounded-3xl border border-white/10 flex flex-col items-center">
+              <MapPin className="text-[#D4AF37] mb-4" size={32} />
+              <h3 className="font-bold mb-2">HQ</h3>
+              <p className="text-gray-400 text-sm">Austin, Texas</p>
+           </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+EOF
+
+echo "✅ ALL PAGES UPGRADED WITH CINEMATIC ANIMATIONS & CONTENT."
