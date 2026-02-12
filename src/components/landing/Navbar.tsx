@@ -1,132 +1,110 @@
 'use client';
-import { useState } from 'react';
+
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { ArrowRight, Zap, Menu, X, LogOut, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ChevronRight, Lock, Shield, CreditCard, LogIn } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
-  // Function to force navigation
-  const handleNav = (path: string) => {
-    setIsOpen(false);
-    console.log("Navigating to:", path);
-    router.push(path);
+  // 1. CHECK IF USER IS LOGGED IN
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    checkUser();
+
+    // Listen for auth changes (login/logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // 2. HANDLE SIGN OUT
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    router.push('/portal'); // Stay on Old Site
+    router.refresh();
   };
 
-  const links = [
-    { name: 'Personal', href: '/personal' },
-    { name: 'Insurance', href: '/insurance' },
-    { name: 'Strategy', href: '/#strategy' },
-    { name: 'Concierge', href: '/#concierge' },
-  ];
-
   return (
-    <>
-      <motion.nav 
-        initial={{ y: -100 }} animate={{ y: 0 }} transition={{ duration: 0.8 }}
-        className="fixed top-0 w-full z-[9999] border-b border-white/10 bg-black/90 backdrop-blur-xl"
-      >
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-white/10">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        
+        {/* LOGO -> LINKS STRICTLY TO /portal (OLD SITE HOME) */}
+        <Link href="/portal" className="flex items-center gap-2 group">
+          <div className="bg-[#D4AF37] p-1.5 rounded-lg group-hover:scale-110 transition-transform">
+            <Zap size={20} className="text-black fill-black" />
+          </div>
+          <span className="text-white font-serif font-bold text-xl tracking-wide">TESLA<span className="text-[#D4AF37]">INV</span></span>
+        </Link>
+
+        {/* OLD SITE LINKS */}
+        <div className="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-widest text-gray-400">
+          <Link href="/portal/strategy" className="hover:text-[#D4AF37] transition-colors">Strategy</Link>
+          <Link href="/portal/insurance" className="hover:text-[#D4AF37] transition-colors">Insurance</Link>
+          <Link href="/portal/concierge" className="hover:text-[#D4AF37] transition-colors">Concierge</Link>
+        </div>
+
+        <div className="flex items-center gap-4">
           
-          {/* LOGO */}
-          <div onClick={() => handleNav('/')} className="flex flex-col z-[1000] group cursor-pointer">
-            <span className="text-xl font-serif tracking-widest text-white group-hover:text-[#D4AF37] transition-colors">
-              INVESTMENT<span className="text-[#D4AF37] font-bold group-hover:text-white transition-colors">TESLA</span>
-            </span>
-            <span className="text-[9px] uppercase tracking-[0.4em] text-gray-500">Private Banking</span>
-          </div>
-
-          {/* DESKTOP LINKS */}
-          <div className="hidden md:flex gap-8 text-xs font-bold uppercase tracking-widest text-gray-400">
-            {links.map((link) => (
-              <button 
-                key={link.name} 
-                onClick={() => handleNav(link.href)}
-                className="hover:text-[#D4AF37] transition-colors relative group py-2"
-              >
-                {link.name}
-                <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-[#D4AF37] transition-all duration-300 group-hover:w-full" />
-              </button>
-            ))}
-          </div>
-
-          {/* DESKTOP BUTTONS (Force Clickable) */}
-          <div className="hidden md:flex items-center gap-6 z-[1000]">
+          {/* DYNAMIC AUTH BUTTON */}
+          {user ? (
             <button 
-              onClick={() => handleNav('/auth')}
-              className="text-xs font-bold uppercase tracking-widest hover:text-white text-gray-400 transition flex items-center gap-2"
+              onClick={handleSignOut}
+              className="hidden md:flex items-center gap-2 bg-white/10 border border-white/20 px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest text-white hover:bg-red-500/20 hover:border-red-500 hover:text-red-500 transition-all"
             >
-              <LogIn size={14} /> Sign In
+              Sign Out <LogOut size={14} />
             </button>
-            
-            <button 
-              onClick={() => handleNav('/auth')}
-              className="px-6 py-2 border border-white/20 text-xs font-bold uppercase tracking-widest text-white hover:bg-white hover:text-black transition duration-300 rounded-sm"
+          ) : (
+            <Link 
+              href="/auth" 
+              className="hidden md:flex items-center gap-2 bg-[#D4AF37] px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest text-black hover:bg-white transition-all"
             >
-              Client Access
-            </button>
-          </div>
+              Login <ArrowRight size={14} />
+            </Link>
+          )}
 
-          {/* MOBILE HAMBURGER */}
-          <button 
-            onClick={() => setIsOpen(!isOpen)} 
-            className="md:hidden z-[1000] text-white p-2"
-          >
-            {isOpen ? <X size={28} /> : <Menu size={28} />}
+          {/* MOBILE TOGGLE */}
+          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden text-white">
+            {isOpen ? <X /> : <Menu />}
           </button>
         </div>
-      </motion.nav>
+      </div>
 
-      {/* MOBILE FULLSCREEN MENU */}
+      {/* MOBILE MENU */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-[9990] bg-black pt-28 px-6 md:hidden flex flex-col"
-          >
-            <div className="flex flex-col gap-6">
-              {links.map((link, i) => (
-                <motion.div 
-                  key={link.name}
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                >
-                  <button 
-                    onClick={() => handleNav(link.href)}
-                    className="w-full text-3xl font-serif text-white flex justify-between items-center border-b border-white/10 pb-4 group text-left"
-                  >
-                    <span className="group-hover:text-[#D4AF37] transition-colors">{link.name}</span>
-                    <ChevronRight className="text-[#D4AF37] opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </button>
-                </motion.div>
-              ))}
-              
-              <button 
-                onClick={() => handleNav('/auth')}
-                className="mt-8 w-full py-5 bg-[#D4AF37] text-black font-bold text-center text-lg uppercase tracking-widest hover:bg-white transition"
-              >
-                Access Portal
-              </button>
-            </div>
-            
-            <div className="mt-auto mb-10 flex flex-col items-center gap-4 text-gray-600 text-xs uppercase tracking-widest">
-              <div className="flex gap-8">
-                <div className="flex items-center gap-2"><Shield size={14}/> Insured</div>
-                <div className="flex items-center gap-2"><CreditCard size={14}/> Private</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Lock size={12} /> Secure Mobile Uplink
-              </div>
+          <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="md:hidden bg-[#111] overflow-hidden border-b border-white/10">
+            <div className="flex flex-col p-6 gap-4">
+               <Link href="/portal/strategy" className="text-gray-400 hover:text-[#D4AF37]" onClick={() => setIsOpen(false)}>Strategy</Link>
+               <Link href="/portal/insurance" className="text-gray-400 hover:text-[#D4AF37]" onClick={() => setIsOpen(false)}>Insurance</Link>
+               <Link href="/portal/concierge" className="text-gray-400 hover:text-[#D4AF37]" onClick={() => setIsOpen(false)}>Concierge</Link>
+               
+               <div className="h-px bg-white/10 my-2" />
+               
+               {user ? (
+                 <button onClick={() => { handleSignOut(); setIsOpen(false); }} className="text-red-400 flex items-center gap-2 text-sm font-bold uppercase tracking-widest">
+                   <LogOut size={16} /> Sign Out
+                 </button>
+               ) : (
+                 <Link href="/auth" className="text-[#D4AF37] flex items-center gap-2 text-sm font-bold uppercase tracking-widest" onClick={() => setIsOpen(false)}>
+                   <User size={16} /> Login to Dashboard
+                 </Link>
+               )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </nav>
   );
 }

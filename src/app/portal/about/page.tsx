@@ -1,9 +1,3 @@
-#!/bin/bash
-
-echo "📜 CREATING PORTAL ABOUT PAGE..."
-
-mkdir -p src/app/portal/about
-cat << 'EOF' > src/app/portal/about/page.tsx
 'use client';
 
 import Navbar from '@/components/landing/Navbar';
@@ -86,4 +80,3 @@ export default function OldAboutPage() {
     </main>
   );
 }
-EOF
