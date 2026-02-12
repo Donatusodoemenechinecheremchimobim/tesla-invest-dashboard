@@ -1,370 +1,139 @@
 #!/bin/bash
 
-echo "🚦 UPDATING DASHBOARD WITH SMART KYC STATUSES..."
+echo "✨ INJECTING PHONE ANIMATION INTO HOMEPAGE..."
 
-# 1. UPDATE DASHBOARD TO HANDLE STATUSES
-cat << 'EOF' > src/app/dashboard/page.tsx
+cat << 'EOF' > src/app/page.tsx
 'use client';
 
-import ProctorBanner from '@/components/dashboard/ProctorBanner';
-import GrowthChart from '@/components/dashboard/GrowthChart';
-import TransactionModal from '@/components/dashboard/TransactionModal';
-import KYCModal from '@/components/dashboard/KYCModal';
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import IntroNavbar from '@/components/intro/IntroNavbar';
+import SplashScreen from '@/components/intro/SplashScreen';
+import LivePayouts from '@/components/landing/LivePayouts';
+import PhoneAnimation from '@/components/landing/PhoneAnimation'; // 👈 IMPORT
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { History, Activity, CheckCircle, ArrowUpRight, ShieldAlert, Clock, XCircle, Lock } from 'lucide-react';
-import Navbar from '@/components/landing/Navbar';
+import { useState, useRef, useEffect } from 'react';
+import { ShieldCheck, TrendingUp, ArrowRight, Server, Globe } from 'lucide-react';
+import { useInView } from 'framer-motion';
 
-export default function Dashboard() {
-  const [profile, setProfile] = useState<any>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [txLoading, setTxLoading] = useState(false);
-  const [showToast, setShowToast] = useState<{ show: boolean; msg: string }>({ show: false, msg: '' });
-  
-  // KYC STATE
-  const [kycOpen, setKycOpen] = useState(false);
-  const [kycStatus, setKycStatus] = useState<'none' | 'pending' | 'rejected' | 'approved'>('none');
-
-  const [modal, setModal] = useState<{ open: boolean; type: 'deposit' | 'buy'; title: string }>({
-    open: false, type: 'deposit', title: ''
-  });
-
-  const router = useRouter();
-  const TSLA_PRICE = 3500; 
-  const WA_NUMBER = "19803487946";
-  const WA_MESSAGE = encodeURIComponent("Hello, I would like to make a deposit into my investment account.");
-  const WHATSAPP_LINK = `https://wa.me/${WA_NUMBER}?text=${WA_MESSAGE}`;
-
-  const fetchData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push('/auth'); return; }
-    
-    const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-    if (profileData) {
-      setProfile(profileData);
-      setKycStatus(profileData.kyc_status || 'none'); // Get status from DB
-    }
-
-    const { data: txData } = await supabase.from('transactions')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    if (txData) setTransactions(txData);
-
-    setLoading(false);
-  };
-
+const Counter = ({ to, suffix = "" }: { to: number, suffix?: string }) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref);
   useEffect(() => {
-    fetchData();
-    const channel = supabase.channel('dashboard_updates')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, fetchData)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transactions' }, fetchData)
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [router]);
-
-  const triggerToast = (msg: string) => {
-    setShowToast({ show: true, msg });
-    setTimeout(() => setShowToast({ show: false, msg: '' }), 4000);
-  };
-
-  // 🛑 INTERCEPT DEPOSIT
-  const handleDepositClick = (e: React.MouseEvent) => {
-    if (kycStatus !== 'approved') {
-      e.preventDefault();
-      // Only open modal if NOT pending (if pending, they just wait)
-      if (kycStatus !== 'pending') {
-        setKycOpen(true);
-      }
+    if (isInView) {
+      let start = 0;
+      const duration = 2000; 
+      const timer = setInterval(() => {
+        start += Math.ceil(to / 50);
+        if (start >= to) { setCount(to); clearInterval(timer); } 
+        else { setCount(start); }
+      }, 30);
+      return () => clearInterval(timer);
     }
-  };
+  }, [isInView, to]);
+  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+};
 
-  const handleTransaction = async (amount: number) => {
-    if (isNaN(amount) || amount <= 0) return;
-    setTxLoading(true);
-    try {
-      if (modal.type === 'buy' && amount > profile.balance) throw new Error("Insufficient liquid balance.");
-      const newBalance = modal.type === 'deposit' ? profile.balance + amount : profile.balance - amount;
-      const newUnits = modal.type === 'buy' ? (profile.tesla_units || 0) + (amount / TSLA_PRICE) : (profile.tesla_units || 0);
-
-      await supabase.from('profiles').update({ balance: newBalance, tesla_units: newUnits }).eq('id', profile.id);
-      await supabase.from('transactions').insert({
-        user_id: profile.id,
-        type: modal.type === 'deposit' ? 'Deposit' : 'Buy TSLA',
-        amount: amount,
-        direction: modal.type === 'deposit' ? 'in' : 'out'
-      });
-
-      setModal({ ...modal, open: false });
-      triggerToast(`Successfully processed ${modal.type === 'buy' ? '$' + amount + ' TSLA buy' : 'deposit'}`);
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setTxLoading(false);
-    }
-  };
-
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-[#D4AF37] animate-pulse">Connecting to Quantum Node...</div>;
-  const totalEquity = (profile?.balance || 0) + ((profile?.tesla_units || 0) * TSLA_PRICE);
+export default function LuxuryHome() {
+  const [showSplash, setShowSplash] = useState(true);
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white overflow-x-hidden">
-      <Navbar />
-      
-      {/* PASS STATUS TO MODAL SO IT KNOWS IF REJECTED */}
-      <KYCModal isOpen={kycOpen} status={kycStatus} onClose={() => setKycOpen(false)} />
-
+    <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black overflow-x-hidden">
       <AnimatePresence>
-        {showToast.show && (
-          <motion.div initial={{ y: -100, opacity: 0 }} animate={{ y: 20, opacity: 1 }} exit={{ y: -100, opacity: 0 }} className="fixed top-20 left-1/2 -translate-x-1/2 z-[200] bg-[#D4AF37] text-black px-6 py-4 rounded-2xl flex items-center gap-3 shadow-2xl font-bold uppercase tracking-widest text-[10px]">
-            <CheckCircle size={18} /> {showToast.msg}
-          </motion.div>
-        )}
+        {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       </AnimatePresence>
-      <TransactionModal isOpen={modal.open} title={modal.title} loading={txLoading} onClose={() => setModal({ ...modal, open: false })} onConfirm={handleTransaction} />
+      <LivePayouts />
+      <IntroNavbar />
 
-      <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
+      {/* HERO SECTION SPLIT: TEXT LEFT, PHONE RIGHT */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#1a1a1a_0%,#000_100%)]" />
         
-        {/* 🚦 SMART KYC STATUS BANNER */}
-        {kycStatus === 'none' && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} onClick={() => setKycOpen(true)} className="bg-[#D4AF37]/10 border border-[#D4AF37]/50 p-4 rounded-2xl flex items-center justify-between mb-8 cursor-pointer hover:bg-[#D4AF37]/20 transition-colors">
-            <div className="flex items-center gap-3"><ShieldAlert className="text-[#D4AF37]" size={20} /><div><p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest">Verification Required</p><p className="text-gray-400 text-xs">Identity verification is required to unlock deposits.</p></div></div><ArrowUpRight className="text-[#D4AF37]" size={16} />
-          </motion.div>
-        )}
-
-        {kycStatus === 'pending' && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-yellow-500/10 border border-yellow-500/50 p-4 rounded-2xl flex items-center justify-between mb-8 cursor-wait">
-            <div className="flex items-center gap-3"><Clock className="text-yellow-500" size={20} /><div><p className="text-yellow-500 text-xs font-bold uppercase tracking-widest">Verification Pending</p><p className="text-gray-400 text-xs">Our compliance team is reviewing your documents (Est. 2-4 hrs).</p></div></div>
-          </motion.div>
-        )}
-
-        {kycStatus === 'rejected' && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} onClick={() => setKycOpen(true)} className="bg-red-500/10 border border-red-500/50 p-4 rounded-2xl flex items-center justify-between mb-8 cursor-pointer hover:bg-red-500/20 transition-colors">
-            <div className="flex items-center gap-3"><XCircle className="text-red-500" size={20} /><div><p className="text-red-500 text-xs font-bold uppercase tracking-widest">Verification Denied</p><p className="text-gray-400 text-xs">Your documents were rejected. Click here to try again.</p></div></div><ArrowUpRight className="text-red-500" size={16} />
-          </motion.div>
-        )}
-
-        {/* STATS */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="p-8 rounded-3xl bg-[#0a0a0a] border border-white/10">
-            <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-2">Portfolio Equity</p>
-            <h2 className="text-3xl font-serif text-white">${totalEquity.toLocaleString()}</h2>
-          </div>
-          <div className="p-8 rounded-3xl bg-[#0a0a0a] border border-white/10">
-            <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-2">Available USD</p>
-            <h2 className="text-3xl font-serif text-[#D4AF37]">${(profile?.balance || 0).toLocaleString()}</h2>
-          </div>
-          <div className="p-8 rounded-3xl bg-[#0a0a0a] border border-[#D4AF37]/20">
-            <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-2">TSLA Units</p>
-            <h2 className="text-3xl font-serif text-white">{(profile?.tesla_units || 0).toFixed(4)}</h2>
-          </div>
-        </div>
-
-        <div className="mb-12 p-8 bg-[#0a0a0a] border border-white/10 rounded-[2.5rem]">
-           <GrowthChart />
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-8">
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10">
-            <div className="flex items-center gap-3 mb-10"><Activity className="text-[#D4AF37]" size={20} /> <h3 className="text-sm font-bold uppercase tracking-widest">Trading Hub</h3></div>
-            <div className="space-y-4">
-              
-              {/* 🟢 SMART DEPOSIT BUTTON */}
-              <a 
-                href={kycStatus === 'approved' ? WHATSAPP_LINK : "#"} 
-                onClick={handleDepositClick} 
-                target={kycStatus === 'approved' ? "_blank" : "_self"}
-                rel="noopener noreferrer"
-                className={`flex items-center justify-center gap-2 w-full py-6 font-black uppercase tracking-widest text-[11px] rounded-2xl transition-all shadow-[0_0_20px_rgba(212,175,55,0.2)] 
-                  ${kycStatus === 'approved' ? 'bg-[#D4AF37] text-black hover:bg-white hover:scale-[1.02] cursor-pointer' : 'bg-white/5 text-gray-500 cursor-not-allowed border border-white/10'}`}
-              >
-                {kycStatus === 'approved' ? (
-                   <>Deposit <ArrowUpRight size={14} /></>
-                ) : kycStatus === 'pending' ? (
-                   <><Clock size={14} /> Verification Pending</>
-                ) : (
-                   <><Lock size={14} /> Deposit Locked</>
-                )}
-              </a>
-
+        <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+          
+          {/* LEFT: TEXT */}
+          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 3.5, duration: 1 }}>
+            <span className="inline-block py-1.5 px-4 rounded-full bg-[#D4AF37]/5 border border-[#D4AF37]/20 text-[#D4AF37] text-[9px] font-bold uppercase tracking-[0.4em] mb-8 animate-pulse">
+              System Online • Dojo V4 Active
+            </span>
+            <h1 className="text-5xl md:text-8xl font-serif mb-8 leading-tight tracking-tight text-white">
+              Invest in <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">The Future.</span>
+            </h1>
+            <p className="text-gray-400 text-sm md:text-lg max-w-xl mb-12 leading-relaxed font-light">
+              Join the elite ecosystem powered by Tesla's algorithmic dominance. 
+              Watch your portfolio grow in real-time with Quantum Execution.
+            </p>
+            <div className="flex flex-col md:flex-row gap-6">
+              <Link href="/portal" className="px-10 py-5 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-xs rounded-full hover:scale-105 transition-transform shadow-[0_0_40px_rgba(212,175,55,0.3)]">
+                Enter Platform
+              </Link>
+              <Link href="/technology" className="group flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">
+                View Tech <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10 max-h-[400px] overflow-y-auto">
-            <div className="flex items-center gap-3 mb-10"><History className="text-[#D4AF37]" size={20} /> <h3 className="text-sm font-bold uppercase tracking-widest">Ledger History</h3></div>
-            <div className="space-y-4">
-              {transactions.length > 0 ? transactions.map((tx) => (
-                <div key={tx.id} className="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/5">
-                  <div>
-                    <p className="text-white text-[11px] font-bold uppercase tracking-widest">{tx.type}</p>
-                    <p className="text-gray-500 text-[9px]">{new Date(tx.created_at).toLocaleDateString()}</p>
-                  </div>
-                  <p className={`font-mono text-sm ${tx.direction === 'in' ? 'text-green-500' : 'text-red-500'}`}>
-                    {tx.direction === 'in' ? '+' : '-'}${Number(tx.amount).toLocaleString()}
-                  </p>
-                </div>
-              )) : (
-                <p className="text-gray-600 text-center py-10 uppercase text-[10px] tracking-widest">No activity found</p>
-              )}
-            </div>
-          </div>
+          {/* RIGHT: PHONE ANIMATION */}
+          <motion.div 
+             initial={{ opacity: 0, x: 50 }} 
+             animate={{ opacity: 1, x: 0 }} 
+             transition={{ delay: 3.8, duration: 1 }}
+             className="hidden lg:block"
+          >
+             <PhoneAnimation />
+          </motion.div>
+
         </div>
-      </div>
-      <ProctorBanner />
+      </section>
+
+      {/* STATS STRIP */}
+      <section className="py-20 border-y border-white/5 bg-black">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+          <div><h3 className="text-4xl font-serif text-white"><Counter to={18500} suffix="+" /></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Active Investors</p></div>
+          <div><h3 className="text-4xl font-serif text-[#D4AF37]">$<Counter to={940} suffix="M" /></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Total Volume</p></div>
+          <div><h3 className="text-4xl font-serif text-white"><Counter to={100} suffix="%" /></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Uptime</p></div>
+          <div><h3 className="text-4xl font-serif text-white">0.04<span className="text-sm">ms</span></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Latency</p></div>
+        </div>
+      </section>
+
+      {/* GLOBAL MAP */}
+      <section className="py-32 px-6 max-w-7xl mx-auto text-center">
+         <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.4em]">Global Infrastructure</span>
+         <h2 className="text-5xl font-serif mt-6 mb-16">Operating in 140+ Countries</h2>
+         <div className="relative w-full h-[300px] md:h-[500px] bg-[#111] rounded-[3rem] border border-white/5 overflow-hidden flex items-center justify-center">
+            <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg')] bg-cover bg-center opacity-10 grayscale invert" />
+            <div className="absolute top-[30%] left-[20%] w-3 h-3 bg-[#D4AF37] rounded-full animate-ping" />
+            <div className="absolute top-[40%] left-[50%] w-3 h-3 bg-[#D4AF37] rounded-full animate-ping delay-700" />
+            <div className="absolute top-[60%] left-[75%] w-3 h-3 bg-[#D4AF37] rounded-full animate-ping delay-300" />
+            <div className="relative z-10 bg-black/50 backdrop-blur-md p-8 rounded-2xl border border-white/10">
+               <Globe size={48} className="mx-auto mb-4 text-[#D4AF37]" />
+               <h3 className="text-2xl font-serif">Decentralized Nodes</h3>
+               <p className="text-sm text-gray-400 mt-2">Route your trades through the nearest server.</p>
+            </div>
+         </div>
+      </section>
+
+      {/* INFO CARDS */}
+      <section className="pb-32 px-6 max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8">
+          <Link href="/insurance" className="group relative bg-[#111] border border-white/10 p-12 rounded-[3rem] overflow-hidden hover:border-[#D4AF37]/50 transition-all duration-500 cursor-pointer">
+             <ShieldCheck size={48} className="text-[#D4AF37] mb-8" />
+             <h2 className="text-4xl font-serif mb-4">Insured by Tesla</h2>
+             <p className="text-gray-400 mb-8 leading-relaxed max-w-md">Zero risk. 100% principal guarantee.</p>
+             <span className="text-white text-xs font-bold uppercase tracking-widest border-b border-[#D4AF37] pb-1">Read Policy</span>
+          </Link>
+          <Link href="/technology" className="group relative bg-[#111] border border-white/10 p-12 rounded-[3rem] overflow-hidden hover:border-[#D4AF37]/50 transition-all duration-500 cursor-pointer">
+             <Server size={48} className="text-[#D4AF37] mb-8" />
+             <h2 className="text-4xl font-serif mb-4">The Technology</h2>
+             <p className="text-gray-400 mb-8 leading-relaxed max-w-md">Powered by Dojo Supercomputer V4.</p>
+             <span className="text-white text-xs font-bold uppercase tracking-widest border-b border-[#D4AF37] pb-1">Learn More</span>
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }
 EOF
 
-# 2. UPDATE KYC MODAL TO UPDATE STATUS TO 'pending' ON SUBMIT
-cat << 'EOF' > src/components/dashboard/KYCModal.tsx
-'use client';
-
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { ShieldAlert, Upload, CheckCircle, X, Lock, CreditCard, FileText, Eye, EyeOff, Loader2, AlertTriangle } from 'lucide-react';
-
-export default function KYCModal({ isOpen, onClose, status }: { isOpen: boolean; onClose: () => void; status: string }) {
-  const [step, setStep] = useState(1);
-  const [uploading, setUploading] = useState(false);
-  const [ssn, setSsn] = useState('');
-  const [showSSN, setShowSSN] = useState(false);
-  const [docType, setDocType] = useState<'passport' | 'license' | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState('');
-
-  // If rejected, show retry message
-  useEffect(() => {
-    if (status === 'rejected') setStep(1); 
-  }, [status]);
-
-  const validateAndContinue = () => {
-    const ssnClean = ssn.replace(/[^0-9]/g, '');
-    if (ssnClean.length !== 9) { setError("SSN must be exactly 9 digits."); return; }
-    if (!docType) { setError("Please select a document type."); return; }
-    setError('');
-    setStep(2);
-  };
-
-  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) setFile(e.target.files[0]);
-  };
-
-  const handleRealUpload = async () => {
-    if (!file || !docType || !ssn) return;
-    setUploading(true); setError('');
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not found");
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${docType}_${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('kyc_documents').upload(fileName, file);
-      if (uploadError) throw uploadError;
-
-      // 🛑 UPDATE STATUS TO 'pending'
-      const { error: dbError } = await supabase.from('profiles').update({ 
-          ssn: ssn, 
-          document_type: docType,
-          kyc_status: 'pending', // 👈 VITAL CHANGE
-          is_verified: false 
-        }).eq('id', user.id);
-
-      if (dbError) throw dbError;
-      setStep(3);
-    } catch (err: any) {
-      console.error(err);
-      setError("Upload failed: " + err.message);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={onClose} />
-          
-          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-md bg-[#0a0a0a] border border-[#D4AF37]/30 p-8 rounded-[2rem] shadow-[0_0_50px_rgba(212,175,55,0.15)] overflow-hidden">
-            <button onClick={onClose} className="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors"><X size={20} /></button>
-            
-            <div className="flex justify-center mb-6">
-              <div className="p-4 bg-[#D4AF37]/10 rounded-full border border-[#D4AF37]/30 shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-                {status === 'rejected' ? <AlertTriangle size={32} className="text-red-500" /> : <ShieldAlert size={32} className="text-[#D4AF37]" />}
-              </div>
-            </div>
-
-            {step === 1 && (
-              <>
-                <h2 className="text-2xl font-serif text-center mb-2 text-white">
-                  {status === 'rejected' ? 'Verification Failed' : 'Identity Verification'}
-                </h2>
-                <p className={`text-center text-[11px] mb-8 leading-relaxed px-4 ${status === 'rejected' ? 'text-red-400' : 'text-gray-400'}`}>
-                  {status === 'rejected' 
-                    ? "Your previous documents were rejected. Please upload clear, valid government identification." 
-                    : "Federal regulations require a valid SSN and Government ID for all investment accounts."}
-                </p>
-
-                <div className="space-y-5">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-2">Social Security Number</label>
-                    <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#D4AF37] transition-colors" size={16} />
-                      <input type={showSSN ? "text" : "password"} placeholder="XXX-XX-XXXX" value={ssn} onChange={(e) => { const val = e.target.value.replace(/[^0-9-]/g, ''); if (val.length <= 11) setSsn(val); setError(''); }} className="w-full bg-black/50 border border-white/10 rounded-xl py-4 pl-12 pr-12 text-white outline-none transition-all placeholder:text-gray-700 text-sm font-mono tracking-widest focus:border-[#D4AF37]" />
-                      <button type="button" onClick={() => setShowSSN(!showSSN)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white p-1">{showSSN ? <EyeOff size={16} /> : <Eye size={16} />}</button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-2">Select Document Type</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button onClick={() => { setDocType('passport'); setError(''); }} className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${docType === 'passport' ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#D4AF37]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}><CreditCard size={20} /> <span className="text-[10px] font-bold uppercase tracking-widest">Passport</span></button>
-                      <button onClick={() => { setDocType('license'); setError(''); }} className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${docType === 'license' ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#D4AF37]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}><FileText size={20} /> <span className="text-[10px] font-bold uppercase tracking-widest">License</span></button>
-                    </div>
-                  </div>
-
-                  {error && <p className="text-red-400 text-xs text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</p>}
-                  <button onClick={validateAndContinue} className="w-full py-4 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-xs rounded-xl hover:bg-white shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all mt-2">Continue to Upload</button>
-                </div>
-              </>
-            )}
-
-            {step === 2 && (
-              <>
-                <h2 className="text-2xl font-serif text-center mb-6">Upload Document</h2>
-                <div className="relative border-2 border-dashed border-white/20 rounded-2xl p-10 flex flex-col items-center justify-center hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 transition-all group h-[200px]">
-                  <input type="file" accept="image/*,.pdf" onChange={onFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
-                  {file ? (
-                    <div className="flex flex-col items-center"><FileText size={40} className="text-[#D4AF37] mb-2" /><p className="text-xs font-bold text-white text-center">{file.name}</p><p className="text-[10px] text-gray-500 mt-1">Ready to upload</p></div>
-                  ) : (
-                    <><Upload size={32} className="mb-4 text-gray-500 group-hover:text-[#D4AF37] transition-colors" /><p className="text-xs font-bold uppercase tracking-widest text-gray-400 group-hover:text-white">Tap to Select File</p></>
-                  )}
-                </div>
-                <button onClick={handleRealUpload} disabled={!file || uploading} className={`w-full mt-6 py-4 font-bold uppercase tracking-widest text-xs rounded-xl transition-all flex items-center justify-center gap-2 ${!file ? 'bg-white/5 text-gray-600' : 'bg-[#D4AF37] text-black hover:bg-white'}`}>{uploading ? <Loader2 className="animate-spin" size={16}/> : (uploading ? "Encrypting..." : "Submit Verification")}</button>
-                {!uploading && <button onClick={() => { setStep(1); setFile(null); }} className="w-full mt-2 py-4 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:text-white">Back</button>}
-              </>
-            )}
-
-            {step === 3 && (
-              <div className="text-center py-4">
-                <div className="flex justify-center mb-6"><div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center"><CheckCircle size={32} className="text-green-500" /></div></div>
-                <h2 className="text-2xl font-serif text-white mb-2">Documents Sent</h2>
-                <p className="text-gray-400 text-sm mb-8 leading-relaxed">Your status is now <span className="text-[#D4AF37] font-bold">Pending Review</span>.</p>
-                <button onClick={onClose} className="w-full py-4 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-xs rounded-xl hover:bg-white transition-all">Return to Dashboard</button>
-              </div>
-            )}
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
-  );
-}
-EOF
-
-echo "✅ DASHBOARD & MODAL SYNCED. VERIFICATION FLOW IS LIVE."
+echo "✅ PHONE ANIMATION & NEW PAGES DEPLOYED."

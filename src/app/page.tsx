@@ -3,10 +3,11 @@
 import IntroNavbar from '@/components/intro/IntroNavbar';
 import SplashScreen from '@/components/intro/SplashScreen';
 import LivePayouts from '@/components/landing/LivePayouts';
+import PhoneAnimation from '@/components/landing/PhoneAnimation'; // 👈 IMPORT
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
-import { ShieldCheck, TrendingUp, ArrowRight, Activity, Globe, Zap, Server } from 'lucide-react';
+import { ShieldCheck, TrendingUp, ArrowRight, Server, Globe } from 'lucide-react';
 import { useInView } from 'framer-motion';
 
 const Counter = ({ to, suffix = "" }: { to: number, suffix?: string }) => {
@@ -39,33 +40,45 @@ export default function LuxuryHome() {
       <LivePayouts />
       <IntroNavbar />
 
-      {/* HERO */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+      {/* HERO SECTION SPLIT: TEXT LEFT, PHONE RIGHT */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#1a1a1a_0%,#000_100%)]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#D4AF37] opacity-[0.04] blur-[150px] rounded-full pointer-events-none" />
         
-        <div className="relative z-10 text-center max-w-5xl px-6">
-          <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 3.5, duration: 1 }}>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+          
+          {/* LEFT: TEXT */}
+          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 3.5, duration: 1 }}>
             <span className="inline-block py-1.5 px-4 rounded-full bg-[#D4AF37]/5 border border-[#D4AF37]/20 text-[#D4AF37] text-[9px] font-bold uppercase tracking-[0.4em] mb-8 animate-pulse">
               System Online • Dojo V4 Active
             </span>
-            <h1 className="text-6xl md:text-9xl font-serif mb-8 leading-tight tracking-tight text-white">
+            <h1 className="text-5xl md:text-8xl font-serif mb-8 leading-tight tracking-tight text-white">
               Invest in <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">The Impossible.</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">The Future.</span>
             </h1>
-            <p className="text-gray-400 text-sm md:text-lg max-w-2xl mx-auto mb-12 leading-relaxed font-light">
+            <p className="text-gray-400 text-sm md:text-lg max-w-xl mb-12 leading-relaxed font-light">
               Join the elite ecosystem powered by Tesla's algorithmic dominance. 
-              We don't predict the future; we build it.
+              Watch your portfolio grow in real-time with Quantum Execution.
             </p>
-            <div className="flex flex-col md:flex-row gap-6 justify-center items-center">
-              <Link href="/portal" className="w-full md:w-auto px-10 py-5 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-xs rounded-full hover:scale-105 transition-transform shadow-[0_0_40px_rgba(212,175,55,0.3)]">
+            <div className="flex flex-col md:flex-row gap-6">
+              <Link href="/portal" className="px-10 py-5 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-xs rounded-full hover:scale-105 transition-transform shadow-[0_0_40px_rgba(212,175,55,0.3)]">
                 Enter Platform
               </Link>
               <Link href="/technology" className="group flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">
-                View Technology <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                View Tech <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </motion.div>
+
+          {/* RIGHT: PHONE ANIMATION */}
+          <motion.div 
+             initial={{ opacity: 0, x: 50 }} 
+             animate={{ opacity: 1, x: 0 }} 
+             transition={{ delay: 3.8, duration: 1 }}
+             className="hidden lg:block"
+          >
+             <PhoneAnimation />
+          </motion.div>
+
         </div>
       </section>
 
@@ -79,20 +92,15 @@ export default function LuxuryHome() {
         </div>
       </section>
 
-      {/* NEW: GLOBAL MAP SECTION */}
+      {/* GLOBAL MAP */}
       <section className="py-32 px-6 max-w-7xl mx-auto text-center">
          <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.4em]">Global Infrastructure</span>
          <h2 className="text-5xl font-serif mt-6 mb-16">Operating in 140+ Countries</h2>
-         
-         {/* Abstract Map Graphic (CSS Based) */}
          <div className="relative w-full h-[300px] md:h-[500px] bg-[#111] rounded-[3rem] border border-white/5 overflow-hidden flex items-center justify-center">
             <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg')] bg-cover bg-center opacity-10 grayscale invert" />
-            
-            {/* Pulsing Dots */}
             <div className="absolute top-[30%] left-[20%] w-3 h-3 bg-[#D4AF37] rounded-full animate-ping" />
             <div className="absolute top-[40%] left-[50%] w-3 h-3 bg-[#D4AF37] rounded-full animate-ping delay-700" />
             <div className="absolute top-[60%] left-[75%] w-3 h-3 bg-[#D4AF37] rounded-full animate-ping delay-300" />
-            
             <div className="relative z-10 bg-black/50 backdrop-blur-md p-8 rounded-2xl border border-white/10">
                <Globe size={48} className="mx-auto mb-4 text-[#D4AF37]" />
                <h3 className="text-2xl font-serif">Decentralized Nodes</h3>
