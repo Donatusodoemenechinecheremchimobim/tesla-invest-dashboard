@@ -12,7 +12,6 @@ export default function RocketGraph() {
            style={{ backgroundImage: 'linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
       />
 
-      {/* GRAPH CONTENT */}
       <div className="relative w-full h-full p-8">
         <div className="absolute top-6 left-6">
           <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest">Tesla Growth</p>
@@ -28,7 +27,6 @@ export default function RocketGraph() {
             </linearGradient>
           </defs>
           
-          {/* FILL AREA */}
           <motion.path 
             d="M0,350 Q100,300 175,200 T350,50 V350 H0 Z"
             fill="url(#rocketGradient)"
@@ -37,7 +35,6 @@ export default function RocketGraph() {
             transition={{ duration: 1 }}
           />
 
-          {/* LINE */}
           <motion.path 
             d="M0,350 Q100,300 175,200 T350,50"
             fill="none"
@@ -60,9 +57,8 @@ export default function RocketGraph() {
             offsetRotate: "auto"
           }}
         >
-          <div className="relative -rotate-45 transform"> {/* Adjust rotation to align with line */}
+          <div className="relative -rotate-45 transform"> 
              <Rocket size={32} className="text-white fill-[#D4AF37] drop-shadow-[0_0_15px_rgba(212,175,55,0.8)]" />
-             {/* Engine Flame */}
              <motion.div 
                animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
                transition={{ repeat: Infinity, duration: 0.2 }}
@@ -70,7 +66,6 @@ export default function RocketGraph() {
              />
           </div>
         </motion.div>
-
       </div>
     </div>
   );

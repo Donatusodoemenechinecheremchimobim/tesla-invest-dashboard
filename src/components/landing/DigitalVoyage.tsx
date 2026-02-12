@@ -17,7 +17,7 @@ export default function DigitalVoyage() {
   return (
     <div className="relative w-full max-w-4xl h-[400px] bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden mx-auto shadow-[0_0_50px_rgba(0,0,0,0.5)]">
       
-      {/* 🌊 1. THE DATA OCEAN */}
+      {/* 🌊 OCEAN */}
       <div className="absolute inset-0 flex flex-col justify-end pb-10 opacity-30">
         <motion.div 
            animate={{ x: ["-5%", "0%", "-5%"] }}
@@ -31,7 +31,7 @@ export default function DigitalVoyage() {
         />
       </div>
 
-      {/* 🏝️ 2. THE TESLA BEACON */}
+      {/* 🏝️ BEACON */}
       <motion.div 
         animate={{ 
            scale: stage >= 2 ? [1, 1.2, 1] : 1,
@@ -47,7 +47,7 @@ export default function DigitalVoyage() {
         <p className="text-[#D4AF37] text-[10px] font-bold mt-2 uppercase tracking-widest">The Sanctuary</p>
       </motion.div>
 
-      {/* 🚢 3. THE SHIP */}
+      {/* 🚢 SHIP */}
       <motion.div
         animate={{ 
            x: stage === 0 ? 0 : stage === 1 ? 50 : 250, 
@@ -63,7 +63,6 @@ export default function DigitalVoyage() {
       >
         <div className="relative">
            <Ship size={64} className="text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)]" />
-           
            <motion.div 
              initial={{ opacity: 0 }}
              animate={{ opacity: stage === 1 ? 1 : 0 }}
@@ -71,7 +70,6 @@ export default function DigitalVoyage() {
            >
               <Telescope size={20} className="text-[#D4AF37]" />
            </motion.div>
-
            <AnimatePresence>
              {stage === 1 && (
                <motion.div 
@@ -85,7 +83,6 @@ export default function DigitalVoyage() {
              )}
            </AnimatePresence>
         </div>
-        
         <motion.div 
            animate={{ width: [0, 50, 0], opacity: [0, 0.5, 0] }}
            transition={{ repeat: Infinity, duration: 1 }}
@@ -93,7 +90,7 @@ export default function DigitalVoyage() {
         />
       </motion.div>
 
-      {/* 📜 4. NARRATIVE TEXT */}
+      {/* 📜 TEXT */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full text-center px-4">
         <motion.p 
           key={stage}
@@ -108,7 +105,6 @@ export default function DigitalVoyage() {
           {stage === 3 && "Full Speed Ahead. Wealth Imminent."}
         </motion.p>
       </div>
-
     </div>
   );
 }
