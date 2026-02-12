@@ -1,12 +1,16 @@
 #!/bin/bash
 
-echo "🏴‍☠️ DEPLOYING 'THE DIGITAL VOYAGER' ANIMATION..."
+echo "🚑 FORCE FIXING DIGITAL VOYAGE COMPONENT..."
 
+# 1. DELETE the file first to ensure a clean slate
+rm -f src/components/landing/DigitalVoyage.tsx
+
+# 2. RE-CREATE the file with the correct imports
 cat << 'EOF' > src/components/landing/DigitalVoyage.tsx
 'use client';
 
-import { motion } from 'framer-motion';
-import { Ship, Zap, Telescope, Waves } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Ship, Zap, Telescope } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function DigitalVoyage() {
@@ -22,7 +26,7 @@ export default function DigitalVoyage() {
   return (
     <div className="relative w-full max-w-4xl h-[400px] bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden mx-auto shadow-[0_0_50px_rgba(0,0,0,0.5)]">
       
-      {/* 🌊 1. THE DATA OCEAN (Moving Background) */}
+      {/* 🌊 1. THE DATA OCEAN */}
       <div className="absolute inset-0 flex flex-col justify-end pb-10 opacity-30">
         <motion.div 
            animate={{ x: ["-5%", "0%", "-5%"] }}
@@ -36,7 +40,7 @@ export default function DigitalVoyage() {
         />
       </div>
 
-      {/* 🏝️ 2. THE TESLA BEACON (Destination) */}
+      {/* 🏝️ 2. THE TESLA BEACON */}
       <motion.div 
         animate={{ 
            scale: stage >= 2 ? [1, 1.2, 1] : 1,
@@ -52,12 +56,12 @@ export default function DigitalVoyage() {
         <p className="text-[#D4AF37] text-[10px] font-bold mt-2 uppercase tracking-widest">The Sanctuary</p>
       </motion.div>
 
-      {/* 🚢 3. THE SHIP (The User) */}
+      {/* 🚢 3. THE SHIP */}
       <motion.div
         animate={{ 
-           x: stage === 0 ? 0 : stage === 1 ? 50 : 250, // Move Right
-           y: [0, -5, 0], // Bobbing effect
-           rotate: stage === 3 ? 0 : [1, -1, 1] // Rocking
+           x: stage === 0 ? 0 : stage === 1 ? 50 : 250, 
+           y: [0, -5, 0], 
+           rotate: stage === 3 ? 0 : [1, -1, 1] 
         }}
         transition={{ 
            x: { duration: 3, ease: "easeInOut" },
@@ -66,11 +70,9 @@ export default function DigitalVoyage() {
         }}
         className="absolute bottom-20 left-10 md:left-32 z-20 text-white"
       >
-        {/* The Explorer looking through telescope */}
         <div className="relative">
            <Ship size={64} className="text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)]" />
            
-           {/* Telescope Interaction */}
            <motion.div 
              initial={{ opacity: 0 }}
              animate={{ opacity: stage === 1 ? 1 : 0 }}
@@ -79,7 +81,6 @@ export default function DigitalVoyage() {
               <Telescope size={20} className="text-[#D4AF37]" />
            </motion.div>
 
-           {/* "Spotting" Bubble */}
            <AnimatePresence>
              {stage === 1 && (
                <motion.div 
@@ -94,7 +95,6 @@ export default function DigitalVoyage() {
            </AnimatePresence>
         </div>
         
-        {/* Wake (Water trail) */}
         <motion.div 
            animate={{ width: [0, 50, 0], opacity: [0, 0.5, 0] }}
            transition={{ repeat: Infinity, duration: 1 }}
@@ -122,4 +122,5 @@ export default function DigitalVoyage() {
   );
 }
 EOF
-echo "✅ 'DIGITAL VOYAGER' COMPONENT CREATED."
+
+echo "✅ DIGITAL VOYAGE RE-BUILT WITH CORRECT IMPORTS."
