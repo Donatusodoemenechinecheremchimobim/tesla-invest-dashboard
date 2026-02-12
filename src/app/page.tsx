@@ -7,7 +7,7 @@ import PhoneAnimation from '@/components/landing/PhoneAnimation';
 import RocketGraph from '@/components/landing/RocketGraph'; 
 import CyberShield from '@/components/landing/CyberShield'; 
 import DigitalVoyage from '@/components/landing/DigitalVoyage';
-import SignatureAnimation from '@/components/landing/SignatureAnimation'; // 👈 IMPORTED
+import SignatureAnimation from '@/components/landing/SignatureAnimation'; 
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
@@ -49,9 +49,9 @@ export default function LuxuryHome() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#1a1a1a_0%,#000_100%)]" />
         <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
           <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 3.5, duration: 1 }}>
-            <span className="inline-block py-1.5 px-4 rounded-full bg-[#D4AF37]/5 border border-[#D4AF37]/20 text-[#D4AF37] text-[9px] font-bold uppercase tracking-[0.4em] mb-8 animate-pulse">
-              System Online • Dojo V4 Active
-            </span>
+            
+            {/* REMOVED THE DOJO V4 ACTIVE BADGE HERE */}
+
             <h1 className="text-5xl md:text-8xl font-serif mb-8 leading-tight tracking-tight text-white">
               Invest in <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">The Future.</span>
@@ -118,10 +118,10 @@ export default function LuxuryHome() {
         </div>
       </section>
 
-      {/* FOOTER SIGNATURE (NEW ADDITION) */}
+      {/* FOOTER SIGNATURE */}
       <section className="py-20 px-6 text-center border-t border-white/10">
          <h3 className="text-[#D4AF37] text-xs font-bold uppercase tracking-[0.3em] mb-8">Verified & Approved</h3>
-         <SignatureAnimation /> {/* 👈 ALSO HERE ON HOMEPAGE */}
+         <SignatureAnimation />
       </section>
 
     </main>

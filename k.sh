@@ -1,162 +1,135 @@
 #!/bin/bash
 
-echo "🚀 OPTIMIZING IMAGES & UPGRADING FOUNDERS PAGE CONTENT..."
+echo "✂️ REMOVING 'DOJO V4 ACTIVE' BADGE..."
 
 # ======================================================
-# 1. CONFIGURE NEXT.JS TO ALLOW WIKIMEDIA IMAGES
+# UPDATE PAGE.TSX (Removing the badge span)
 # ======================================================
-# We need to tell Next.js it's okay to optimize images from this domain.
-cat << 'EOF' > next.config.mjs
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'upload.wikimedia.org',
-        port: '',
-        pathname: '/**',
-      },
-    ],
-  },
-};
-
-export default nextConfig;
-EOF
-
-# ======================================================
-# 2. CREATE THE NEW INTERACTIVE TEXT COMPONENT
-# ======================================================
-cat << 'EOF' > src/components/landing/ManifestoScroll.tsx
-'use client';
-
-import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
-import { Quote } from 'lucide-react';
-
-const manifestoPoints = [
-  {
-    highlight: "Civilization is fragile.",
-    text: "The window of opportunity to become a multi-planetary species will not remain open forever. To secure the light of consciousness, we must build a self-sustaining city on Mars."
-  },
-  {
-    highlight: "Traditional financing is broken.",
-    text: "Wall Street banks, venture capital, and government grants are too slow, too risk-averse, and too short-sighted for the scale of interstellar ambition."
-  },
-  {
-    highlight: "A perpetual capital engine.",
-    text: "TeslaInvest was built to solve this. By redirecting idle Dojo Supercomputer processing power, we predict market volatility with unprecedented accuracy."
-  },
-  {
-    highlight: "The dual mandate.",
-    text: "Every dollar of profit generated serves two purposes: 1. Expanding your personal wealth. 2. Funding the Starship fleet to take humanity to the stars."
-  }
-];
-
-function TextBlock({ item, index }: { item: any, index: number }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: false, amount: 0.6 });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-      animate={{ 
-        opacity: isInView ? 1 : 0.3, 
-        x: isInView ? 0 : (index % 2 === 0 ? -20 : 20),
-        scale: isInView ? 1 : 0.95
-      }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-      className={`relative p-8 md:p-12 rounded-3xl border ${isInView ? 'border-[#D4AF37] bg-[#D4AF37]/5' : 'border-white/5 bg-[#111]'} transition-colors duration-700`}
-    >
-      <Quote className={`absolute top-6 left-6 ${isInView ? 'text-[#D4AF37]' : 'text-gray-700'} transition-colors duration-700`} size={40} />
-      <div className="relative z-10 ml-10">
-        <h3 className={`text-2xl md:text-3xl font-serif mb-4 ${isInView ? 'text-white' : 'text-gray-400'} transition-colors duration-700`}>
-          {item.highlight}
-        </h3>
-        <p className={`text-lg leading-relaxed ${isInView ? 'text-gray-200' : 'text-gray-600'} transition-colors duration-700`}>
-          {item.text}
-        </p>
-      </div>
-    </motion.div>
-  );
-}
-
-export default function ManifestoScroll() {
-  return (
-    <div className="space-y-24 py-20">
-      {manifestoPoints.map((item, index) => (
-        <TextBlock key={index} item={item} index={index} />
-      ))}
-    </div>
-  );
-}
-EOF
-
-# ======================================================
-# 3. UPDATE THE FOUNDERS PAGE (Use next/image & New Text Component)
-# ======================================================
-cat << 'EOF' > src/app/founders/page.tsx
+cat << 'EOF' > src/app/page.tsx
 'use client';
 
 import IntroNavbar from '@/components/intro/IntroNavbar';
-import NeuralSingularity from '@/components/landing/NeuralSingularity';
-import ManifestoScroll from '@/components/landing/ManifestoScroll'; // 👈 IMPORT NEW COMPONENT
-import { motion } from 'framer-motion';
-import Image from 'next/image'; // 👈 IMPORT NEXT/IMAGE
+import SplashScreen from '@/components/intro/SplashScreen';
+import LivePayouts from '@/components/landing/LivePayouts';
+import PhoneAnimation from '@/components/landing/PhoneAnimation';
+import RocketGraph from '@/components/landing/RocketGraph'; 
+import CyberShield from '@/components/landing/CyberShield'; 
+import DigitalVoyage from '@/components/landing/DigitalVoyage';
+import SignatureAnimation from '@/components/landing/SignatureAnimation'; 
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
+import { ShieldCheck, TrendingUp, ArrowRight, Server, Globe } from 'lucide-react';
+import { useInView } from 'framer-motion';
 
-export default function FoundersPage() {
+const Counter = ({ to, suffix = "" }: { to: number, suffix?: string }) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref);
+  useEffect(() => {
+    if (isInView) {
+      let start = 0;
+      const duration = 2000; 
+      const timer = setInterval(() => {
+        start += Math.ceil(to / 50);
+        if (start >= to) { setCount(to); clearInterval(timer); } 
+        else { setCount(start); }
+      }, 30);
+      return () => clearInterval(timer);
+    }
+  }, [isInView, to]);
+  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+};
+
+export default function LuxuryHome() {
+  const [showSplash, setShowSplash] = useState(true);
+
   return (
-    <main className="min-h-screen bg-black text-white selection:bg-[#D4AF37]">
+    <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black overflow-x-hidden">
+      <AnimatePresence>
+        {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      </AnimatePresence>
+      <LivePayouts />
       <IntroNavbar />
-      
-      {/* 1. HERO SECTION */}
-      <section className="pt-40 pb-20 px-6 max-w-4xl mx-auto text-center">
-        
-        {/* CIRCULAR ELON FRAME */}
-        <motion.div 
-          initial={{ scale: 0 }} 
-          animate={{ scale: 1 }} 
-          transition={{ type: "spring", stiffness: 100 }}
-          className="relative w-64 h-64 mx-auto mb-12"
-        >
-           {/* Spinning Borders */}
-           <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#D4AF37] animate-spin-slow" style={{ animationDuration: '20s' }} />
-           <div className="absolute -inset-4 rounded-full border border-white/10" />
-           
-           {/* IMAGE - UPDATED TO NEXT/IMAGE FOR FAST LOADING */}
-           <div className="w-full h-full rounded-full overflow-hidden border-4 border-[#111] shadow-[0_0_50px_rgba(212,175,55,0.3)] bg-gray-800 relative">
-              <Image 
-                src="https://upload.wikimedia.org/wikipedia/commons/e/ed/Elon_Musk_Royal_Society.jpg" 
-                alt="Elon Musk" 
-                fill
-                className="object-cover"
-                priority // Loads immediately
-              />
-           </div>
 
-           {/* Badge */}
-           <div className="absolute bottom-0 right-4 bg-[#D4AF37] text-black text-xs font-bold px-4 py-1 rounded-full uppercase tracking-widest border border-white z-10">
-              Technoking
-           </div>
-        </motion.div>
+      {/* HERO */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#1a1a1a_0%,#000_100%)]" />
+        <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 3.5, duration: 1 }}>
+            
+            {/* REMOVED THE DOJO V4 ACTIVE BADGE HERE */}
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <h1 className="text-5xl md:text-8xl font-serif mb-8 text-white">The Architect.</h1>
-          <p className="text-[#D4AF37] font-mono text-sm uppercase tracking-[0.3em] mb-20">
-             Elon Reeve Musk • Founder & Visionary
-          </p>
-        </motion.div>
-
-        {/* 2. THE NEW INTERACTIVE MANIFESTO SCROLL */}
-        <ManifestoScroll />
-
+            <h1 className="text-5xl md:text-8xl font-serif mb-8 leading-tight tracking-tight text-white">
+              Invest in <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">The Future.</span>
+            </h1>
+            <p className="text-gray-400 text-sm md:text-lg max-w-xl mb-12 leading-relaxed font-light">
+              Join the elite ecosystem powered by Tesla's algorithmic dominance. 
+              Watch your portfolio grow in real-time.
+            </p>
+            <div className="flex flex-col md:flex-row gap-6">
+              <Link href="/portal" className="px-10 py-5 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-xs rounded-full hover:scale-105 transition-transform shadow-[0_0_40px_rgba(212,175,55,0.3)] text-center">
+                Enter Platform
+              </Link>
+              <Link href="/about" className="group flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">
+                Read Our Story <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 3.8, duration: 1 }} className="flex justify-center">
+             <div className="scale-75 md:scale-100 transform origin-top md:origin-center">
+                <PhoneAnimation />
+             </div>
+          </motion.div>
+        </div>
       </section>
 
-      {/* 3. CRAZY ANIMATION SECTION */}
-      <section className="py-20 px-6 max-w-6xl mx-auto text-center border-t border-white/10">
-         <h2 className="text-3xl font-serif mb-8 mt-10">The Engine: Neural Singularity</h2>
-         <NeuralSingularity />
+      {/* STATS */}
+      <section className="py-20 border-y border-white/5 bg-black">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+          <div><h3 className="text-4xl font-serif text-white"><Counter to={18500} suffix="+" /></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Active Investors</p></div>
+          <div><h3 className="text-4xl font-serif text-[#D4AF37]">$<Counter to={940} suffix="M" /></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Total Volume</p></div>
+          <div><h3 className="text-4xl font-serif text-white"><Counter to={100} suffix="%" /></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Uptime</p></div>
+          <div><h3 className="text-4xl font-serif text-white">0.04<span className="text-sm">ms</span></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Latency</p></div>
+        </div>
+      </section>
+
+      {/* VOYAGER */}
+      <section className="py-32 px-6 max-w-7xl mx-auto text-center">
+         <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.4em]">The Journey</span>
+         <h2 className="text-4xl md:text-5xl font-serif mt-6 mb-16">Navigating the Digital Ocean</h2>
+         <DigitalVoyage />
+         <p className="text-gray-400 max-w-2xl mx-auto mt-12 leading-relaxed">
+            Stop drifting in the choppy waters of traditional banking. 
+            Set your sights on the golden beacon of Tesla AI Trading.
+         </p>
+      </section>
+
+      {/* ROCKET & SHIELD */}
+      <section className="py-32 px-6 max-w-7xl mx-auto bg-black border-y border-white/5">
+        <div className="text-center mb-16">
+           <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.4em]">Visualizing Performance</span>
+           <h2 className="text-5xl font-serif mt-6">Speed & Security</h2>
+        </div>
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+           <div className="bg-[#0a0a0a] p-8 md:p-12 rounded-[3rem] border border-white/10 text-center group hover:border-[#D4AF37]/30 transition-colors">
+              <RocketGraph />
+              <h3 className="text-3xl font-serif mt-8 mb-4">Hyper-Growth</h3>
+              <p className="text-gray-400 text-sm max-w-sm mx-auto">AI identifies breakout patterns before they happen.</p>
+           </div>
+           <div className="bg-[#0a0a0a] p-8 md:p-12 rounded-[3rem] border border-white/10 text-center group hover:border-[#D4AF37]/30 transition-colors">
+              <CyberShield />
+              <h3 className="text-3xl font-serif mt-8 mb-4">Ironclad Security</h3>
+              <p className="text-gray-400 text-sm max-w-sm mx-auto">Assets protected by military-grade encryption.</p>
+           </div>
+        </div>
+      </section>
+
+      {/* FOOTER SIGNATURE */}
+      <section className="py-20 px-6 text-center border-t border-white/10">
+         <h3 className="text-[#D4AF37] text-xs font-bold uppercase tracking-[0.3em] mb-8">Verified & Approved</h3>
+         <SignatureAnimation />
       </section>
 
     </main>
@@ -164,4 +137,4 @@ export default function FoundersPage() {
 }
 EOF
 
-echo "✅ FOUNDERS PAGE OPTIMIZED: FASTER IMAGE & INTERACTIVE TEXT DEPLOYED."
+echo "✅ REMOVED DOJO V4 ACTIVE TEXT."

@@ -8,45 +8,68 @@
   --background-end-rgb: 0, 0, 0;
 }
 
+/* 🧈 BUTTER SMOOTH SCROLLING ENGINE */
+html {
+  scroll-behavior: smooth !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
-  background: black;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased; /* Makes text sharper/faster */
-  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+  overflow-x: hidden; /* Prevent horizontal scroll jitter */
 }
 
-/* 🚀 MOBILE OPTIMIZATION ENGINE */
-
-/* 1. Force GPU for everything moving */
-* {
-  box-sizing: border-box;
-}
-
-/* 2. Optimize "Glass" effects for Mobile */
-@media (max-width: 768px) {
-  .backdrop-blur-md, .backdrop-blur-xl, .backdrop-blur-lg {
-    /* Reduce blur radius on mobile to save GPU cycles */
-    backdrop-filter: blur(8px) !important; 
-    -webkit-backdrop-filter: blur(8px) !important;
-  }
-}
-
-/* 3. Hardware Acceleration Class */
-.gpu-accelerated {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000px;
-  will-change: transform, opacity;
-}
-
-/* 4. Native Smooth Scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* 5. Hide Scrollbar but keep functionality */
+/* Hide Scrollbar but keep functionality for cleaner look */
 ::-webkit-scrollbar {
-  width: 0px;
-  background: transparent;
+  width: 8px;
+  background: #000;
+}
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
+}
+
+/* Hardware Acceleration for Animations */
+* {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Utility for spinning borders */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 10s linear infinite;
+}
+
+/* Pulse animation for Luxury Personal Page */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.1); }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 8s infinite ease-in-out;
+}
+
+/* Prism Card Effect */
+.prism-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 transparent;
+  transition: all 0.3s ease;
+}
+.prism-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(212, 175, 55, 0.3);
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+  transform: translateY(-5px);
 }
