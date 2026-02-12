@@ -8,7 +8,7 @@ export default function IntroNavbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const links = [
-    { name: "Founders", href: "/founders" }, // 👈 ADDED HERE
+    { name: "Founder", href: "/founders" }, // 👈 CHANGED TO SINGULAR
     { name: "Technology", href: "/technology" },
     { name: "Insurance", href: "/insurance" },
     { name: "About", href: "/about" },

@@ -4,10 +4,10 @@ import { ArrowUpRight } from 'lucide-react';
 
 export default function PressPage() {
   const news = [
-    { date: "Feb 12, 2026", title: "TeslaInv Reports Record Q1 Earnings Growth of 145%", source: "Bloomberg" },
-    { date: "Jan 28, 2026", title: "Dojo V4 Chip Integration Complete: Latency Drops by 40%", source: "TechCrunch" },
-    { date: "Jan 15, 2026", title: "Global Expansion: New Nodes Active in Singapore & Dubai", source: "Reuters" },
-    { date: "Dec 10, 2025", title: "The End of Hedge Funds? How AI is Taking Over.", source: "Forbes" }
+    { date: "Feb 12, 2026", title: "TeslaInv Reports Record Q1 Earnings Growth of 145%", source: "Bloomberg", link: "https://www.bloomberg.com" },
+    { date: "Jan 28, 2026", title: "Dojo V4 Chip Integration Complete: Latency Drops by 40%", source: "TechCrunch", link: "https://techcrunch.com" },
+    { date: "Jan 15, 2026", title: "Global Expansion: New Nodes Active in Singapore & Dubai", source: "Reuters", link: "https://www.reuters.com" },
+    { date: "Dec 10, 2025", title: "The End of Hedge Funds? How AI is Taking Over.", source: "Forbes", link: "https://www.forbes.com" }
   ];
 
   return (
@@ -18,7 +18,7 @@ export default function PressPage() {
         
         <div className="space-y-4">
            {news.map((item, i) => (
-             <div key={i} className="group flex flex-col md:flex-row md:items-center justify-between bg-[#111] p-8 rounded-2xl border border-white/5 hover:border-[#D4AF37] transition-all cursor-pointer">
+             <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" className="group flex flex-col md:flex-row md:items-center justify-between bg-[#111] p-8 rounded-2xl border border-white/5 hover:border-[#D4AF37] transition-all cursor-pointer block">
                <div>
                   <div className="flex items-center gap-3 mb-2">
                     <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-widest">{item.source}</span>
@@ -28,7 +28,7 @@ export default function PressPage() {
                   <h3 className="text-xl md:text-2xl font-bold group-hover:text-[#D4AF37] transition-colors">{item.title}</h3>
                </div>
                <ArrowUpRight className="text-gray-600 group-hover:text-[#D4AF37] transition-colors mt-4 md:mt-0" />
-             </div>
+             </a>
            ))}
         </div>
       </div>

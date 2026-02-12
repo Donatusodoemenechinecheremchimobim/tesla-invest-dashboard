@@ -35,11 +35,12 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-white/10">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         
+        {/* UPDATED LOGO TEXT */}
         <Link href="/portal" className="flex items-center gap-2 group">
           <div className="bg-[#D4AF37] p-1.5 rounded-lg group-hover:scale-110 transition-transform">
             <Zap size={20} className="text-black fill-black" />
           </div>
-          <span className="text-white font-serif font-bold text-xl tracking-wide">TESLA<span className="text-[#D4AF37]">INV</span></span>
+          <span className="text-white font-serif font-bold text-xl tracking-wide">INVESTMENT<span className="text-[#D4AF37]">TESLA</span></span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-widest text-gray-400">
@@ -90,10 +91,7 @@ export default function Navbar() {
                <Link href="/portal/personal" className="text-[#D4AF37] hover:text-white font-bold" onClick={() => setIsOpen(false)}>Private Client</Link>
                <Link href="/portal/strategy" className="text-gray-400 hover:text-[#D4AF37]" onClick={() => setIsOpen(false)}>Strategy</Link>
                <Link href="/portal/insurance" className="text-gray-400 hover:text-[#D4AF37]" onClick={() => setIsOpen(false)}>Insurance</Link>
-               <Link href="/portal/concierge" className="text-gray-400 hover:text-[#D4AF37]" onClick={() => setIsOpen(false)}>Concierge</Link>
-               
                <div className="h-px bg-white/10 my-2" />
-               
                {user ? (
                  <button onClick={() => { handleSignOut(); setIsOpen(false); }} className="text-red-400 flex items-center gap-2 text-sm font-bold uppercase tracking-widest"><LogOut size={16} /> Sign Out</button>
                ) : (
