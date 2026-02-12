@@ -6,7 +6,8 @@ import LivePayouts from '@/components/landing/LivePayouts';
 import PhoneAnimation from '@/components/landing/PhoneAnimation';
 import RocketGraph from '@/components/landing/RocketGraph'; 
 import CyberShield from '@/components/landing/CyberShield'; 
-import DigitalVoyage from '@/components/landing/DigitalVoyage'; 
+import DigitalVoyage from '@/components/landing/DigitalVoyage';
+import SignatureAnimation from '@/components/landing/SignatureAnimation'; // 👈 IMPORTED
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
@@ -117,21 +118,12 @@ export default function LuxuryHome() {
         </div>
       </section>
 
-      {/* MAP */}
-      <section className="py-32 px-6 max-w-7xl mx-auto text-center">
-         <h2 className="text-5xl font-serif mb-16">Operating in 140+ Countries</h2>
-         <div className="relative w-full h-[300px] md:h-[500px] bg-[#111] rounded-[3rem] border border-white/5 overflow-hidden flex items-center justify-center">
-            <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg')] bg-cover bg-center opacity-10 grayscale invert" />
-            <div className="absolute top-[30%] left-[20%] w-3 h-3 bg-[#D4AF37] rounded-full animate-ping" />
-            <div className="absolute top-[40%] left-[50%] w-3 h-3 bg-[#D4AF37] rounded-full animate-ping delay-700" />
-            <div className="absolute top-[60%] left-[75%] w-3 h-3 bg-[#D4AF37] rounded-full animate-ping delay-300" />
-            <div className="relative z-10 bg-black/50 backdrop-blur-md p-8 rounded-2xl border border-white/10">
-               <Globe size={48} className="mx-auto mb-4 text-[#D4AF37]" />
-               <h3 className="text-2xl font-serif">Decentralized Nodes</h3>
-               <p className="text-sm text-gray-400 mt-2">Route your trades through the nearest server.</p>
-            </div>
-         </div>
+      {/* FOOTER SIGNATURE (NEW ADDITION) */}
+      <section className="py-20 px-6 text-center border-t border-white/10">
+         <h3 className="text-[#D4AF37] text-xs font-bold uppercase tracking-[0.3em] mb-8">Verified & Approved</h3>
+         <SignatureAnimation /> {/* 👈 ALSO HERE ON HOMEPAGE */}
       </section>
+
     </main>
   );
 }

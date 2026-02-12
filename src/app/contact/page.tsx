@@ -1,8 +1,11 @@
 'use client';
 import IntroNavbar from '@/components/intro/IntroNavbar';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Phone, MapPin, MessageCircle } from 'lucide-react';
 
 export default function ContactPage() {
+  const WA_NUMBER = "19803487946";
+  const WA_LINK = `https://wa.me/${WA_NUMBER}`;
+
   return (
     <main className="min-h-screen bg-black text-white">
       <IntroNavbar />
@@ -14,16 +17,22 @@ export default function ContactPage() {
         </p>
 
         <div className="grid md:grid-cols-3 gap-8">
-           <div className="bg-[#111] p-10 rounded-3xl border border-white/10 flex flex-col items-center">
-              <Mail className="text-[#D4AF37] mb-4" size={32} />
-              <h3 className="font-bold mb-2">Email</h3>
-              <p className="text-gray-400 text-sm">vip@teslainv.com</p>
-           </div>
+           
+           {/* WHATSAPP */}
+           <a href={WA_LINK} target="_blank" className="bg-[#111] p-10 rounded-3xl border border-white/10 flex flex-col items-center hover:border-green-500/50 transition-colors cursor-pointer">
+              <MessageCircle className="text-green-500 mb-4" size={32} />
+              <h3 className="font-bold mb-2">WhatsApp</h3>
+              <p className="text-gray-400 text-sm">+{WA_NUMBER}</p>
+           </a>
+
+           {/* PHONE */}
            <div className="bg-[#111] p-10 rounded-3xl border border-white/10 flex flex-col items-center">
               <Phone className="text-[#D4AF37] mb-4" size={32} />
               <h3 className="font-bold mb-2">Priority Line</h3>
               <p className="text-gray-400 text-sm">+1 (888) 4-DOJO-AI</p>
            </div>
+
+           {/* HQ */}
            <div className="bg-[#111] p-10 rounded-3xl border border-white/10 flex flex-col items-center">
               <MapPin className="text-[#D4AF37] mb-4" size={32} />
               <h3 className="font-bold mb-2">HQ</h3>
