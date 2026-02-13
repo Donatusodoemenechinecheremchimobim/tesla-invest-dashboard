@@ -1,14 +1,13 @@
-import type { Metadata } from 'next';
-import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
+import { Inter } from 'next/font/google';
+import SocialProof from '@/components/ui/SocialProof';
 import WhatsAppBubble from '@/components/ui/WhatsAppBubble'; // 👈 IMPORTED
 
-const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif' });
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const inter = Inter({ subsets: ['latin'] });
 
-export const metadata: Metadata = {
-  title: 'TeslaInvest | Algorithmic Wealth',
-  description: 'The future of high-frequency trading powered by Dojo V4.',
+export const metadata = {
+  title: 'Verde Capital | Sustainable Growth',
+  description: 'AI-driven investment platform.',
 };
 
 export default function RootLayout({
@@ -17,10 +16,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} ${playfair.variable} font-sans antialiased bg-black text-white`}>
+    <html lang="en">
+      <body className={inter.className}>
         {children}
-        <WhatsAppBubble /> {/* 👈 GLOBAL BUBBLE */}
+        <SocialProof />    {/* 👈 Shows on New Site */}
+        <WhatsAppBubble /> {/* 👈 Shows on Old Site */}
       </body>
     </html>
   );

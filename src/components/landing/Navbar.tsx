@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Zap, Menu, X, LayoutDashboard, Crown } from 'lucide-react';
+import { ArrowRight, Zap, Menu, X, LayoutDashboard, Crown, Users } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
@@ -47,6 +47,9 @@ export default function Navbar() {
 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-widest text-gray-400">
+            <Link href="/portal/founders" className="hover:text-[#D4AF37] transition-colors flex items-center gap-1">
+               <Users size={12}/> Founders
+            </Link>
             <Link href="/portal/personal" className="hover:text-[#D4AF37] transition-colors flex items-center gap-1 text-[#D4AF37]">
                <Crown size={12}/> Private Client
             </Link>
@@ -78,7 +81,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* MOBILE MENU (Was missing before!) */}
+      {/* MOBILE MENU */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
@@ -87,6 +90,7 @@ export default function Navbar() {
             exit={{ opacity: 0, y: -20 }}
             className="fixed inset-0 z-40 bg-black pt-24 px-6 md:hidden flex flex-col gap-6"
           >
+            <Link href="/portal/founders" onClick={() => setIsOpen(false)} className="text-2xl font-serif text-white border-b border-white/10 pb-4">Founders</Link>
             <Link href="/portal/personal" onClick={() => setIsOpen(false)} className="text-2xl font-serif text-white border-b border-white/10 pb-4">Private Client</Link>
             <Link href="/portal/strategy" onClick={() => setIsOpen(false)} className="text-2xl font-serif text-white border-b border-white/10 pb-4">Strategy</Link>
             <Link href="/portal/insurance" onClick={() => setIsOpen(false)} className="text-2xl font-serif text-white border-b border-white/10 pb-4">Insurance</Link>
