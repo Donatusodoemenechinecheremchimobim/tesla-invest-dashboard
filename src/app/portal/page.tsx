@@ -34,7 +34,7 @@ export default function OldSitePortal() {
               </p>
 
               <div className="flex flex-col md:flex-row gap-4 justify-center items-center w-full mb-16">
-                <Link href="/auth" className="w-full md:w-auto px-8 py-4 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-xs rounded-full hover:bg-white transition-all shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+                <Link href="/portal/auth" className="w-full md:w-auto px-8 py-4 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-xs rounded-full hover:bg-white transition-all shadow-[0_0_20px_rgba(212,175,55,0.2)]">
                   Access Client Portal
                 </Link>
                 <button className="w-full md:w-auto px-8 py-4 bg-white/5 border border-white/10 text-white font-bold uppercase tracking-widest text-xs rounded-full hover:bg-white/10 transition-all">
