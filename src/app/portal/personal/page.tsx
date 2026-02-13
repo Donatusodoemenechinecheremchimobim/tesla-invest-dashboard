@@ -36,7 +36,7 @@ export default function PersonalPage() {
               From liquidity management to procuring rare assets, we handle the details while you handle the vision.
             </p>
             <div className="flex gap-6">
-              <Link href="/auth" className="px-10 py-4 bg-white text-black font-bold uppercase tracking-widest hover:bg-[#D4AF37] transition duration-500 rounded-full shadow-lg hover:shadow-[#D4AF37]/50 flex items-center gap-2">
+              <Link href="/portal/auth" className="px-10 py-4 bg-white text-black font-bold uppercase tracking-widest hover:bg-[#D4AF37] transition duration-500 rounded-full shadow-lg hover:shadow-[#D4AF37]/50 flex items-center gap-2">
                 Open Account <ArrowRight size={16} />
               </Link>
             </div>
