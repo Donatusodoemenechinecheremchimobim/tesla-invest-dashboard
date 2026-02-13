@@ -1,15 +1,13 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function WhatsAppBubble() {
-  const pathname = usePathname();
-
-  // 🛑 STOP if we are NOT on the Old Site
-  if (!pathname?.startsWith('/portal')) return null;
+  // CONFIGURATION
+  const phoneNumber = "19803487946"; // 👈 Replace with your real number
+  const message = encodeURIComponent("Hello, I would like to inquire about investment opportunities.");
 
   return (
     <motion.div
@@ -18,11 +16,11 @@ export default function WhatsAppBubble() {
       className="fixed bottom-6 right-6 z-[9999]"
     >
       <Link 
-        href="https://wa.me/1234567890" // Replace with your number
+        href={`https://wa.me/${phoneNumber}?text=${message}`}
         target="_blank"
-        className="flex items-center justify-center w-14 h-14 bg-[#25D366] rounded-full shadow-[0_0_20px_rgba(37,211,102,0.5)] hover:scale-110 transition-transform"
+        className="flex items-center justify-center w-14 h-14 bg-[#25D366] rounded-full shadow-[0_4px_20px_rgba(37,211,102,0.4)] hover:scale-110 transition-transform hover:shadow-[0_6px_25px_rgba(37,211,102,0.6)]"
       >
-        <MessageCircle size={28} className="text-white fill-white" />
+        <MessageCircle size={30} className="text-white fill-white" />
       </Link>
     </motion.div>
   );

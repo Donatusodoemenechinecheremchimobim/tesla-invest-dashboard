@@ -1,55 +1,69 @@
 'use client';
-
 import IntroNavbar from '@/components/intro/IntroNavbar';
-import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { Quote } from 'lucide-react';
-import NeuralSingularity from '@/components/landing/NeuralSingularity';
+import { motion } from 'framer-motion';
+import { Target, Compass, BarChart, ShieldCheck } from 'lucide-react';
 
 export default function VisionPage() {
   return (
-    <main className="min-h-screen bg-[#FAFAFA] text-gray-900">
+    <main className="min-h-screen bg-[#FAFAFA] text-gray-900 selection:bg-[#059669] selection:text-white">
       <IntroNavbar />
       
-      <section className="pt-40 pb-20 px-6 max-w-4xl mx-auto text-center">
-        
-        {/* Placeholder Friendly Leader Image */}
-        <motion.div 
-          initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 100 }}
-          className="relative w-48 h-48 mx-auto mb-8 rounded-full overflow-hidden border-4 border-white shadow-2xl shadow-green-100"
-        >
-           {/* You can replace this URL with any friendly stock photo */}
-           <Image 
-             src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=500&q=80" 
-             alt="CEO" fill className="object-cover"
-           />
-        </motion.div>
+      {/* HERO SECTION */}
+      <section className="pt-40 pb-20 px-6 max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }}>
+            <span className="inline-block py-2 px-4 rounded-full bg-green-50 text-[#059669] text-xs font-bold uppercase tracking-wider mb-6 border border-green-100">
+              Future Forward
+            </span>
+            <h1 className="text-5xl md:text-7xl font-bold mb-8 text-gray-900 tracking-tight">
+              A Vision for <br/>
+              <span className="text-[#059669]">Generational Wealth.</span>
+            </h1>
+            <p className="text-xl text-gray-500 leading-relaxed mb-8">
+              We envision a world where high-tier financial tools aren't locked behind velvet ropes. 
+              Verde Capital is built to bridge the gap between complex algorithms and the individual investor.
+            </p>
+          </motion.div>
 
-        <h1 className="text-4xl md:text-6xl font-bold mb-4 text-gray-900">Our Vision</h1>
-        <p className="text-[#059669] font-bold text-sm uppercase tracking-widest mb-12">
-           Building a Greener Financial Future
-        </p>
-
-        <div className="bg-white p-10 rounded-3xl shadow-xl border border-gray-100 text-left relative overflow-hidden">
-           <Quote className="absolute top-6 left-6 text-green-100" size={80} />
-           <div className="relative z-10 space-y-6 text-lg text-gray-600 leading-relaxed">
-              <p>
-                 <span className="text-gray-900 font-bold">Finance shouldn't be intimidating.</span> At Verde Capital, we believe that everyone deserves access to institutional-grade growth strategies, without the complexity.
-              </p>
-              <p>
-                 We stripped away the Wall Street jargon and built a platform powered by intelligent automation. 
-                 Our goal isn't just to make you money—it's to help you build a life of freedom and security.
-              </p>
-           </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative h-[500px] rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white"
+          >
+            {/* UPDATED IMAGE: Financial presentation / Stock Charts */}
+            <Image 
+              src="https://images.unsplash.com/photo-1591696208162-a912e601ef39?auto=format&fit=crop&w=800&q=80" 
+              alt="Financial analysis and stock charts" 
+              fill 
+              className="object-cover"
+              priority
+            />
+          </motion.div>
         </div>
       </section>
 
-      <section className="py-20 px-6 max-w-5xl mx-auto text-center">
-         <h2 className="text-2xl font-bold mb-8">The Tech Behind the Growth</h2>
-         {/* Note: NeuralSingularity should ideally be re-colored to Green too, but standard is fine for now */}
-         <NeuralSingularity />
+      {/* CORE VALUES */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid md:grid-cols-4 gap-12">
+            {[
+              { icon: Target, title: "Precision", desc: "Every trade is calculated with 99.9% algorithmic accuracy." },
+              { icon: Compass, title: "Ethics", desc: "We prioritize sustainable companies and green energy markets." },
+              { icon: BarChart, title: "Growth", desc: "Consistent returns designed for long-term wealth compounding." },
+              { icon: ShieldCheck, title: "Safety", desc: "Bank-grade encryption and insured assets for total peace of mind." }
+            ].map((v, i) => (
+              <div key={i} className="text-center">
+                <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-[#059669]">
+                  <v.icon size={28} />
+                </div>
+                <h3 className="text-lg font-bold mb-3">{v.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{v.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
-
     </main>
   );
 }

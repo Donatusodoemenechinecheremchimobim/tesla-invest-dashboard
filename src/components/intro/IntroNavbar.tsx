@@ -37,7 +37,8 @@ export default function IntroNavbar() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/portal/auth" className="hidden md:flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-[#059669] hover:shadow-lg transition-all shadow-md">
+            {/* 👇 UPDATED: NOW POINTS TO /portal/ */}
+            <Link href="/portal/" className="hidden md:flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-[#059669] hover:shadow-lg transition-all shadow-md">
               Client Portal <ArrowRight size={12} />
             </Link>
             
@@ -49,7 +50,7 @@ export default function IntroNavbar() {
         </div>
       </nav>
 
-      {/* MOBILE MENU (Green Theme) */}
+      {/* MOBILE MENU */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
@@ -64,7 +65,8 @@ export default function IntroNavbar() {
                   {link.name}
                 </Link>
               ))}
-              <Link href="/portal/auth" onClick={() => setIsOpen(false)} className="mt-8 w-full bg-[#059669] text-white py-4 rounded-xl text-center font-bold shadow-lg shadow-green-200 flex items-center justify-center gap-2">
+              {/* 👇 UPDATED MOBILE LINK TOO */}
+              <Link href="/portal/" onClick={() => setIsOpen(false)} className="mt-8 w-full bg-[#059669] text-white py-4 rounded-xl text-center font-bold shadow-lg shadow-green-200 flex items-center justify-center gap-2">
                 Access Portal <ArrowRight size={16} />
               </Link>
             </div>
