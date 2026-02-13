@@ -1,32 +1,29 @@
 'use client';
 import { motion } from 'framer-motion';
 
-const TICKERS = [
-  { sym: "TSLA", price: "248.50", change: "+4.2%" },
-  { sym: "BTC", price: "64,200", change: "+1.8%" },
-  { sym: "XAU", price: "2,045", change: "+0.5%" },
-  { sym: "NVDA", price: "890.12", change: "+3.1%" },
-  { sym: "AAPL", price: "178.30", change: "-0.2%" },
-  { sym: "ETH", price: "3,450", change: "+2.4%" },
+const tickers = [
+  { symbol: "BTC", price: "+4.2%", up: true },
+  { symbol: "ETH", price: "+2.8%", up: true },
+  { symbol: "VDE", price: "+12.4%", up: true }, // Verde Token
+  { symbol: "SPX", price: "+0.8%", up: true },
+  { symbol: "NDX", price: "+1.2%", up: true },
+  { symbol: "GLD", price: "-0.4%", up: false },
+  { symbol: "TSLA", price: "+1.5%", up: true },
+  { symbol: "AAPL", price: "+0.9%", up: true },
 ];
 
 export default function MarketTicker() {
   return (
-    <div className="w-full bg-[#050505] border-b border-white/5 overflow-hidden py-3 flex relative z-40">
-      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-black to-transparent z-10" />
-      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black to-transparent z-10" />
-      
+    <div className="w-full bg-white border-y border-gray-100 overflow-hidden py-3">
       <motion.div 
-        className="flex gap-12 whitespace-nowrap"
+        className="flex whitespace-nowrap gap-12"
         animate={{ x: [0, -1000] }}
         transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
       >
-        {[...TICKERS, ...TICKERS, ...TICKERS].map((t, i) => (
-          <div key={i} className="flex items-center gap-2 text-sm font-mono">
-            <span className="font-bold text-white">{t.sym}</span>
-            <span className={t.change.startsWith('+') ? 'text-green-400' : 'text-red-400'}>
-              {t.price} ({t.change})
-            </span>
+        {[...tickers, ...tickers, ...tickers].map((t, i) => (
+          <div key={i} className="flex items-center gap-2 text-sm font-bold text-gray-600">
+            <span>{t.symbol}</span>
+            <span className={t.up ? "text-[#059669]" : "text-red-500"}>{t.price}</span>
           </div>
         ))}
       </motion.div>

@@ -1,58 +1,57 @@
 'use client';
 import IntroNavbar from '@/components/intro/IntroNavbar';
-import DojoChip from '@/components/landing/DojoChip';
-import Link from 'next/link';
+import TechRoots from '@/components/animations/TechRoots'; // 👈 IMPORTED
 import { motion } from 'framer-motion';
-import { Cpu, Zap, Activity, Server, Lock, Network } from 'lucide-react';
+import { Cpu, Server, Zap, Globe, Lock, BarChart3 } from 'lucide-react';
 
 export default function TechnologyPage() {
   return (
-    <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black">
+    <main className="min-h-screen bg-[#FAFAFA] text-gray-900 selection:bg-[#059669] selection:text-white">
       <IntroNavbar />
-      
-      {/* HERO */}
-      <section className="pt-40 pb-20 px-6 max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-        <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
-          <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.4em]">Powered by Dojo</span>
-          <h1 className="text-5xl md:text-7xl font-serif mt-6 mb-8">Quantum Precision.</h1>
-          <p className="text-xl text-gray-400 leading-relaxed font-light mb-8">
-            The world's first trading system built on Tesla's D1 Chip architecture. 
-            We process 1.1 Exaflops of market data every second, identifying micro-trends 
-            before they even appear on Wall Street terminals.
+      <section className="pt-40 pb-20 px-6 max-w-6xl mx-auto text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <span className="inline-block py-2 px-4 rounded-full bg-green-50 text-[#059669] text-xs font-bold uppercase tracking-wider mb-6 border border-green-100">
+            Proprietary Architecture
+          </span>
+          <h1 className="text-5xl md:text-7xl font-bold mb-8 text-gray-900 tracking-tight">
+            Growth Technology.
+          </h1>
+          
+          {/* ANIMATION HERE */}
+          <div className="mb-12">
+             <TechRoots />
+          </div>
+
+          <p className="text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
+            Verde Capital runs on a custom-built AI engine that processes 400TB of market data daily. 
+            Deep roots in data ensure stability in any market storm.
           </p>
-          <ul className="space-y-4 mb-8">
-            {["0.04ms Execution Latency", "Self-Healing Neural Networks", "Predictive Sentiment Analysis"].map((item, i) => (
-              <li key={i} className="flex items-center gap-3 text-sm font-bold uppercase tracking-widest text-white">
-                <div className="w-2 h-2 bg-[#D4AF37] rounded-full" /> {item}
-              </li>
-            ))}
-          </ul>
-        </motion.div>
-        
-        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
-           <DojoChip />
         </motion.div>
       </section>
 
-      {/* TECH GRID */}
-      <section className="py-20 px-6 max-w-7xl mx-auto bg-black">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-serif">The Architecture</h2>
-        </div>
+      <section className="py-20 px-6 max-w-7xl mx-auto">
         <div className="grid md:grid-cols-3 gap-8">
           {[
-            { icon: <Cpu size={40}/>, title: "Dojo Silicon", desc: "Custom D1 Chips designed specifically for machine learning execution, bypassing traditional CPU bottlenecks." },
-            { icon: <Network size={40}/>, title: "Neural Nets", desc: "A recursive AI that learns from every trade made globally, constantly refining its win-rate." },
-            { icon: <Zap size={40}/>, title: "Zero Latency", desc: "Direct fiber-optic connection to NASDAQ and Binance servers ensures we are always first in line." },
-            { icon: <Lock size={40}/>, title: "Quantum Encrypt", desc: "256-bit military grade encryption protects every transaction from external threats." },
-            { icon: <Server size={40}/>, title: "Decentralized", desc: "Our ledger is distributed across 14,000 nodes, making downtime mathematically impossible." },
-            { icon: <Activity size={40}/>, title: "Predictive V4", desc: "Our AI predicts market movements 3 seconds before they happen with 89% accuracy." }
+            { icon: Cpu, title: "Neural Core V4", desc: "Our central AI model predicts volatility 0.4ms faster than standard HFT systems." },
+            { icon: Globe, title: "Global Nodes", desc: "Distributed servers in London, Tokyo, and NYC ensure 100% uptime." },
+            { icon: Lock, title: "Quantum-Ready", desc: "Encryption standards designed to withstand next-generation decryption attacks." },
+            { icon: BarChart3, title: "Predictive Analytics", desc: "We don't just react to the market; we model its future state." },
+            { icon: Zap, title: "Green Energy", desc: "Our data centers are 100% powered by renewable energy sources." },
+            { icon: Server, title: "Redundant Storage", desc: "Client data is mirrored across three continents for absolute safety." }
           ].map((item, i) => (
-            <div key={i} className="bg-[#111] p-10 rounded-[2rem] border border-white/5 hover:border-[#D4AF37]/50 transition-colors group">
-              <div className="text-gray-600 mb-6 group-hover:text-[#D4AF37] transition-colors">{item.icon}</div>
-              <h3 className="text-xl font-bold mb-4 font-serif">{item.title}</h3>
-              <p className="text-gray-400 leading-relaxed text-sm">{item.desc}</p>
-            </div>
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-green-200 transition-all group"
+            >
+              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <item.icon className="text-[#059669]" size={24} />
+              </div>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">{item.title}</h3>
+              <p className="text-gray-500 leading-relaxed">{item.desc}</p>
+            </motion.div>
           ))}
         </div>
       </section>

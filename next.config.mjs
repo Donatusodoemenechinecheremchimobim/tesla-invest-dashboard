@@ -8,6 +8,12 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com', // 👈 ADDED THIS TO FIX ERROR
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

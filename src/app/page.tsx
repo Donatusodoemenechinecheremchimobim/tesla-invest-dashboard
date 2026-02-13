@@ -2,126 +2,123 @@
 
 import IntroNavbar from '@/components/intro/IntroNavbar';
 import SplashScreen from '@/components/intro/SplashScreen';
-import LivePayouts from '@/components/landing/LivePayouts';
-import PhoneAnimation from '@/components/landing/PhoneAnimation';
-import RocketGraph from '@/components/landing/RocketGraph'; 
-import CyberShield from '@/components/landing/CyberShield'; 
-import DigitalVoyage from '@/components/landing/DigitalVoyage';
-import SignatureAnimation from '@/components/landing/SignatureAnimation'; 
+import MarketTicker from '@/components/landing/MarketTicker'; // 👈 NEW TICKER
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useRef, useEffect } from 'react';
-import { ShieldCheck, TrendingUp, ArrowRight, Server, Globe } from 'lucide-react';
-import { useInView } from 'framer-motion';
+import { useState } from 'react';
+import { ArrowRight, TrendingUp, ShieldCheck, Activity, Users, Star } from 'lucide-react';
+import RocketGraph from '@/components/landing/RocketGraph'; 
 
-const Counter = ({ to, suffix = "" }: { to: number, suffix?: string }) => {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const isInView = useInView(ref);
-  useEffect(() => {
-    if (isInView) {
-      let start = 0;
-      const duration = 2000; 
-      const timer = setInterval(() => {
-        start += Math.ceil(to / 50);
-        if (start >= to) { setCount(to); clearInterval(timer); } 
-        else { setCount(start); }
-      }, 30);
-      return () => clearInterval(timer);
-    }
-  }, [isInView, to]);
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
-};
-
-export default function LuxuryHome() {
+export default function VerdeHome() {
   const [showSplash, setShowSplash] = useState(true);
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black overflow-x-hidden">
+    <main className="min-h-screen bg-[#FAFAFA] text-gray-900 selection:bg-[#059669] selection:text-white">
       <AnimatePresence>
         {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       </AnimatePresence>
-      <LivePayouts />
       <IntroNavbar />
 
       {/* HERO */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#1a1a1a_0%,#000_100%)]" />
-        <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
-          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 3.5, duration: 1 }}>
-            
-            {/* REMOVED THE DOJO V4 ACTIVE BADGE HERE */}
+      <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
+        <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-green-200/40 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-emerald-100/60 rounded-full blur-[100px]" />
 
-            <h1 className="text-5xl md:text-8xl font-serif mb-8 leading-tight tracking-tight text-white">
-              Invest in <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">The Future.</span>
+        <div className="max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-16 items-center relative z-10">
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+            <span className="inline-block py-2 px-4 rounded-full bg-green-50 text-[#059669] text-xs font-bold uppercase tracking-wider mb-6 border border-green-100">
+              🌱 Sustainable Wealth Generation
+            </span>
+            <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-gray-900 mb-8 leading-[1.1]">
+              Growth, <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#059669] to-[#34D399]">Simplified.</span>
             </h1>
-            <p className="text-gray-400 text-sm md:text-lg max-w-xl mb-12 leading-relaxed font-light">
-              Join the elite ecosystem powered by Tesla's algorithmic dominance. 
-              Watch your portfolio grow in real-time.
+            <p className="text-xl text-gray-500 mb-10 leading-relaxed max-w-lg">
+              Verde Capital leverages advanced AI to identify high-yield opportunities in sustainable markets. 
+              Smart, secure, and designed for your future.
             </p>
-            <div className="flex flex-col md:flex-row gap-6">
-              <Link href="/portal" className="px-10 py-5 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-xs rounded-full hover:scale-105 transition-transform shadow-[0_0_40px_rgba(212,175,55,0.3)] text-center">
-                Enter Platform
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link href="/portal/" className="px-8 py-4 bg-[#059669] text-white font-bold rounded-full shadow-xl shadow-green-200 hover:scale-105 transition-transform flex items-center justify-center gap-2">
+                Start Investing <ArrowRight size={18} />
               </Link>
-              <Link href="/about" className="group flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">
-                Read Our Story <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              <Link href="/about" className="px-8 py-4 bg-white text-gray-600 font-bold rounded-full border border-gray-200 hover:border-[#059669] hover:text-[#059669] transition-all flex items-center justify-center">
+                How It Works
               </Link>
             </div>
           </motion.div>
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 3.8, duration: 1 }} className="flex justify-center">
-             <div className="scale-75 md:scale-100 transform origin-top md:origin-center">
-                <PhoneAnimation />
+
+          <motion.div 
+             initial={{ opacity: 0, scale: 0.9 }} 
+             animate={{ opacity: 1, scale: 1 }} 
+             transition={{ delay: 0.2, duration: 0.8 }}
+             className="relative"
+          >
+             <div className="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-green-50 rounded-bl-[3rem]" />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="p-3 bg-green-100 rounded-2xl text-[#059669]">
+                      <TrendingUp size={32} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Annual Return</p>
+                      <h3 className="text-3xl font-bold text-gray-900">+24.8%</h3>
+                    </div>
+                  </div>
+                  <RocketGraph />
+                </div>
              </div>
           </motion.div>
         </div>
       </section>
 
-      {/* STATS */}
-      <section className="py-20 border-y border-white/5 bg-black">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
-          <div><h3 className="text-4xl font-serif text-white"><Counter to={18500} suffix="+" /></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Active Investors</p></div>
-          <div><h3 className="text-4xl font-serif text-[#D4AF37]">$<Counter to={940} suffix="M" /></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Total Volume</p></div>
-          <div><h3 className="text-4xl font-serif text-white"><Counter to={100} suffix="%" /></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Uptime</p></div>
-          <div><h3 className="text-4xl font-serif text-white">0.04<span className="text-sm">ms</span></h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-2">Latency</p></div>
+      {/* NEW TICKER SECTION */}
+      <MarketTicker />
+
+      {/* FEATURES GRID */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+             <h2 className="text-4xl font-bold mb-4">Why Choose Verde?</h2>
+             <p className="text-gray-500">We blend technology with sustainability.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+             {[
+               { icon: Activity, title: "AI-Driven", text: "Our algorithms process millions of data points to predict market trends." },
+               { icon: ShieldCheck, title: "Bank-Grade Security", text: "Your assets are protected by top-tier encryption and insurance." },
+               { icon: TrendingUp, title: "Consistent Growth", text: "Strategies designed to outperform the market in any condition." }
+             ].map((f, i) => (
+               <div key={i} className="p-8 rounded-3xl bg-gray-50 border border-gray-100 hover:border-green-200 hover:shadow-lg transition-all group">
+                 <f.icon className="w-12 h-12 text-gray-400 group-hover:text-[#059669] transition-colors mb-6" />
+                 <h3 className="text-xl font-bold mb-3">{f.title}</h3>
+                 <p className="text-gray-500 leading-relaxed">{f.text}</p>
+               </div>
+             ))}
+          </div>
         </div>
       </section>
 
-      {/* VOYAGER */}
-      <section className="py-32 px-6 max-w-7xl mx-auto text-center">
-         <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.4em]">The Journey</span>
-         <h2 className="text-4xl md:text-5xl font-serif mt-6 mb-16">Navigating the Digital Ocean</h2>
-         <DigitalVoyage />
-         <p className="text-gray-400 max-w-2xl mx-auto mt-12 leading-relaxed">
-            Stop drifting in the choppy waters of traditional banking. 
-            Set your sights on the golden beacon of Tesla AI Trading.
-         </p>
-      </section>
-
-      {/* ROCKET & SHIELD */}
-      <section className="py-32 px-6 max-w-7xl mx-auto bg-black border-y border-white/5">
-        <div className="text-center mb-16">
-           <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.4em]">Visualizing Performance</span>
-           <h2 className="text-5xl font-serif mt-6">Speed & Security</h2>
-        </div>
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-           <div className="bg-[#0a0a0a] p-8 md:p-12 rounded-[3rem] border border-white/10 text-center group hover:border-[#D4AF37]/30 transition-colors">
-              <RocketGraph />
-              <h3 className="text-3xl font-serif mt-8 mb-4">Hyper-Growth</h3>
-              <p className="text-gray-400 text-sm max-w-sm mx-auto">AI identifies breakout patterns before they happen.</p>
-           </div>
-           <div className="bg-[#0a0a0a] p-8 md:p-12 rounded-[3rem] border border-white/10 text-center group hover:border-[#D4AF37]/30 transition-colors">
-              <CyberShield />
-              <h3 className="text-3xl font-serif mt-8 mb-4">Ironclad Security</h3>
-              <p className="text-gray-400 text-sm max-w-sm mx-auto">Assets protected by military-grade encryption.</p>
-           </div>
-        </div>
-      </section>
-
-      {/* FOOTER SIGNATURE */}
-      <section className="py-20 px-6 text-center border-t border-white/10">
-         <h3 className="text-[#D4AF37] text-xs font-bold uppercase tracking-[0.3em] mb-8">Verified & Approved</h3>
-         <SignatureAnimation />
+      {/* NEW TESTIMONIALS SECTION */}
+      <section className="py-24 bg-[#FAFAFA] border-t border-gray-100">
+         <div className="max-w-7xl mx-auto px-6 text-center">
+            <h2 className="text-4xl font-bold mb-16">Trusted by 12,000+ Investors</h2>
+            <div className="grid md:grid-cols-3 gap-8">
+               {[
+                 { name: "Sarah L.", role: "Early Adopter", text: "Verde Capital completely changed how I view passive income. The dashboard is beautiful and the returns are real." },
+                 { name: "Michael Chen", role: "Entrepreneur", text: "I love the focus on sustainable tech. Making money while supporting green energy is a win-win." },
+                 { name: "Jessica R.", role: "Doctor", text: "Secure, fast, and transparent. The support team on WhatsApp is incredibly helpful." }
+               ].map((t, i) => (
+                 <div key={i} className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                    <div className="flex justify-center gap-1 mb-4 text-yellow-400">
+                       {[...Array(5)].map((_, j) => <Star key={j} size={16} fill="currentColor" />)}
+                    </div>
+                    <p className="text-gray-600 italic mb-6">"{t.text}"</p>
+                    <div className="font-bold text-gray-900">{t.name}</div>
+                    <div className="text-xs text-[#059669] uppercase font-bold tracking-wider">{t.role}</div>
+                 </div>
+               ))}
+            </div>
+         </div>
       </section>
 
     </main>

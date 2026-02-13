@@ -2,79 +2,71 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Zap, Menu, X, ChevronRight } from 'lucide-react';
+import { Menu, X, Leaf, ArrowRight } from 'lucide-react';
 
 export default function IntroNavbar() {
   const [isOpen, setIsOpen] = useState(false);
-
+  
   const links = [
-    { name: "Founder", href: "/founders" }, // 👈 CHANGED TO SINGULAR
-    { name: "Technology", href: "/technology" },
-    { name: "Insurance", href: "/insurance" },
-    { name: "About", href: "/about" },
-    { name: "Press", href: "/press" },
-    { name: "Concierge", href: "/contact" },
+    { name: "Our Vision", href: "/founders" },
+    { name: "Growth Tech", href: "/technology" },
+    { name: "Security", href: "/insurance" },
+    { name: "About Us", href: "/about" },
   ];
 
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-white/5">
+      <nav className="fixed top-0 left-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
           
-          <Link href="/" className="flex items-center gap-3 group z-50">
-            <div className="bg-[#D4AF37] p-1.5 rounded-lg group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(212,175,55,0.4)]">
-              <Zap size={20} className="text-black fill-black" />
+          <Link href="/" className="flex items-center gap-2 group z-50">
+            <div className="bg-[#059669] p-2 rounded-xl group-hover:scale-110 transition-transform shadow-lg shadow-green-200">
+              <Leaf size={20} className="text-white fill-white" />
             </div>
-            <span className="text-white font-serif font-bold text-xl tracking-wide">TESLA<span className="text-[#D4AF37]">INV</span></span>
+            <span className="text-gray-900 font-sans font-bold text-xl tracking-tight">
+              Verde<span className="text-[#059669]">Capital</span>
+            </span>
           </Link>
           
-          <div className="hidden lg:flex items-center gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">
+          <div className="hidden lg:flex items-center gap-8 text-xs font-semibold uppercase tracking-wider text-gray-500">
             {links.map((link) => (
-              <Link key={link.name} href={link.href} className="hover:text-white transition-colors">
+              <Link key={link.name} href={link.href} className="hover:text-[#059669] transition-colors">
                 {link.name}
               </Link>
             ))}
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/portal" className="hidden md:flex items-center gap-2 bg-white/5 border border-white/10 px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest text-white hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] transition-all group shadow-lg">
-              Client Portal <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+            <Link href="/portal/auth" className="hidden md:flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-[#059669] hover:shadow-lg transition-all shadow-md">
+              Client Portal <ArrowRight size={12} />
             </Link>
-
-            <button onClick={() => setIsOpen(!isOpen)} className="lg:hidden p-2 text-white hover:text-[#D4AF37] transition-colors z-50">
+            
+            {/* Mobile Toggle */}
+            <button onClick={() => setIsOpen(!isOpen)} className="lg:hidden p-2 text-gray-900 z-50">
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
       </nav>
 
+      {/* MOBILE MENU (Green Theme) */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-40 bg-black/95 backdrop-blur-xl pt-24 px-6 lg:hidden flex flex-col"
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: -20 }} 
+            className="fixed inset-0 z-40 bg-white pt-24 px-6 lg:hidden flex flex-col"
           >
-            <div className="flex flex-col gap-2">
-              {links.map((link, i) => (
-                <motion.div
-                  key={link.name}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                >
-                  <Link href={link.href} onClick={() => setIsOpen(false)} className="flex items-center justify-between p-6 border-b border-white/10 text-xl font-serif text-white hover:text-[#D4AF37] transition-colors group">
-                    {link.name}
-                    <ChevronRight size={16} className="text-gray-600 group-hover:text-[#D4AF37] group-hover:translate-x-1 transition-all" />
-                  </Link>
-                </motion.div>
-              ))}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mt-8">
-                <Link href="/portal" onClick={() => setIsOpen(false)} className="flex w-full items-center justify-center gap-2 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-xs py-5 rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.3)]">
-                  Access Client Portal <ArrowRight size={14} />
+            <div className="flex flex-col gap-4">
+              {links.map((link) => (
+                <Link key={link.name} href={link.href} onClick={() => setIsOpen(false)} className="text-2xl font-bold text-gray-900 py-4 border-b border-gray-100">
+                  {link.name}
                 </Link>
-              </motion.div>
+              ))}
+              <Link href="/portal/auth" onClick={() => setIsOpen(false)} className="mt-8 w-full bg-[#059669] text-white py-4 rounded-xl text-center font-bold shadow-lg shadow-green-200 flex items-center justify-center gap-2">
+                Access Portal <ArrowRight size={16} />
+              </Link>
             </div>
           </motion.div>
         )}
