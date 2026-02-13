@@ -6,10 +6,9 @@ import { Target, Compass, BarChart, ShieldCheck } from 'lucide-react';
 
 export default function VisionPage() {
   return (
-    <main className="min-h-screen bg-[#FAFAFA] text-gray-900 selection:bg-[#059669] selection:text-white">
+    <main className="min-h-screen bg-[#FAFAFA] text-gray-900">
       <IntroNavbar />
       
-      {/* HERO SECTION */}
       <section className="pt-40 pb-20 px-6 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }}>
@@ -26,33 +25,29 @@ export default function VisionPage() {
             </p>
           </motion.div>
 
+          {/* IMAGE CONTAINER */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }} 
             animate={{ opacity: 1, scale: 1 }}
             className="relative h-[500px] rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white bg-gray-200"
           >
-            {/*  */}
             <Image 
-              src="https://images.unsplash.com/photo-1591696208162-a912e601ef39?auto=format&fit=crop&w=800&q=80" 
-              alt="Financial analysis and stock charts" 
+              src="https://images.unsplash.com/photo-1551288049-bbbda536639a?q=80&w=2070&auto=format&fit=crop" 
+              alt="Financial stock chart and analysis" 
               fill 
-              className="object-cover"
+              className="object-cover transition-opacity duration-500"
+              sizes="(max-width: 768px) 100vw, 50vw"
               priority
+              onLoadingComplete={(img) => console.log('Image Loaded Successfully')}
             />
-            {/* Subtle Overlay Glow */}
-            <div className="absolute inset-0 bg-gradient-to-t from-green-900/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
           </motion.div>
         </div>
       </section>
 
-      {/* CORE VALUES GRID - Fills the bottom half of the page */}
+      {/* CORE VALUES */}
       <section className="py-24 bg-white border-t border-gray-50">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900">Our Strategic Pillars</h2>
-            <div className="w-20 h-1 bg-[#059669] mx-auto mt-4 rounded-full" />
-          </div>
-          
           <div className="grid md:grid-cols-4 gap-12">
             {[
               { icon: Target, title: "Precision", desc: "Every trade is calculated with 99.9% algorithmic accuracy." },
@@ -60,17 +55,13 @@ export default function VisionPage() {
               { icon: BarChart, title: "Growth", desc: "Consistent returns designed for long-term wealth compounding." },
               { icon: ShieldCheck, title: "Safety", desc: "Bank-grade encryption and insured assets for total peace of mind." }
             ].map((v, i) => (
-              <motion.div 
-                key={i} 
-                whileHover={{ y: -5 }}
-                className="text-center p-6 rounded-3xl hover:bg-gray-50 transition-colors"
-              >
+              <div key={i} className="text-center p-6 rounded-3xl hover:bg-gray-50 transition-colors">
                 <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-[#059669]">
                   <v.icon size={28} />
                 </div>
                 <h3 className="text-lg font-bold mb-3">{v.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{v.desc}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
