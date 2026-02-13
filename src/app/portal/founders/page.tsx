@@ -19,15 +19,15 @@ export default function PortalFoundersPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="relative z-10 flex flex-col items-center"
         >
-          {/* Circular Elon Musk Profile */}
+          {/* Circular Profile - Always in Color */}
           <div className="relative w-48 h-48 mb-8">
             <div className="absolute inset-0 rounded-full border-2 border-[#D4AF37] border-dashed animate-spin-slow opacity-50" />
-            <div className="absolute inset-2 rounded-full overflow-hidden border-2 border-[#D4AF37]">
+            <div className="absolute inset-2 rounded-full overflow-hidden border-2 border-[#D4AF37] shadow-[0_0_30px_rgba(212,175,55,0.2)]">
               <Image 
                 src="https://upload.wikimedia.org/wikipedia/commons/9/99/Elon_Musk_Colorado_2022_%28cropped2%29.jpg" 
                 alt="Chief Architect" 
                 fill 
-                className="object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                className="object-cover transition-all duration-700"
               />
             </div>
             <div className="absolute -bottom-2 -right-2 bg-[#D4AF37] p-2 rounded-full text-black shadow-lg">
@@ -62,7 +62,7 @@ export default function PortalFoundersPage() {
                 transition={{ delay: i * 0.2 }}
                 className="bg-[#111] border border-white/5 p-8 rounded-3xl hover:border-[#D4AF37]/50 transition-colors relative"
               >
-                 <div className="w-16 h-16 bg-[#1A1A1A] rounded-full flex items-center justify-center mb-6 border border-white/10 group-hover:border-[#D4AF37]">
+                 <div className="w-16 h-16 bg-[#1A1A1A] rounded-full flex items-center justify-center mb-6 border border-white/10">
                     <member.icon size={28} className="text-[#D4AF37]" />
                  </div>
                  <h3 className="text-xl font-serif font-bold text-white mb-1">{member.name}</h3>

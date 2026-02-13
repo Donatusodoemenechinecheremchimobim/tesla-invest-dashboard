@@ -1,12 +1,3 @@
-#!/bin/bash
-
-echo "⚙️ RESETTING NEXT.JS CONFIGURATION..."
-
-# Remove the old MJS file to prevent conflicts
-rm -f next.config.mjs
-
-# Create a standard JS config
-cat << 'EOF' > next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -20,6 +11,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-EOF
-
-echo "✅ CONFIG RESET TO next.config.js"
