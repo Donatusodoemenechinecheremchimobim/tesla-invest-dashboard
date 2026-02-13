@@ -1,25 +1,12 @@
-#!/bin/bash
+#!/bash/bin
 
-echo "⚙️ RESETTING NEXT.JS CONFIGURATION..."
+cat << 'EOF' > src/lib/supabase.ts
+import { createClient } from '@supabase/supabase-js';
 
-# Remove the old MJS file to prevent conflicts
-rm -f next.config.mjs
+const supabaseUrl = 'https://imxtelulqiqylqsxwaja.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlteHJ0ZWx1bHFpcXlscXN4d2FqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDMxOTcsImV4cCI6MjA4NjU3OTE5N30.lum9pXI7PB-HS82uq_rP9Suhfj4zuF-5pNK_8-y0JrI';
 
-# Create a standard JS config
-cat << 'EOF' > next.config.js
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**', // Allows all HTTPS images for testing
-      },
-    ],
-  },
-};
-
-module.exports = nextConfig;
+export const supabase = createClient(supabaseUrl, supabaseKey);
 EOF
 
-echo "✅ CONFIG RESET TO next.config.js"
+echo "✅ SUPABASE CLIENT CLEANED."

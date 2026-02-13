@@ -1,12 +1,11 @@
 'use client';
 import IntroNavbar from '@/components/intro/IntroNavbar';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Target, Compass, BarChart, ShieldCheck } from 'lucide-react';
+import { Target, Compass, BarChart, ShieldCheck, TrendingUp, ArrowUpRight } from 'lucide-react';
 
 export default function VisionPage() {
   return (
-    <main className="min-h-screen bg-[#FAFAFA] text-gray-900">
+    <main className="min-h-screen bg-[#FAFAFA] text-gray-900 selection:bg-[#059669] selection:text-white">
       <IntroNavbar />
       
       <section className="pt-40 pb-20 px-6 max-w-7xl mx-auto">
@@ -20,27 +19,57 @@ export default function VisionPage() {
               <span className="text-[#059669]">Generational Wealth.</span>
             </h1>
             <p className="text-xl text-gray-500 leading-relaxed mb-8">
-              We envision a world where high-tier financial tools aren't locked behind velvet ropes. 
-              Verde Capital is built to bridge the gap between complex algorithms and the individual investor.
+              Verde Capital is built to bridge the gap between complex algorithms and the individual investor. We provide the tools; you provide the ambition.
             </p>
           </motion.div>
 
-          {/* IMAGE CONTAINER */}
+          {/* CODE-BASED ILLUSTRATION (Never fails to load) */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }} 
             animate={{ opacity: 1, scale: 1 }}
-            className="relative h-[500px] rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white bg-gray-200"
+            className="relative h-[500px] rounded-[3rem] overflow-hidden shadow-2xl bg-gradient-to-br from-[#059669] to-[#064e3b] p-8 flex flex-col justify-between border-8 border-white"
           >
-            <Image 
-              src="https://images.unsplash.com/photo-1551288049-bbbda536639a?q=80&w=2070&auto=format&fit=crop" 
-              alt="Financial stock chart and analysis" 
-              fill 
-              className="object-cover transition-opacity duration-500"
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
-              onLoadingComplete={(img) => console.log('Image Loaded Successfully')}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            <div className="flex justify-between items-start">
+               <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
+                  <TrendingUp className="text-white" size={32} />
+               </div>
+               <div className="text-right">
+                  <p className="text-white/60 text-xs font-bold uppercase tracking-widest">Market Status</p>
+                  <p className="text-white font-bold text-xl">Bullish +4.2%</p>
+               </div>
+            </div>
+
+            <div className="space-y-4">
+               {[1, 2, 3].map((i) => (
+                 <motion.div 
+                   key={i}
+                   initial={{ width: 0 }}
+                   animate={{ width: i === 1 ? '100%' : i === 2 ? '80%' : '60%' }}
+                   transition={{ duration: 1, delay: i * 0.2 }}
+                   className="h-4 bg-white/10 rounded-full overflow-hidden"
+                 >
+                    <div className="h-full bg-white/30 rounded-full" />
+                 </motion.div>
+               ))}
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl shadow-xl">
+               <div className="flex items-center justify-between mb-4">
+                  <p className="font-bold text-gray-900">Portfolio Growth</p>
+                  <ArrowUpRight className="text-[#059669]" />
+               </div>
+               <div className="h-24 flex items-end gap-2">
+                  {[40, 70, 45, 90, 65, 80, 100].map((h, i) => (
+                    <motion.div 
+                      key={i}
+                      initial={{ height: 0 }}
+                      animate={{ height: `${h}%` }}
+                      transition={{ duration: 1, delay: i * 0.1 }}
+                      className="flex-1 bg-[#059669]/20 rounded-t-md hover:bg-[#059669] transition-colors cursor-pointer"
+                    />
+                  ))}
+               </div>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -51,16 +80,16 @@ export default function VisionPage() {
           <div className="grid md:grid-cols-4 gap-12">
             {[
               { icon: Target, title: "Precision", desc: "Every trade is calculated with 99.9% algorithmic accuracy." },
-              { icon: Compass, title: "Ethics", desc: "We prioritize sustainable companies and green energy markets." },
-              { icon: BarChart, title: "Growth", desc: "Consistent returns designed for long-term wealth compounding." },
-              { icon: ShieldCheck, title: "Safety", desc: "Bank-grade encryption and insured assets for total peace of mind." }
+              { icon: Compass, title: "Ethics", desc: "We prioritize sustainable markets." },
+              { icon: BarChart, title: "Growth", desc: "Consistent returns for wealth compounding." },
+              { icon: ShieldCheck, title: "Safety", desc: "Bank-grade encryption for total peace of mind." }
             ].map((v, i) => (
-              <div key={i} className="text-center p-6 rounded-3xl hover:bg-gray-50 transition-colors">
+              <div key={i} className="text-center">
                 <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-[#059669]">
                   <v.icon size={28} />
                 </div>
                 <h3 className="text-lg font-bold mb-3">{v.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{v.desc}</p>
+                <p className="text-sm text-gray-500">{v.desc}</p>
               </div>
             ))}
           </div>
