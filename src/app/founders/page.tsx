@@ -16,7 +16,7 @@ export default function VisionPage() {
             <span className="inline-block py-2 px-4 rounded-full bg-green-50 text-[#059669] text-xs font-bold uppercase tracking-wider mb-6 border border-green-100">
               Future Forward
             </span>
-            <h1 className="text-5xl md:text-7xl font-bold mb-8 text-gray-900 tracking-tight">
+            <h1 className="text-5xl md:text-7xl font-bold mb-8 text-gray-900 tracking-tight leading-tight">
               A Vision for <br/>
               <span className="text-[#059669]">Generational Wealth.</span>
             </h1>
@@ -29,9 +29,9 @@ export default function VisionPage() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }} 
             animate={{ opacity: 1, scale: 1 }}
-            className="relative h-[500px] rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white"
+            className="relative h-[500px] rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white bg-gray-200"
           >
-            {/* UPDATED IMAGE: Financial presentation / Stock Charts */}
+            {/*  */}
             <Image 
               src="https://images.unsplash.com/photo-1591696208162-a912e601ef39?auto=format&fit=crop&w=800&q=80" 
               alt="Financial analysis and stock charts" 
@@ -39,13 +39,20 @@ export default function VisionPage() {
               className="object-cover"
               priority
             />
+            {/* Subtle Overlay Glow */}
+            <div className="absolute inset-0 bg-gradient-to-t from-green-900/20 to-transparent" />
           </motion.div>
         </div>
       </section>
 
-      {/* CORE VALUES */}
-      <section className="py-24 bg-white">
+      {/* CORE VALUES GRID - Fills the bottom half of the page */}
+      <section className="py-24 bg-white border-t border-gray-50">
         <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900">Our Strategic Pillars</h2>
+            <div className="w-20 h-1 bg-[#059669] mx-auto mt-4 rounded-full" />
+          </div>
+          
           <div className="grid md:grid-cols-4 gap-12">
             {[
               { icon: Target, title: "Precision", desc: "Every trade is calculated with 99.9% algorithmic accuracy." },
@@ -53,13 +60,17 @@ export default function VisionPage() {
               { icon: BarChart, title: "Growth", desc: "Consistent returns designed for long-term wealth compounding." },
               { icon: ShieldCheck, title: "Safety", desc: "Bank-grade encryption and insured assets for total peace of mind." }
             ].map((v, i) => (
-              <div key={i} className="text-center">
+              <motion.div 
+                key={i} 
+                whileHover={{ y: -5 }}
+                className="text-center p-6 rounded-3xl hover:bg-gray-50 transition-colors"
+              >
                 <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-[#059669]">
                   <v.icon size={28} />
                 </div>
                 <h3 className="text-lg font-bold mb-3">{v.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{v.desc}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>

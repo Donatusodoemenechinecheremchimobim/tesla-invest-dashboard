@@ -1,9 +1,9 @@
 #!/bin/bash
 
-echo "🔗 LINKING 'HOW IT WORKS' TO GROWTH TECH PAGE..."
+echo "🏷️ RENAMING NAVBAR BUTTON: 'Client Portal' -> 'InvestmentTesla'..."
 
-# Update src/app/page.tsx
-# This replaces the previous about link with /technology
-sed -i 's|href="/about"|href="/technology"|g' src/app/page.tsx
+# Update src/components/intro/IntroNavbar.tsx
+sed -i 's/Client Portal/InvestmentTesla/g' src/components/intro/IntroNavbar.tsx
+sed -i 's/Access Portal/Access InvestmentTesla/g' src/components/intro/IntroNavbar.tsx
 
-echo "✅ SUCCESS: 'How It Works' now leads to /technology."
+echo "✅ SUCCESS: Button renamed to InvestmentTesla."
