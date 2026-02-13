@@ -41,7 +41,7 @@ export default function VerdeHome() {
               <Link href="/portal/" className="px-8 py-4 bg-[#059669] text-white font-bold rounded-full shadow-xl shadow-green-200 hover:scale-105 transition-transform flex items-center justify-center gap-2">
                 Start Investing <ArrowRight size={18} />
               </Link>
-              <Link href="/about" className="px-8 py-4 bg-white text-gray-600 font-bold rounded-full border border-gray-200 hover:border-[#059669] hover:text-[#059669] transition-all flex items-center justify-center">
+              <Link href="/technology" className="px-8 py-4 bg-white text-gray-600 font-bold rounded-full border border-gray-200 hover:border-[#059669] hover:text-[#059669] transition-all flex items-center justify-center">
                 How It Works
               </Link>
             </div>
