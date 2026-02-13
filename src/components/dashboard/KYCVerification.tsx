@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { motion } from 'framer-motion';
-import { Lock, ShieldCheck, Upload, Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Lock, Loader2 } from 'lucide-react'; // 👈 REMOVED UNUSED ICONS
 import CameraCapture from '@/components/auth/CameraCapture';
 
 export default function KYCVerification({ user, onVerificationComplete }: { user: any, onVerificationComplete: () => void }) {
@@ -13,7 +12,7 @@ export default function KYCVerification({ user, onVerificationComplete }: { user
   const [loading, setLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // If already verified, don't show anything (or show a badge)
+  // If already verified, don't show anything
   if (user?.verification_status === 'approved') return null;
 
   // If pending, show the "Waiting for Approval" message
@@ -40,20 +39,20 @@ export default function KYCVerification({ user, onVerificationComplete }: { user
     try {
        // 1. Upload ID
        const fileExt = docFile.name.split('.').pop();
-       const fileName = \`\${user.id}-kyc.\${fileExt}\`;
+       const fileName = `${user.id}-kyc.${fileExt}`;
        const { error: uploadError } = await supabase.storage.from('verification').upload(fileName, docFile);
        if (uploadError) throw uploadError;
        
        const { data: publicUrlData } = supabase.storage.from('verification').getPublicUrl(fileName);
 
-       // 2. Update Profile with SSN & ID
+       // 2. Update Profile
        const { error: updateError } = await supabase
          .from('profiles')
          .update({
-            ssn: ssn, // Ensure you added this column in SQL!
+            ssn: ssn,
             id_type: idType,
             id_image_url: publicUrlData.publicUrl,
-            verification_status: 'pending_review' // Change status to indicate "User Submitted"
+            verification_status: 'pending_review'
          })
          .eq('id', user.id);
 
@@ -63,7 +62,7 @@ export default function KYCVerification({ user, onVerificationComplete }: { user
        onVerificationComplete();
 
     } catch (error: any) {
-       alert(error.message);
+       alert(error.message || "An error occurred during upload.");
     } finally {
        setLoading(false);
     }
@@ -71,7 +70,6 @@ export default function KYCVerification({ user, onVerificationComplete }: { user
 
   return (
     <div className="bg-[#111] border border-red-500/30 p-6 md:p-8 rounded-3xl relative overflow-hidden">
-      {/* Locked Overlay Effect */}
       <div className="absolute top-0 right-0 p-4 opacity-10">
          <Lock size={120} className="text-red-500" />
       </div>
@@ -88,7 +86,6 @@ export default function KYCVerification({ user, onVerificationComplete }: { user
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-           {/* SSN Input */}
            <div>
               <label className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2 block">Social Security Number (SSN)</label>
               <input 
@@ -101,7 +98,6 @@ export default function KYCVerification({ user, onVerificationComplete }: { user
               />
            </div>
 
-           {/* ID Type */}
            <div>
               <label className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2 block">Document Type</label>
               <select 
@@ -114,7 +110,6 @@ export default function KYCVerification({ user, onVerificationComplete }: { user
               </select>
            </div>
 
-           {/* Camera/Upload */}
            <div>
               <label className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2 block">Upload Document</label>
               <CameraCapture onCapture={(file) => setDocFile(file)} />
