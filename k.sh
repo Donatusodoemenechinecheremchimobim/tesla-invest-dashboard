@@ -1,106 +1,99 @@
 #!/bin/bash
 
-echo "🚀 MOVING AUTH TO SERVER-SIDE TO BYPASS BROWSER BLOCKS..."
+echo "📊 REBUILDING VISION PAGE WITH REINFORCED CODE VISUALS..."
 
-# 1. Create a Server Action file
-mkdir -p src/app/actions
-cat << 'EOF' > src/app/actions/auth.ts
-'use server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = 'https://imxtelulqiqylqsxwaja.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlteHJ0ZWx1bHFpcXlscXN4d2FqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDMxOTcsImV4cCI6MjA4NjU3OTE5N30.lum9pXI7PB-HS82uq_rP9Suhfj4zuF-5pNK_8-y0JrI';
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-export async function handleServerAuth(formData: any, mode: 'login' | 'signup') {
-  const email = formData.email;
-  const password = formData.password;
-  const fullName = formData.fullName;
-
-  if (mode === 'signup') {
-    return await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } }
-    });
-  } else {
-    return await supabase.auth.signInWithPassword({ email, password });
-  }
-}
-EOF
-
-# 2. Update the Auth Page to use the Server Action
-cat << 'EOF' > src/app/portal/auth/page.tsx
+cat << 'EOF' > src/app/founders/page.tsx
 'use client';
+import IntroNavbar from '@/components/intro/IntroNavbar';
+import { motion } from 'framer-motion';
+import { Target, Compass, BarChart, ShieldCheck, TrendingUp, ArrowUpRight, PieChart } from 'lucide-react';
 
-import { useState } from 'react';
-import { handleServerAuth } from '@/app/actions/auth';
-import { useRouter } from 'next/navigation';
-import { Zap, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
-
-export default function PortalAuth() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
-  const router = useRouter();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const result = await handleServerAuth({ email, password, fullName }, mode);
-
-    if (result.error) {
-      setError(result.error.message);
-      setLoading(false);
-    } else {
-      router.push('/dashboard');
-    }
-  };
-
+export default function VisionPage() {
   return (
-    <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <div className="flex flex-col items-center mb-10 text-center">
-          <div className="bg-[#D4AF37] p-3 rounded-2xl mb-4 shadow-[0_0_30px_rgba(212,175,55,0.3)]">
-            <Zap size={32} className="text-black fill-black" />
-          </div>
-          <h1 className="text-3xl font-bold uppercase tracking-tighter">INVESTMENT<span className="text-[#D4AF37]">TESLA</span></h1>
-          <p className="text-gray-500 text-xs mt-2 uppercase tracking-widest">Bypassing Client-Side Network Blocks</p>
-        </div>
+    <main className="min-h-screen bg-[#FAFAFA] text-gray-900 selection:bg-[#059669] selection:text-white font-sans">
+      <IntroNavbar />
+      
+      <section className="pt-40 pb-20 px-6 max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }}>
+            <span className="inline-block py-2 px-4 rounded-full bg-green-50 text-[#059669] text-xs font-bold uppercase tracking-wider mb-6 border border-green-100">
+              Future Forward
+            </span>
+            <h1 className="text-5xl md:text-7xl font-bold mb-8 text-gray-900 tracking-tight leading-tight">
+              A Vision for <br/>
+              <span className="text-[#059669]">Digital Assets.</span>
+            </h1>
+            <p className="text-xl text-gray-500 leading-relaxed mb-8">
+              We leverage proprietary algorithms to navigate market volatility, ensuring your capital isn't just stored, but strategically grown.
+            </p>
+          </motion.div>
 
-        <div className="bg-[#0A0A0A] border border-white/10 p-8 rounded-3xl">
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl flex items-center gap-3 text-red-500 text-[10px] font-bold uppercase">
-              <AlertCircle size={16} />
-              <span>{error}</span>
+          {/* DYNAMIC DASHBOARD VISUAL (Pure CSS/Tailwind) */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="relative h-[550px] rounded-[3rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] bg-white border-8 border-white ring-1 ring-gray-100 p-8 flex flex-col gap-6"
+          >
+            {/* Header section of the "App" */}
+            <div className="flex justify-between items-center bg-gray-50 p-4 rounded-2xl">
+               <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#059669] rounded-xl flex items-center justify-center text-white">
+                     <TrendingUp size={20} />
+                  </div>
+                  <div>
+                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Global Index</p>
+                     <p className="text-sm font-bold text-gray-900">Market Live</p>
+                  </div>
+               </div>
+               <div className="text-right">
+                  <p className="text-[#059669] font-bold text-lg">+12.4%</p>
+                  <p className="text-[10px] text-gray-400">YTD Growth</p>
+               </div>
             </div>
-          )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {mode === 'signup' && (
-              <input type="text" placeholder="Legal Name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#D4AF37]" required />
-            )}
-            <input type="email" placeholder="Access ID" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#D4AF37]" required />
-            <input type="password" placeholder="Passcode" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#D4AF37]" required />
-            <button disabled={loading} className="w-full bg-[#D4AF37] text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest">
-              {loading ? <Loader2 className="animate-spin" /> : <>{mode === 'login' ? 'Login' : 'Sign Up'} <ArrowRight /></>}
-            </button>
-          </form>
+            {/* Main Growth Graph Area */}
+            <div className="flex-1 bg-gradient-to-b from-green-50/50 to-transparent rounded-2xl p-6 relative">
+               <div className="flex justify-between items-end h-full gap-3">
+                  {[40, 65, 50, 85, 70, 95, 110].map((h, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                       <motion.div 
+                         initial={{ height: 0 }} 
+                         animate={{ height: `${h}%` }}
+                         transition={{ delay: i * 0.1, duration: 0.8 }}
+                         className="w-full bg-[#059669] rounded-t-lg opacity-80 hover:opacity-100 transition-opacity relative group"
+                       >
+                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                             ${(h * 1.2).toFixed(1)}k
+                          </div>
+                       </motion.div>
+                       <span className="text-[8px] text-gray-400 font-bold">M{i+1}</span>
+                    </div>
+                  ))}
+               </div>
+            </div>
 
-          <button onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} className="w-full mt-6 text-gray-500 text-[10px] uppercase font-bold tracking-widest">
-            {mode === 'login' ? "New here? Register" : "Back to Login"}
-          </button>
+            {/* Bottom Metrics */}
+            <div className="grid grid-cols-2 gap-4">
+               <div className="p-4 border border-gray-100 rounded-2xl">
+                  <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Risk Level</p>
+                  <div className="flex items-center gap-2">
+                     <div className="h-2 flex-1 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full w-1/3 bg-blue-500" />
+                     </div>
+                     <span className="text-xs font-bold text-gray-700">Low</span>
+                  </div>
+               </div>
+               <div className="p-4 border border-gray-100 rounded-2xl bg-gray-900 text-white">
+                  <p className="text-[10px] text-white/40 font-bold uppercase mb-1">Total Assets</p>
+                  <p className="text-sm font-bold">$1.24M</p>
+               </div>
+            </div>
+          </motion.div>
         </div>
-      </div>
+      </section>
     </main>
   );
 }
 EOF
 
-echo "✅ AUTH MOVED TO SERVER ACTIONS. BRU-FORCE MODE ENABLED."
+echo "✅ VISION PAGE REBUILD COMPLETE WITH NATIVE CSS VISUALS."
