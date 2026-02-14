@@ -3,16 +3,18 @@ cat << 'EOF' > src/lib/db.ts
 // @ts-ignore
 import { Pool } from 'pg';
 
-const globalForPg = global as unknown as { pool: any };
+// This ensures the connection works even in serverless environments
+const connectionString = process.env.DATABASE_URL;
 
-const pool = globalForPg.pool || new Pool({
-  connectionString: process.env.DATABASE_URL,
+const pool = new Pool({
+  connectionString,
   ssl: {
     rejectUnauthorized: false
-  }
+  },
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
-
-if (process.env.NODE_ENV !== 'production') globalForPg.pool = pool;
 
 export default pool;
 EOF
