@@ -1,70 +1,92 @@
 'use client';
-
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-// 🔮 FUTURE GROWTH DATA (INFLATED OPTIMISTIC MODEL)
-// Starts realistic, then accelerates into a "Hockey Stick" curve.
-const data = [
-  { year: '2025', price: 210, label: 'Current' },
-  { year: '2026', price: 450, label: 'Robotaxi Launch' },
-  { year: '2027', price: 980, label: 'Optimus Scale' },
-  { year: '2028', price: 1650, label: 'Energy Dominance' },
-  { year: '2029', price: 2400, label: 'Global FSD' },
-  { year: '2030', price: 3450, label: 'Market Leader' },
-];
-
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-[#0a0a0a] border border-[#D4AF37] p-4 rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-        <p className="text-gray-400 text-[10px] uppercase tracking-widest mb-1">{label}</p>
-        <p className="text-[#D4AF37] text-xl font-bold font-serif">
-          ${payload[0].value.toLocaleString()}
-        </p>
-        <p className="text-white text-[9px] mt-1 italic">
-          {data.find(d => d.year === label)?.label}
-        </p>
-      </div>
-    );
-  }
-  return null;
-};
+import { useEffect, useRef } from 'react';
 
 export default function GrowthChart() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set internal resolution higher for sharpness
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width;
+    const h = rect.height;
+    
+    // 1. Draw Grid Lines (Y-Axis in Billions)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+    ctx.lineWidth = 1;
+    ctx.font = "10px Inter, sans-serif";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+
+    const labels = ["$0", "$250B", "$500B", "$750B", "$1.0T"];
+    for (let i = 0; i < 5; i++) {
+      const y = h - (i * (h / 4)) - 20;
+      ctx.beginPath();
+      ctx.moveTo(60, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+      ctx.fillText(labels[i], 0, y + 4);
+    }
+
+    // 2. Create the Path
+    const padding = 60;
+    const chartWidth = w - padding;
+    const chartHeight = h - 40;
+
+    // Gradient Fill (The "Gold" Area)
+    const gradient = ctx.createLinearGradient(0, 0, 0, h);
+    gradient.addColorStop(0, "rgba(212, 175, 55, 0.25)");
+    gradient.addColorStop(1, "rgba(212, 175, 55, 0)");
+
+    ctx.beginPath();
+    ctx.moveTo(padding, h - 20);
+    // Exponential Growth Curve
+    ctx.bezierCurveTo(
+      padding + chartWidth * 0.4, h - 20, 
+      padding + chartWidth * 0.6, h * 0.7, 
+      w, 20
+    );
+    ctx.lineTo(w, h - 20);
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // 3. Draw the Main Gold Line
+    ctx.beginPath();
+    ctx.moveTo(padding, h - 20);
+    ctx.bezierCurveTo(
+      padding + chartWidth * 0.4, h - 20, 
+      padding + chartWidth * 0.6, h * 0.7, 
+      w, 20
+    );
+    
+    // Shadow/Glow effect
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = "rgba(212, 175, 55, 0.5)";
+    ctx.strokeStyle = "#D4AF37";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Reset shadow for other elements
+    ctx.shadowBlur = 0;
+
+  }, []);
+
   return (
-    <div className="w-full h-full min-h-[300px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data}>
-          <defs>
-            <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.4}/>
-              <stop offset="95%" stopColor="#D4AF37" stopOpacity={0}/>
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-          <XAxis 
-            dataKey="year" 
-            axisLine={false} 
-            tickLine={false} 
-            tick={{ fill: '#666', fontSize: 10 }} 
-            dy={10}
-          />
-          <YAxis 
-            hide={true} 
-            domain={['dataMin - 100', 'dataMax + 500']} // Adds headroom for the curve
-          />
-          <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#D4AF37', strokeWidth: 1, strokeDasharray: '5 5' }} />
-          <Area 
-            type="monotone" 
-            dataKey="price" 
-            stroke="#D4AF37" 
-            strokeWidth={3} 
-            fillOpacity={1} 
-            fill="url(#colorPrice)" 
-            animationDuration={2000} // Slower animation for "Grand Reveal" effect
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+    <div className="w-full h-full relative">
+      <canvas ref={canvasRef} className="w-full h-full" />
+      {/* Tooltip Simulation */}
+      <div className="absolute top-[15%] right-[5%] bg-[#D4AF37] text-black px-3 py-1 rounded text-[10px] font-black uppercase tracking-tighter shadow-xl">
+        Current AUM: $1.242 Trillion
+      </div>
     </div>
   );
 }

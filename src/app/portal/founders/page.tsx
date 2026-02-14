@@ -46,7 +46,7 @@ export default function PortalFoundersPage() {
       {/* 2. EXECUTIVE BOARD GRID */}
       <section className="py-20 px-6 max-w-7xl mx-auto border-t border-white/5">
          <div className="text-center mb-16">
-            <h2 className="text-2xl font-serif text-gray-400 uppercase tracking-widest">Executive Council</h2>
+           <h2 className="text-2xl font-serif text-gray-400 uppercase tracking-widest">Executive Council</h2>
          </div>
          
          <div className="grid md:grid-cols-3 gap-12">

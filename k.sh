@@ -1,117 +1,132 @@
 #!/bin/bash
 
-cat << 'EOF' > src/app/page.tsx
+# 1. CLEANING PORTAL NAVBAR
+cat << 'EOF' > src/components/portal/PortalNavbar.tsx
 'use client';
-import React, { useState, useEffect } from 'react';
-import Navbar from '@/components/landing/Navbar';
-import Footer from '@/components/landing/Footer';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Globe, Shield, Activity, TrendingUp, ChevronDown, CheckCircle2, Search, Lock, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { LayoutDashboard, UserPlus } from 'lucide-react';
 
-export default function VerdeStockLanding() {
-  // --- TYPEWRITER & TURN LOGIC ---
-  const [typedText, setTypedText] = useState("");
-  const fullText = "verdestock.com";
-  const [isTurned, setIsTurned] = useState(false);
+export default function PortalNavbar() {
+  return (
+    <nav className="fixed w-full z-50 bg-black/80 backdrop-blur-md border-b border-[#D4AF37]/10 py-5 px-6">
+      <div className="max-w-7xl mx-auto grid grid-cols-3 items-center">
+        
+        {/* LEFT: LOGO */}
+        <div className="flex justify-start">
+          <Link href="/portal" className="text-xl md:text-2xl font-serif font-bold tracking-tighter text-white whitespace-nowrap">
+            INVESTMENT<span className="text-[#D4AF37] italic font-light">TESLA</span>
+          </Link>
+        </div>
+        
+        {/* CENTER: NAV */}
+        <div className="hidden md:flex justify-center items-center space-x-10">
+          {['Personal', 'Founders', 'Insurance'].map((item) => (
+            <Link 
+              key={item} 
+              href={`/portal/${item.toLowerCase()}`} 
+              className="text-[10px] uppercase tracking-[0.25em] font-bold text-gray-400 hover:text-[#D4AF37] transition-all whitespace-nowrap"
+            >
+              {item}
+            </Link>
+          ))}
+        </div>
+
+        {/* RIGHT: ACTIONS */}
+        <div className="flex justify-end items-center gap-6">
+          <Link 
+            href="/portal/auth" 
+            className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-gray-400 hover:text-[#D4AF37] transition-colors"
+          >
+            <UserPlus size={14} />
+            <span>Open Account</span>
+          </Link>
+
+          <Link 
+            href="/portal/auth" 
+            className="flex items-center gap-2 px-6 py-2.5 bg-[#D4AF37] text-black text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white hover:scale-105 transition-all shadow-[0_0_20px_rgba(212,175,55,0.25)]"
+          >
+            <LayoutDashboard size={14} />
+            <span className="hidden lg:inline">Dashboard</span>
+          </Link>
+        </div>
+        
+      </div>
+    </nav>
+  );
+}
+EOF
+
+# 2. CLEANING SOCIAL PROOF
+cat << 'EOF' > src/components/ui/SocialProof.tsx
+'use client';
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle, TrendingUp, DollarSign, Globe } from 'lucide-react';
+
+const transactions = [
+  { name: "Sarah J.", country: "UK", action: "earned", amount: "$4,500" },
+  { name: "Michael C.", country: "USA", action: "deposited", amount: "$10,000" },
+  { name: "Elena R.", country: "Spain", action: "earned", amount: "$12,400" },
+  { name: "Ahmed K.", country: "UAE", action: "earned", amount: "$8,900" },
+  { name: "Jessica T.", country: "Australia", action: "invested", amount: "$5,000" },
+  { name: "Liam N.", country: "Ireland", action: "deposited", amount: "$15,000" }
+];
+
+export default function SocialProof() {
+  const [index, setIndex] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (typedText.length < fullText.length) {
-      const timeout = setTimeout(() => {
-        setTypedText(fullText.slice(0, typedText.length + 1));
-      }, 150);
-      return () => clearTimeout(timeout);
-    } else {
-      const timeout = setTimeout(() => {
-        setIsTurned(true);
-      }, 800);
-      return () => clearTimeout(timeout);
-    }
-  }, [typedText]);
+    if (pathname?.startsWith('/portal')) return;
 
-  // --- EARNING BUBBLE LOGIC ---
-  const [notification, setNotification] = useState({ name: "Alexander G.", amount: "12,400", country: "Switzerland", visible: true });
-  
-  useEffect(() => {
-    const names = ["Alexander G.", "Sarah L.", "Marcus R.", "Elena K.", "David W.", "Victor B."];
-    const countries = ["Switzerland", "UK", "UAE", "Singapore", "Canada", "Germany"];
-    
-    const cycleNotifications = () => {
-      setNotification(prev => ({ ...prev, visible: false })); // Fade out
-      setTimeout(() => {
-        const randomAmount = Math.floor(Math.random() * (18000 - 3500 + 1) + 3500).toLocaleString();
-        const randomName = names[Math.floor(Math.random() * names.length)];
-        const randomCountry = countries[Math.floor(Math.random() * countries.length)];
-        setNotification({ name: randomName, amount: randomAmount, country: randomCountry, visible: true }); // Fade in new
-      }, 1000); 
+    const showNotification = () => {
+      setIndex(Math.floor(Math.random() * transactions.length));
+      setIsVisible(true);
+      setTimeout(() => setIsVisible(false), 6000);
     };
-    
-    const interval = setInterval(cycleNotifications, 6000);
-    return () => clearInterval(interval);
-  }, []);
+
+    const initialTimer = setTimeout(showNotification, 2000);
+    const loopTimer = setInterval(showNotification, 12000);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(loopTimer);
+    };
+  }, [pathname]);
+
+  if (pathname?.startsWith('/portal')) return null;
+
+  const current = transactions[index];
 
   return (
-    <main className="bg-[#050505] text-white overflow-x-hidden selection:bg-[#D4AF37] selection:text-black relative">
-      <Navbar />
-
-      {/* --- SINGLE FIXED EARNING BUBBLE (Bottom Left) --- */}
-      <AnimatePresence mode="wait">
-        {notification.visible && (
-          <motion.div 
-            key={notification.name} // Key change triggers animation
-            initial={{ opacity: 0, x: -50, scale: 0.9 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="fixed bottom-10 left-6 z-[999] bg-[#0a0a0a] border border-[#D4AF37]/30 p-4 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex items-center gap-4 max-w-sm backdrop-blur-md"
-          >
-             <div className="w-10 h-10 rounded-full bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/30 shrink-0">
-                <CheckCircle2 size={18} className="text-[#D4AF37]" />
-             </div>
-             <div>
-                <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-0.5">Recent Withdrawal</p>
-                <p className="text-white text-sm font-bold">{notification.name} <span className="text-[#D4AF37]">${notification.amount}</span></p>
-             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* --- HERO SECTION --- */}
-      <section className="relative min-h-screen flex items-center pt-20 px-6 max-w-[1400px] mx-auto">
-        <div className="absolute top-0 right-0 w-2/3 h-full bg-[url('https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2532&auto=format&fit=crop')] bg-cover bg-center opacity-20 mask-image-gradient pointer-events-none mix-blend-screen"></div>
-        
-        <div className="grid lg:grid-cols-2 gap-20 items-center w-full relative z-10">
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }}>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-[#D4AF37]/30 rounded-full bg-[#D4AF37]/5 mb-10">
-              <Shield size={12} className="text-[#D4AF37]" />
-              <span className="text-[10px] uppercase tracking-[0.2em] text-[#D4AF37] font-bold">Private Wealth</span>
-            </div>
-            
-            <h1 className="text-7xl md:text-[7rem] font-serif leading-[0.9] mb-8 text-white">
-              WEALTH <br /> <span className="text-[#D4AF37]">REFINED.</span>
-            </h1>
-            
-            <p className="text-gray-400 text-lg leading-relaxed max-w-lg mb-12">
-              VerdeStock provides institutional-grade access to global markets, secured by physical gold reserves and advanced cryptography.
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          className="fixed bottom-6 left-6 z-[9999] bg-white/90 backdrop-blur-md border border-green-100 shadow-2xl rounded-2xl p-4 flex items-center gap-4 max-w-sm pointer-events-none"
+        >
+          <div className="bg-green-50 p-2.5 rounded-xl shrink-0">
+            {current.action === 'earned' ? <TrendingUp size={18} className="text-[#059669]" /> : 
+             current.action === 'invested' ? <DollarSign size={18} className="text-blue-600" /> :
+             <CheckCircle size={18} className="text-green-600" />}
+          </div>
+          <div className="flex flex-col">
+            <p className="text-[13px] font-bold text-gray-900 leading-tight">
+              {current.name} <span className="text-gray-400 font-normal text-[11px]">from {current.country}</span>
             </p>
-            
-            <div className="flex flex-wrap gap-4">
-              <Link href="/portal" className="px-10 py-4 bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-[0.2em] rounded hover:bg-white transition-all flex items-center gap-3">
-                Access Portal <ArrowRight size={14} />
-              </Link>
-              <button className="px-10 py-4 border border-white/10 text-white font-bold text-xs uppercase tracking-[0.2em] rounded hover:bg-white/5 transition-all">
-                View Strategy
-              </button>
-            </div>
-          </motion.div>
+            <p className="text-[11px] text-gray-500 mt-1">
+              Just {current.action} <span className="text-[#059669] font-bold">{current.amount}</span>
+            </p>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+EOF
 
-          {/* --- 3D SEARCH & TURN ANIMATION --- */}
-          <div className="relative h-[500px] w-full flex items-center justify-center perspective-[1200px]">
-             <motion.div 
-               className="relative w-full max-w-md aspect-[4/5] preserve-3d"
-               animate={{ rotateY: isTurned ? 180 : 0 }}
-               transition={{ duration: 1.2, ease: "easeInOut" }}
-               style={{ transformStyle: "preserve-3d" }}
-             >
-                {/* FRONT FACE: SEARCH BAR */}
-                <div className="absolute inset-0 backface-hidden flex items-center justify-center">
-                   <div className="w-full bg-[#111] border border-white/1
+echo "✅ Files cleaned and routes updated."
