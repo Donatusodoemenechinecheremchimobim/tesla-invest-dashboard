@@ -1,17 +1,11 @@
-// @ts-ignore
 import { Pool } from 'pg';
 
-// This ensures the connection works even in serverless environments
-const connectionString = process.env.DATABASE_URL;
-
 const pool = new Pool({
-  connectionString,
+  connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false
-  },
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+    // This is the critical line that fixes the "self-signed certificate" error
+    rejectUnauthorized: false 
+  }
 });
 
 export default pool;
