@@ -24,7 +24,7 @@ const Navbar = () => {
     <nav className={`fixed w-full z-[100] transition-all duration-500 ${isScrolled ? 'bg-black/95 py-4' : 'bg-transparent py-8'}`}>
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 items-center">
         
-        {/* LEFT: VERDESTOCK LOGO */}
+        {/* LEFT: LOGO */}
         <div className="flex justify-start">
           <Link href="/" className="text-xl md:text-2xl font-serif font-bold tracking-tighter text-white whitespace-nowrap">
             VERDE<span className="text-[#D4AF37] italic font-light">STOCK</span>
@@ -44,10 +44,10 @@ const Navbar = () => {
           ))}
         </div>
         
-        {/* RIGHT: PORTAL ACCESS (NOW /PORTAL) */}
+        {/* RIGHT: PORTAL ACCESS (NOW POINTS TO DASHBOARD) */}
         <div className="flex justify-end items-center gap-4">
           <Link 
-            href="/portal" 
+            href="/dashboard" 
             className="hidden md:flex items-center gap-2 px-8 py-2.5 bg-[#D4AF37] text-black text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)]"
           >
             <Globe size={14} />
@@ -74,8 +74,9 @@ const Navbar = () => {
               {link.name}
             </Link>
           ))}
+          {/* MOBILE BUTTON POINTING TO DASHBOARD */}
           <Link 
-            href="/portal" 
+            href="/dashboard" 
             onClick={() => setIsOpen(false)} 
             className="text-2xl font-serif text-[#D4AF37] uppercase tracking-widest border border-[#D4AF37] px-10 py-3 rounded-full"
           >
