@@ -1,70 +1,54 @@
 'use client';
 import IntroNavbar from '@/components/intro/IntroNavbar';
+import IntroFooter from '@/components/intro/IntroFooter';
 import WhatsAppBubble from '@/components/ui/WhatsAppBubble';
 import { motion } from 'framer-motion';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { Mail, MapPin, Phone, Globe } from 'lucide-react';
 
 export default function ContactPage() {
   return (
-    <main className="bg-white text-[#1a1a1a] min-h-screen">
+    <main className="bg-[#050505] text-[#E5E5E5] min-h-screen selection:bg-[#D4AF37] selection:text-black">
       <IntroNavbar />
       <WhatsAppBubble />
       
-      <section className="pt-40 px-6 max-w-7xl mx-auto grid lg:grid-cols-2 gap-20">
-         
+      <section className="pt-40 px-6 max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 pb-32">
          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
-            <span className="text-[#059669] font-bold uppercase tracking-widest text-sm mb-4 block">24/7 Global Support</span>
-            <h1 className="text-6xl font-bold mb-8">Let's talk <br/> <span className="text-[#059669]">Business.</span></h1>
-            <p className="text-xl text-gray-500 mb-12">
+            <span className="text-[#D4AF37] font-bold uppercase tracking-[0.3em] text-xs mb-4 block">24/7 Global Support</span>
+            <h1 className="text-6xl font-serif font-bold mb-8 text-white">Let's talk <br/> <span className="text-[#D4AF37]">Business.</span></h1>
+            <p className="text-xl text-gray-400 mb-12 font-light">
                Our dedicated concierge team is available around the clock. Whether you are in Tokyo or Toronto, we are one call away.
             </p>
             
             <div className="space-y-8">
-               {[
-                  { icon: Phone, title: "Direct Line", val: "+1 (800) VERDE-VIP" },
-                  { icon: Mail, title: "Secure Email", val: "concierge@verdecapital.com" },
-                  { icon: MapPin, title: "Headquarters", val: "214 North Tryon St, Charlotte, NC" }
-               ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-6 p-6 rounded-3xl bg-gray-50 border border-gray-100">
-                     <div className="w-12 h-12 bg-[#059669] rounded-full flex items-center justify-center text-white">
-                        <item.icon size={24} />
-                     </div>
-                     <div>
-                        <p className="text-xs font-bold uppercase text-gray-400">{item.title}</p>
-                        <p className="text-xl font-bold">{item.val}</p>
-                     </div>
+               {[{ icon: Phone, title: "Direct Line", val: "+1 (800) VERDE-VIP" }, { icon: Mail, title: "Secure Email", val: "concierge@verdecapital.com" }, { icon: Globe, title: "Global HQ", val: "Charlotte, NC • USA" }].map((item, i) => (
+                  <div key={i} className="flex items-center gap-6 p-8 border border-[#333] hover:border-[#D4AF37] transition-colors rounded-[2rem] bg-[#111]">
+                     <div className="w-12 h-12 bg-[#D4AF37] flex items-center justify-center text-black rounded-full"><item.icon size={24} /></div>
+                     <div><p className="text-xs font-bold uppercase text-gray-500 tracking-widest mb-1">{item.title}</p><p className="text-2xl font-serif font-bold text-white">{item.val}</p></div>
                   </div>
                ))}
             </div>
          </motion.div>
 
-         <motion.div 
-            initial={{ opacity: 0, x: 50 }} 
-            animate={{ opacity: 1, x: 0 }} 
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="bg-[#020617] text-white p-12 rounded-[3rem] shadow-2xl"
-         >
-            <h3 className="text-3xl font-bold mb-8">Send a Secure Message</h3>
+         <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="bg-[#111] border border-[#333] p-12 shadow-2xl rounded-[3rem]">
+            <h3 className="text-3xl font-serif font-bold mb-8 text-white">Secure Message Center</h3>
             <form className="space-y-6">
                <div className="grid grid-cols-2 gap-6">
-                  <input type="text" placeholder="First Name" className="bg-[#1e293b] border border-gray-700 rounded-xl p-4 w-full focus:border-[#059669] outline-none transition-colors" />
-                  <input type="text" placeholder="Last Name" className="bg-[#1e293b] border border-gray-700 rounded-xl p-4 w-full focus:border-[#059669] outline-none transition-colors" />
+                  <input type="text" placeholder="First Name" className="bg-black border border-[#333] p-5 rounded-xl w-full focus:border-[#D4AF37] outline-none text-white transition-colors" />
+                  <input type="text" placeholder="Last Name" className="bg-black border border-[#333] p-5 rounded-xl w-full focus:border-[#D4AF37] outline-none text-white transition-colors" />
                </div>
-               <input type="email" placeholder="Email Address" className="bg-[#1e293b] border border-gray-700 rounded-xl p-4 w-full focus:border-[#059669] outline-none transition-colors" />
-               <select className="bg-[#1e293b] border border-gray-700 rounded-xl p-4 w-full focus:border-[#059669] outline-none transition-colors text-gray-400">
+               {/* Email Removed */}
+               <select className="bg-black border border-[#333] p-5 rounded-xl w-full focus:border-[#D4AF37] outline-none text-gray-400 transition-colors">
                   <option>Select Department</option>
                   <option>Private Banking</option>
                   <option>Corporate Treasury</option>
-                  <option>Technical Support</option>
                </select>
-               <textarea rows={4} placeholder="How can we assist you?" className="bg-[#1e293b] border border-gray-700 rounded-xl p-4 w-full focus:border-[#059669] outline-none transition-colors"></textarea>
-               <button className="w-full bg-[#059669] hover:bg-[#047857] py-5 rounded-xl font-bold text-lg transition-colors">
-                  Submit Request
-               </button>
+               <textarea rows={6} placeholder="How can we assist you?" className="bg-black border border-[#333] p-5 rounded-xl w-full focus:border-[#D4AF37] outline-none text-white transition-colors"></textarea>
+               <button className="w-full bg-[#D4AF37] text-black hover:bg-white py-5 font-bold text-sm uppercase tracking-widest transition-colors rounded-xl">Submit Request</button>
             </form>
          </motion.div>
-
       </section>
+
+      <IntroFooter />
     </main>
   );
 }
