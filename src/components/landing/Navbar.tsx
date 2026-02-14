@@ -1,81 +1,67 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { LogOut, Menu, X } from 'lucide-react';
+import { Menu, X, Shield } from 'lucide-react';
 
 const Navbar = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleLogout = () => {
-    document.cookie = "portal_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-    window.location.href = "/portal/auth";
-  };
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navLinks = [
-    { name: 'Personal', href: '/portal/personal' },
-    { name: 'Strategy', href: '/portal/strategy' },
-    { name: 'Insurance', href: '/portal/insurance' },
-    { name: 'Founders', href: '/portal/founders' },
+    { name: 'Personal', href: '/personal' },
+    { name: 'Corporate', href: '/corporate' },
+    { name: 'Services', href: '/services' },
+    { name: 'Contact', href: '/contact' },
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5">
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-10 h-20 lg:h-24 flex items-center justify-between">
-        
-        {/* Logo */}
-        <Link href="/portal" className="text-white font-bold text-lg lg:text-xl tracking-tighter shrink-0">
-          <span className="uppercase tracking-[0.2em] lg:tracking-[0.3em] font-black text-[#D4AF37]">InvestmentTesla</span>
+    // Fixed: Removed border-b to eliminate white/gold line
+    <nav className={`fixed w-full z-[100] transition-all duration-500 ${isScrolled ? 'bg-[#050505]/95 backdrop-blur-md py-4' : 'bg-transparent py-8'}`}>
+      <div className="max-w-[1400px] mx-auto px-6 flex justify-between items-center">
+        <Link href="/" className="flex items-center gap-2 group">
+          <Shield className="text-[#D4AF37] fill-[#D4AF37]" size={28} />
+          <span className="text-xl font-serif font-bold tracking-widest text-white">
+            VERDE <span className="text-[#D4AF37]">STOCK</span>
+          </span>
         </Link>
-        
-        {/* Desktop Links */}
-        <div className="hidden xl:flex items-center gap-8">
+
+        <div className="hidden md:flex items-center space-x-10">
           {navLinks.map((link) => (
-            <Link key={link.name} href={link.href} className="text-gray-400 hover:text-white text-[10px] font-bold uppercase tracking-[0.2em] transition-colors">
+            <Link key={link.name} href={link.href} className="text-[11px] uppercase tracking-[0.25em] font-bold text-gray-300 hover:text-[#D4AF37] transition-colors">
               {link.name}
             </Link>
           ))}
         </div>
 
-        {/* Actions (Desktop) */}
-        <div className="hidden lg:flex items-center gap-6">
-          <Link href="/dashboard" className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.2em] border border-[#D4AF37]/40 px-5 py-2 rounded-full hover:bg-[#D4AF37] hover:text-black transition-all">
-            Dashboard
+        <div className="hidden md:flex items-center">
+          <Link href="/portal" className="px-6 py-2 border border-[#D4AF37] text-[#D4AF37] text-[10px] font-bold uppercase tracking-widest rounded hover:bg-[#D4AF37] hover:text-black transition-all duration-300 shadow-[0_0_15px_rgba(212,175,55,0.15)]">
+            InvestmentTesla
           </Link>
-          <button onClick={handleLogout} className="text-gray-500 hover:text-white transition-colors">
-            <LogOut size={18} />
-          </button>
         </div>
 
-        {/* Mobile Menu Toggle */}
-        <button onClick={() => setIsOpen(!isOpen)} className="lg:hidden text-white p-2">
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
+        <button className="md:hidden text-[#D4AF37]" onClick={() => setIsOpen(!isOpen)}>
+          {isOpen ? <X /> : <Menu />}
         </button>
       </div>
 
-      {/* Mobile Menu Overlay */}
       {isOpen && (
-        <div className="lg:hidden bg-black border-b border-white/10 p-6 flex flex-col gap-6 animate-in slide-in-from-top duration-300">
+        <div className="fixed inset-0 bg-[#050505] z-[110] flex flex-col items-center justify-center space-y-8">
+          <button className="absolute top-8 right-8 text-gray-400" onClick={() => setIsOpen(false)}><X size={32} /></button>
           {navLinks.map((link) => (
-            <Link 
-              key={link.name} 
-              href={link.href} 
-              onClick={() => setIsOpen(false)}
-              className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em]"
-            >
-              {link.name}
-            </Link>
+            <Link key={link.name} href={link.href} onClick={() => setIsOpen(false)} className="text-3xl font-serif text-white hover:text-[#D4AF37]">{link.name}</Link>
           ))}
-          <hr className="border-white/5" />
-          <Link href="/dashboard" className="text-[#D4AF37] text-xs font-bold uppercase tracking-[0.2em]">
-            Dashboard
+          <Link href="/portal" className="px-8 py-3 bg-[#D4AF37] text-black font-bold uppercase tracking-widest rounded mt-8">
+            Access Portal
           </Link>
-          <button onClick={handleLogout} className="text-red-500 text-left text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-            <LogOut size={14} /> Sign Out
-          </button>
         </div>
       )}
     </nav>
   );
 };
-
 export default Navbar;
