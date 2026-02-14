@@ -8,10 +8,6 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Crown, Shield, Gem, Users } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-const FadeIn = ({ children, delay = 0 }: any) => (
-  <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay }}>{children}</motion.div>
-);
-
 export default function PersonalPage() {
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => setIsMounted(true), []);
@@ -22,40 +18,39 @@ export default function PersonalPage() {
       <IntroNavbar />
       <WhatsAppBubble />
       
-      {/* HERO SECTION - FIXED IMAGE */}
+      {/* HERO - DARKER OVERLAY & SMOOTHER IMAGE */}
       <section className="relative h-screen flex items-center overflow-hidden bg-black border-b border-[#333]">
         <div className="absolute inset-0 z-0">
-          {/* New Reliable Luxury Image */}
           <Image 
-            src="https://images.pexels.com/photos/2952871/pexels-photo-2952871.jpeg" 
-            alt="Luxury Lifestyle" 
+            src="https://images.pexels.com/photos/5998132/pexels-photo-5998132.jpeg" 
+            alt="Luxury Abstract" 
             fill 
-            className="object-cover opacity-30" 
+            className="object-cover opacity-40" 
           />
-          <div className="absolute inset-0 bg-[#D4AF37] mix-blend-overlay opacity-10" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent" />
+          {/* Increased Overlay Opacity for Readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#000000] via-[#000000]/70 to-transparent" />
         </div>
         
         <div className="relative z-10 max-w-7xl mx-auto px-6">
            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-              <div className="inline-flex items-center gap-2 px-4 py-1 border border-[#D4AF37] mb-8 rounded-full bg-black/50 backdrop-blur-md">
+              <div className="inline-flex items-center gap-2 px-4 py-1 border border-[#D4AF37] mb-8 rounded-full bg-black/60 backdrop-blur-md shadow-lg">
                  <Crown size={12} className="text-[#D4AF37]" />
                  <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D4AF37]">Private Client Group</span>
               </div>
-              <h1 className="text-6xl md:text-8xl font-serif mb-8 leading-tight text-white">
+              <h1 className="text-6xl md:text-8xl font-serif mb-8 leading-tight text-white drop-shadow-xl">
                  Legacy <br/> <span className="text-[#D4AF37]">Architecture.</span>
               </h1>
-              <p className="text-xl text-gray-400 max-w-lg mb-10 font-light leading-relaxed border-l-2 border-[#D4AF37] pl-6">
+              <p className="text-xl text-gray-300 max-w-lg mb-10 font-light leading-relaxed border-l-2 border-[#D4AF37] pl-6 drop-shadow-md">
                  Wealth is not just about accumulation; it is about preservation, transfer, and impact. We build fortresses around your capital.
               </p>
-              <Link href="/portal/" className="inline-flex items-center gap-4 bg-[#D4AF37] text-black px-10 py-5 font-bold uppercase tracking-widest hover:bg-white transition-all rounded-full">
+              <Link href="/portal/" className="inline-flex items-center gap-4 bg-[#D4AF37] text-black px-10 py-5 font-bold uppercase tracking-widest hover:bg-white transition-all rounded-full shadow-[0_0_30px_rgba(212,175,55,0.3)]">
                  Request Access <ArrowRight size={16}/>
               </Link>
            </motion.div>
         </div>
       </section>
 
-      {/* 3 PILLARS GRID */}
+      {/* 3 PILLARS */}
       <section className="py-32 px-6 max-w-7xl mx-auto bg-[#050505]">
          <div className="grid md:grid-cols-3 gap-8">
             {[

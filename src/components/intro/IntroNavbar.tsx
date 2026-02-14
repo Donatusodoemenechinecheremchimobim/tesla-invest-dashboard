@@ -28,7 +28,7 @@ export default function IntroNavbar() {
             </div>
           </Link>
 
-          {/* DESKTOP LINKS - CHANGED FROM 'lg:flex' TO 'md:flex' */}
+          {/* DESKTOP LINKS */}
           <div className="hidden md:flex items-center gap-8 font-medium text-xs tracking-[0.2em] uppercase text-[#D4AF37]">
             {['Personal', 'Corporate', 'Services', 'Contact'].map((item) => (
               <Link key={item} href={`/${item.toLowerCase()}`} className="hover:text-white transition-colors relative group">
@@ -39,11 +39,11 @@ export default function IntroNavbar() {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* BUTTON RENAMED HERE */}
             <Link href="/portal/" className="hidden md:flex items-center gap-2 border border-[#D4AF37] text-[#D4AF37] px-8 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-[#D4AF37] hover:text-black transition-all">
-              Client Access <ArrowRight size={12} />
+              InvestmentTesla <ArrowRight size={12} />
             </Link>
             
-            {/* MOBILE MENU BUTTON - CHANGED FROM 'lg:hidden' TO 'md:hidden' */}
             <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 text-[#D4AF37]">
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -64,7 +64,7 @@ export default function IntroNavbar() {
                 {['Personal', 'Corporate', 'Services', 'Contact'].map((item) => (
                    <Link key={item} href={`/${item.toLowerCase()}`} onClick={() => setIsOpen(false)} className="hover:text-[#D4AF37] transition-colors">{item}</Link>
                 ))}
-                <Link href="/portal/" onClick={() => setIsOpen(false)} className="mt-8 bg-[#D4AF37] text-black text-center py-4 text-sm font-bold tracking-widest rounded-full">Client Login</Link>
+                <Link href="/portal/" onClick={() => setIsOpen(false)} className="mt-8 bg-[#D4AF37] text-black text-center py-4 text-sm font-bold tracking-widest rounded-full">InvestmentTesla</Link>
              </div>
           </motion.div>
         )}
