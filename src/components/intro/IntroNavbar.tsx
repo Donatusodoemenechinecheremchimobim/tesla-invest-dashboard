@@ -1,49 +1,47 @@
 'use client';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Menu, X, Leaf, ArrowRight, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Leaf, ArrowRight } from 'lucide-react';
 
 export default function IntroNavbar() {
   const [isOpen, setIsOpen] = useState(false);
-  
-  const links = [
-    { name: "Our Vision", href: "/founders" },
-    { name: "Growth Tech", href: "/technology" },
-    { name: "Security", href: "/insurance" },
-    { name: "About Us", href: "/about" },
-  ];
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+      <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 \${scrolled ? 'bg-[#022c22]/90 backdrop-blur-md py-4 shadow-lg' : 'bg-transparent py-6'}`}>
+        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center text-white">
           
-          <Link href="/" className="flex items-center gap-2 group z-50">
-            <div className="bg-[#059669] p-2 rounded-xl group-hover:scale-110 transition-transform shadow-lg shadow-green-200">
-              <Leaf size={20} className="text-white fill-white" />
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="bg-[#059669] p-2 rounded-xl group-hover:rotate-12 transition-transform">
+               <Leaf size={24} fill="white" />
             </div>
-            <span className="text-gray-900 font-sans font-bold text-xl tracking-tight">
-              Verde<span className="text-[#059669]">Capital</span>
-            </span>
+            <div className="font-sans font-bold text-xl tracking-tight">
+              VERDE <span className="text-[#4ade80]">CAPITAL</span>
+            </div>
           </Link>
-          
-          <div className="hidden lg:flex items-center gap-8 text-xs font-semibold uppercase tracking-wider text-gray-500">
-            {links.map((link) => (
-              <Link key={link.name} href={link.href} className="hover:text-[#059669] transition-colors">
-                {link.name}
-              </Link>
-            ))}
+
+          {/* DESKTOP LINKS */}
+          <div className="hidden lg:flex items-center gap-8 font-medium text-sm">
+            <Link href="/personal" className="hover:text-[#4ade80] transition-colors">Personal</Link>
+            <Link href="/corporate" className="hover:text-[#4ade80] transition-colors">Corporate</Link>
+            <Link href="/services" className="hover:text-[#4ade80] transition-colors">Services</Link>
+            <Link href="/portal/insurance" className="hover:text-[#4ade80] transition-colors">Insurance</Link>
           </div>
 
           <div className="flex items-center gap-4">
-            {/* 👇 UPDATED: NOW POINTS TO /portal/ */}
-            <Link href="/portal/" className="hidden md:flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-[#059669] hover:shadow-lg transition-all shadow-md">
-              InvestmentTesla <ArrowRight size={12} />
+            <Link href="/portal/auth" className="hidden md:flex items-center gap-2 bg-white text-[#022c22] px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-[#4ade80] transition-all">
+              Client Login <ArrowRight size={14} />
             </Link>
             
-            {/* Mobile Toggle */}
-            <button onClick={() => setIsOpen(!isOpen)} className="lg:hidden p-2 text-gray-900 z-50">
+            <button onClick={() => setIsOpen(!isOpen)} className="lg:hidden p-2 text-white">
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
@@ -54,22 +52,18 @@ export default function IntroNavbar() {
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            initial={{ opacity: 0, y: -20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            exit={{ opacity: 0, y: -20 }} 
-            className="fixed inset-0 z-40 bg-white pt-24 px-6 lg:hidden flex flex-col"
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            className="fixed inset-0 z-40 bg-[#022c22] pt-24 px-6 lg:hidden"
           >
-            <div className="flex flex-col gap-4">
-              {links.map((link) => (
-                <Link key={link.name} href={link.href} onClick={() => setIsOpen(false)} className="text-2xl font-bold text-gray-900 py-4 border-b border-gray-100">
-                  {link.name}
-                </Link>
-              ))}
-              {/* 👇 UPDATED MOBILE LINK TOO */}
-              <Link href="/portal/" onClick={() => setIsOpen(false)} className="mt-8 w-full bg-[#059669] text-white py-4 rounded-xl text-center font-bold shadow-lg shadow-green-200 flex items-center justify-center gap-2">
-                Access InvestmentTesla <ArrowRight size={16} />
-              </Link>
-            </div>
+             <div className="flex flex-col gap-6 text-2xl font-bold text-white">
+                <Link href="/personal" onClick={() => setIsOpen(false)}>Personal</Link>
+                <Link href="/corporate" onClick={() => setIsOpen(false)}>Corporate</Link>
+                <Link href="/services" onClick={() => setIsOpen(false)}>Services</Link>
+                <Link href="/portal/insurance" onClick={() => setIsOpen(false)}>Insurance</Link>
+                <Link href="/portal/auth" onClick={() => setIsOpen(false)} className="mt-8 bg-[#059669] text-center py-4 rounded-xl text-lg">Client Login</Link>
+             </div>
           </motion.div>
         )}
       </AnimatePresence>
