@@ -20,8 +20,8 @@ export default function ContactPage() {
             </p>
             
             <div className="space-y-8">
+               {/* Direct Line Removed. Only Global HQ remains in this list. */}
                {[
-                  { icon: Phone, title: "Direct Line", val: "+1 (800) VERDE-VIP" },
                   { icon: Globe, title: "Global HQ", val: "Charlotte, NC • USA" }
                ].map((item, i) => (
                   <div key={i} className="flex items-center gap-6 p-8 border border-[#333] hover:border-[#D4AF37] transition-colors rounded-[2rem] bg-[#111]">
@@ -48,8 +48,6 @@ export default function ContactPage() {
                   <input type="text" placeholder="First Name" className="bg-black border border-[#333] p-5 rounded-xl w-full focus:border-[#D4AF37] outline-none text-white transition-colors" />
                   <input type="text" placeholder="Last Name" className="bg-black border border-[#333] p-5 rounded-xl w-full focus:border-[#D4AF37] outline-none text-white transition-colors" />
                </div>
-               
-               {/* No Email Input here as requested previously */}
                
                <select className="bg-black border border-[#333] p-5 rounded-xl w-full focus:border-[#D4AF37] outline-none text-gray-400 transition-colors">
                   <option>Select Department</option>
