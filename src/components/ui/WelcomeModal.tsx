@@ -52,7 +52,7 @@ export default function WelcomeModal() {
               </div>
 
               <button 
-                onClick={() => window.location.href = '/auth'}
+                onClick={() => window.location.href = '/portal/auth'}
                 className="w-full py-4 bg-white text-black font-bold rounded-xl hover:bg-cyan-400 transition-colors shadow-lg shadow-white/10"
               >
                 Claim Access Now

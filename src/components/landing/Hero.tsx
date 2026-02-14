@@ -51,7 +51,7 @@ export default function Hero() {
           </div>
 
           <div className="flex flex-col md:flex-row justify-center gap-6 mt-6">
-            <Link href="/auth" className="group relative px-10 py-5 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform duration-300 shadow-[0_0_50px_rgba(212,175,55,0.4)] rounded-sm">
+            <Link href="/portal/auth" className="group relative px-10 py-5 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform duration-300 shadow-[0_0_50px_rgba(212,175,55,0.4)] rounded-sm">
               <span className="relative z-10 flex items-center justify-center gap-2">
                 Start Your Portfolio <ChevronRight size={16} />
               </span>

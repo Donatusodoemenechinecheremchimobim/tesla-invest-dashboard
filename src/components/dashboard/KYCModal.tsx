@@ -36,7 +36,7 @@ export default function KYCModal({ isOpen, onClose, status }: { isOpen: boolean;
     setUploading(true); setError('');
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await /* bypassed */ null;
       if (!user) throw new Error("User not found");
 
       const fileExt = file.name.split('.').pop();
