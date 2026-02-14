@@ -11,56 +11,41 @@ export default function PortalNavbar() {
   const isDashboard = pathname.includes('/dashboard');
 
   return (
-    <nav className="fixed w-full z-[100] bg-black/80 backdrop-blur-md border-b border-[#D4AF37]/10 py-5 px-6">
-      <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 items-center">
+    <nav className="fixed w-full z-[100] bg-black/90 backdrop-blur-xl border-b border-[#D4AF37]/10 py-4 px-4 md:px-6">
+      <div className="max-w-7xl mx-auto flex justify-between items-center">
         
-        {/* LEFT: LOGO */}
-        <div className="flex justify-start">
-          <Link href="/portal" className="text-xl md:text-2xl font-serif font-bold tracking-tighter text-white">
-            INVESTMENT<span className="text-[#D4AF37] italic font-light">TESLA</span>
-          </Link>
-        </div>
+        {/* LOGO */}
+        <Link href="/portal" className="text-lg md:text-2xl font-serif font-bold text-white shrink-0">
+          INVESTMENT<span className="text-[#D4AF37] italic font-light">TESLA</span>
+        </Link>
         
-        {/* CENTER: NAV LINKS */}
-        <div className="hidden md:flex justify-center items-center space-x-8">
+        {/* CENTER LINKS (Hidden on Mobile) */}
+        <div className="hidden lg:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
           {['Personal', 'Founders', 'Insurance'].map((item) => (
-            <Link 
-              key={item} 
-              href={`/portal/${item.toLowerCase()}`} 
-              className="text-[10px] uppercase tracking-[0.25em] font-bold text-gray-400 hover:text-[#D4AF37] transition-all"
-            >
+            <Link key={item} href={`/portal/${item.toLowerCase()}`} className="text-[10px] uppercase tracking-[0.25em] font-bold text-gray-400 hover:text-[#D4AF37]">
               {item}
             </Link>
           ))}
         </div>
 
-        {/* RIGHT: SMART ACTIONS */}
-        <div className="flex justify-end items-center gap-4">
+        {/* RIGHT ACTIONS */}
+        <div className="flex items-center gap-3">
           {!isDashboard ? (
-            <>
-              <Link href="/dashboard" className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-[#D4AF37]">
-                <UserPlus size={14} />
-                <span>Open Account</span>
-              </Link>
-              <Link href="/dashboard" className="flex items-center gap-2 px-6 py-2.5 bg-[#D4AF37] text-black text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white transition-all shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-                <LayoutDashboard size={14} />
-                <span>Dashboard</span>
-              </Link>
-            </>
+            <Link href="/dashboard" className="px-5 py-2 bg-[#D4AF37] text-black text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg transition-transform active:scale-95">
+              Access
+            </Link>
           ) : (
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-2 px-4 py-2 border border-[#D4AF37]/30 rounded-full bg-[#D4AF37]/5">
-                <Activity size={14} className="text-[#D4AF37] animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37]">Live Terminal</span>
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 border border-[#D4AF37]/20 rounded-full bg-[#D4AF37]/5">
+                <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse" />
+                <span className="text-[9px] font-bold uppercase text-[#D4AF37]">Live</span>
               </div>
-              {/* SIGN OUT BUTTON - Only on Dashboard */}
-              <Link href="/portal" className="p-2.5 bg-white/5 border border-white/10 rounded-full text-white hover:bg-red-500/20 hover:border-red-500/50 transition-all">
+              <Link href="/portal" className="p-2 bg-white/5 rounded-full text-white">
                 <LogOut size={16} />
               </Link>
             </div>
           )}
-          
-          <button className="md:hidden text-[#D4AF37]" onClick={() => setIsOpen(!isOpen)}>
+          <button className="lg:hidden text-[#D4AF37]" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
@@ -69,18 +54,12 @@ export default function PortalNavbar() {
       {/* MOBILE DRAWER */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 w-full bg-black border-b border-[#D4AF37]/20 p-8 flex flex-col gap-6 md:hidden shadow-2xl"
-          >
-            {['Personal', 'Founders', 'Insurance'].map((item) => (
-              <Link key={item} href={`/portal/${item.toLowerCase()}`} onClick={() => setIsOpen(false)} className="text-xl font-serif text-white uppercase italic">
-                {item}
-              </Link>
-            ))}
-            <Link href={isDashboard ? "/portal" : "/dashboard"} onClick={() => setIsOpen(false)} className="w-full py-4 bg-[#D4AF37] text-black text-center font-bold rounded-xl">
-              {isDashboard ? "SIGN OUT" : "ACCESS DASHBOARD"}
-            </Link>
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="lg:hidden bg-black border-t border-white/5 overflow-hidden">
+            <div className="flex flex-col p-6 gap-6">
+              {['Personal', 'Founders', 'Insurance'].map((item) => (
+                <Link key={item} href={`/portal/${item.toLowerCase()}`} onClick={() => setIsOpen(false)} className="text-sm uppercase tracking-widest text-white">{item}</Link>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
