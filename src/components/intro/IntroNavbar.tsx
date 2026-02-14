@@ -28,7 +28,8 @@ export default function IntroNavbar() {
             </div>
           </Link>
 
-          {/* DESKTOP LINKS */}
+          {/* DESKTOP LINKS (Visible on md: 768px and up) */}
+          {/* This covers ALL MacBooks and iPads in Landscape */}
           <div className="hidden md:flex items-center gap-8 font-medium text-xs tracking-[0.2em] uppercase text-[#D4AF37]">
             {['Personal', 'Corporate', 'Services', 'Contact'].map((item) => (
               <Link key={item} href={`/${item.toLowerCase()}`} className="hover:text-white transition-colors relative group">
@@ -39,11 +40,12 @@ export default function IntroNavbar() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* BUTTON RENAMED HERE */}
+            {/* DESKTOP BUTTON (Visible on md: 768px and up) */}
             <Link href="/portal/" className="hidden md:flex items-center gap-2 border border-[#D4AF37] text-[#D4AF37] px-8 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-[#D4AF37] hover:text-black transition-all">
               InvestmentTesla <ArrowRight size={12} />
             </Link>
             
+            {/* MOBILE TOGGLE (Hidden on md: 768px and up) */}
             <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 text-[#D4AF37]">
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -51,7 +53,7 @@ export default function IntroNavbar() {
         </div>
       </nav>
 
-      {/* MOBILE MENU */}
+      {/* MOBILE MENU DRAWER */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
