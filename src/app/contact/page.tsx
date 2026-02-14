@@ -4,7 +4,7 @@ import IntroFooter from '@/components/intro/IntroFooter';
 import WhatsAppBubble from '@/components/ui/WhatsAppBubble';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { MapPin, Globe, MessageCircle } from 'lucide-react';
+import { Globe, MessageCircle } from 'lucide-react';
 
 export default function ContactPage() {
   return (
@@ -41,13 +41,19 @@ export default function ContactPage() {
                   </div>
                ))}
                
-               <div className="flex items-center gap-6 p-8 border border-[#333] hover:border-[#25D366] transition-colors rounded-[2rem] bg-[#111]/80 backdrop-blur-md group">
-                  <div className="w-12 h-12 bg-[#25D366] flex items-center justify-center text-white rounded-full"><MessageCircle size={24} /></div>
+               {/* CLICKABLE WHATSAPP CARD */}
+               <a 
+                  href="https://wa.me/19803487946" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-6 p-8 border border-[#333] hover:border-[#25D366] transition-colors rounded-[2rem] bg-[#111]/80 backdrop-blur-md group cursor-pointer"
+               >
+                  <div className="w-12 h-12 bg-[#25D366] flex items-center justify-center text-white rounded-full group-hover:scale-110 transition-transform"><MessageCircle size={24} /></div>
                   <div>
                      <p className="text-xs font-bold uppercase text-gray-500 tracking-widest mb-1">Live Chat</p>
-                     <p className="text-xl font-serif font-bold text-white group-hover:text-[#25D366] transition-colors">Available via WhatsApp</p>
+                     <p className="text-xl font-serif font-bold text-white group-hover:text-[#25D366] transition-colors">Click to Chat on WhatsApp</p>
                   </div>
-               </div>
+               </a>
             </div>
          </motion.div>
 
