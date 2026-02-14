@@ -16,7 +16,6 @@ export default function IntroNavbar() {
 
   return (
     <>
-      {/* Fixed: Removed border-b entirely. Added shadow only on scroll. */}
       <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? 'bg-[#000000]/80 backdrop-blur-xl shadow-2xl' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center text-white">
           
@@ -29,8 +28,8 @@ export default function IntroNavbar() {
             </div>
           </Link>
 
-          {/* DESKTOP LINKS */}
-          <div className="hidden lg:flex items-center gap-8 font-medium text-xs tracking-[0.2em] uppercase text-[#D4AF37]">
+          {/* DESKTOP LINKS - CHANGED FROM 'lg:flex' TO 'md:flex' */}
+          <div className="hidden md:flex items-center gap-8 font-medium text-xs tracking-[0.2em] uppercase text-[#D4AF37]">
             {['Personal', 'Corporate', 'Services', 'Contact'].map((item) => (
               <Link key={item} href={`/${item.toLowerCase()}`} className="hover:text-white transition-colors relative group">
                 {item}
@@ -44,7 +43,8 @@ export default function IntroNavbar() {
               Client Access <ArrowRight size={12} />
             </Link>
             
-            <button onClick={() => setIsOpen(!isOpen)} className="lg:hidden p-2 text-[#D4AF37]">
+            {/* MOBILE MENU BUTTON - CHANGED FROM 'lg:hidden' TO 'md:hidden' */}
+            <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 text-[#D4AF37]">
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
@@ -58,7 +58,7 @@ export default function IntroNavbar() {
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
-            className="fixed inset-0 z-40 bg-black pt-24 px-6 lg:hidden"
+            className="fixed inset-0 z-40 bg-black pt-24 px-6 md:hidden"
           >
              <div className="flex flex-col gap-8 text-3xl font-serif text-white uppercase tracking-wider">
                 {['Personal', 'Corporate', 'Services', 'Contact'].map((item) => (
