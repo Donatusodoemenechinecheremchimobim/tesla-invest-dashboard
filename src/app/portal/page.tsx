@@ -70,9 +70,9 @@ export default function OldSitePortal() {
 
         <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto snap-x snap-mandatory px-6 pb-12 w-full no-scrollbar">
           {[
-            { name: "Silver", price: "$500", roi: "15% Monthly", features: ["Basic AI Trading", "Weekly Withdrawals", "Email Support"] },
-            { name: "Gold", price: "$5,000", roi: "25% Monthly", features: ["Advanced Dojo AI", "Instant Withdrawals", "24/7 Priority Support", "Capital Insured"], popular: true },
-            { name: "Diamond", price: "$20,000", roi: "40% Monthly", features: ["Quantum Execution", "Zero Fees", "Dedicated Account Manager", "Full Insurance Coverage"] }
+            { name: "Silver", price: "$500-$4999", roi: "120% Weekly", features: ["Basic AI Trading", "Weekly Withdrawals", "Email Support"] },
+            { name: "Gold", price: "$5,000-$19,999", roi: "200% Weekly", features: ["Advanced Dojo AI", "Instant Withdrawals", "24/7 Priority Support", "Capital Insured"], popular: true },
+            { name: "Diamond", price: "$20,000+", roi: "300% Weekly", features: ["Quantum Execution", "Dedicated Account Manager", "Full Insurance Coverage"] }
           ].map((plan, i) => (
             <div key={i} className={`
                 relative flex-shrink-0 w-[85vw] md:w-auto snap-center 
