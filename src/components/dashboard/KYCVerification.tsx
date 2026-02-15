@@ -1,129 +1,99 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Lock, Loader2 } from 'lucide-react'; // 👈 REMOVED UNUSED ICONS
-import CameraCapture from '@/components/auth/CameraCapture';
+import { supabase } from '@/lib/supabaseClient'; // <--- FIXED IMPORT
+import { Lock, Loader2, Upload, FileText, CheckCircle } from 'lucide-react';
 
-export default function KYCVerification({ user, onVerificationComplete }: { user: any, onVerificationComplete: () => void }) {
+export default function KYCVerification({ user, onSuccess }: { user: any, onSuccess: () => void }) {
   const [ssn, setSsn] = useState('');
-  const [idType, setIdType] = useState('Passport');
-  const [docFile, setDocFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [idType, setIdType] = useState<'passport' | 'license'>('passport');
+  const [idFile, setIdFile] = useState<File | null>(null);
+  const [kycSubmitting, setKycSubmitting] = useState(false);
 
-  // If already verified, don't show anything
-  if (user?.verification_status === 'approved') return null;
+  const handleSsnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 9);
+    setSsn(val);
+  };
 
-  // If pending, show the "Waiting for Approval" message
-  if (user?.verification_status === 'pending_review' || isSubmitted) {
-     return (
-       <div className="bg-[#111] border border-yellow-500/30 p-8 rounded-3xl text-center">
-          <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-             <Loader2 className="text-yellow-500 animate-spin" size={32} />
-          </div>
-          <h2 className="text-2xl font-serif text-white mb-2">Verification In Progress</h2>
-          <p className="text-gray-400 max-w-md mx-auto">
-             Your documents are currently under review by our compliance team. 
-             Deposit functionality will be unlocked upon approval.
-          </p>
-       </div>
-     );
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleKycSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!docFile || !ssn) return alert("Please complete all fields.");
-    
-    setLoading(true);
+    if (ssn.length !== 9 || !idFile) return;
+    setKycSubmitting(true);
+
     try {
-       // 1. Upload ID
-       const fileExt = docFile.name.split('.').pop();
-       const fileName = `${user.id}-kyc.${fileExt}`;
-       const { error: uploadError } = await supabase.storage.from('verification').upload(fileName, docFile);
-       if (uploadError) throw uploadError;
-       
-       const { data: publicUrlData } = supabase.storage.from('verification').getPublicUrl(fileName);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
 
-       // 2. Update Profile
-       const { error: updateError } = await supabase
-         .from('profiles')
-         .update({
-            ssn: ssn,
-            id_type: idType,
-            id_image_url: publicUrlData.publicUrl,
-            verification_status: 'pending_review'
-         })
-         .eq('id', user.id);
+      const filename = `${session.user.id}/${idType}_${Date.now()}`;
+      await supabase.storage.from('user-kyc').upload(filename, idFile);
 
-       if (updateError) throw updateError;
-       
-       setIsSubmitted(true);
-       onVerificationComplete();
+      await supabase.from('profiles').update({ 
+        kyc_status: 'submitted' 
+      }).eq('id', session.user.id);
 
-    } catch (error: any) {
-       alert(error.message || "An error occurred during upload.");
+      onSuccess();
+    } catch (err) {
+      console.error(err);
+      alert('Upload failed. Please try again.');
     } finally {
-       setLoading(false);
+      setKycSubmitting(false);
     }
   };
 
-  return (
-    <div className="bg-[#111] border border-red-500/30 p-6 md:p-8 rounded-3xl relative overflow-hidden">
-      <div className="absolute top-0 right-0 p-4 opacity-10">
-         <Lock size={120} className="text-red-500" />
-      </div>
-
-      <div className="relative z-10">
-        <div className="flex items-center gap-3 mb-6">
-           <div className="p-3 bg-red-500/10 rounded-full text-red-500 border border-red-500/20">
-              <Lock size={24} />
-           </div>
-           <div>
-              <h2 className="text-xl font-bold text-white">Deposit Locked</h2>
-              <p className="text-red-400 text-xs uppercase tracking-widest font-bold">Identity Verification Required</p>
-           </div>
+  if (user?.kyc_status === 'submitted' || user?.kyc_status === 'verified') {
+    return (
+      <div className="p-6 bg-green-500/10 border border-green-500/20 rounded-2xl flex items-center gap-4">
+        <CheckCircle size={24} className="text-green-500" />
+        <div>
+           <h4 className="font-bold text-green-500">Submission Received</h4>
+           <p className="text-xs text-green-400">Your documents are under review. Deposit access will be unlocked upon approval.</p>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-           <div>
-              <label className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2 block">Social Security Number (SSN)</label>
-              <input 
-                type="text" 
-                placeholder="XXX-XX-XXXX" 
-                value={ssn}
-                onChange={(e) => setSsn(e.target.value)}
-                className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#D4AF37] focus:outline-none"
-                required
-              />
-           </div>
-
-           <div>
-              <label className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2 block">Document Type</label>
-              <select 
-                value={idType} 
-                onChange={(e) => setIdType(e.target.value)}
-                className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#D4AF37] focus:outline-none appearance-none"
-              >
-                 <option>Passport</option>
-                 <option>Driver's License</option>
-              </select>
-           </div>
-
-           <div>
-              <label className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2 block">Upload Document</label>
-              <CameraCapture onCapture={(file) => setDocFile(file)} />
-           </div>
-
-           <button 
-             type="submit" 
-             disabled={loading}
-             className="w-full bg-[#D4AF37] text-black font-bold uppercase tracking-widest py-4 rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2"
-           >
-             {loading ? <Loader2 className="animate-spin" /> : 'Submit for Review'}
-           </button>
-        </form>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <section className="bg-[#0a0a0a] border border-[#D4AF37]/30 p-8 rounded-[2rem]">
+       <h3 className="text-xl font-serif mb-6 flex items-center gap-2">
+         <FileText className="text-[#D4AF37]" size={20}/> Submit KYC Documents
+       </h3>
+       
+       <form onSubmit={handleKycSubmit} className="space-y-6">
+          
+          <div className="flex gap-4">
+             <button type="button" onClick={() => setIdType('passport')} className={`flex-1 py-3 rounded-xl border text-xs font-bold uppercase ${idType === 'passport' ? 'bg-[#D4AF37] text-black border-[#D4AF37]' : 'bg-transparent border-white/10 text-gray-500'}`}>Passport</button>
+             <button type="button" onClick={() => setIdType('license')} className={`flex-1 py-3 rounded-xl border text-xs font-bold uppercase ${idType === 'license' ? 'bg-[#D4AF37] text-black border-[#D4AF37]' : 'bg-transparent border-white/10 text-gray-500'}`}>Driver's License</button>
+          </div>
+
+          <div>
+             <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Social Security Number (9 Digits)</label>
+             <input 
+                type="text" 
+                value={ssn}
+                onChange={handleSsnChange}
+                placeholder="XXX-XX-XXXX"
+                className="w-full bg-black border border-white/10 rounded-xl p-4 text-white focus:border-[#D4AF37] outline-none tracking-widest"
+             />
+          </div>
+
+          <div className="relative">
+             <input 
+               type="file" 
+               accept="image/*"
+               onChange={(e) => setIdFile(e.target.files?.[0] || null)}
+               className="hidden" 
+               id="id-upload"
+             />
+             <label htmlFor="id-upload" className="w-full bg-black border border-white/10 border-dashed rounded-xl p-6 flex items-center justify-center gap-2 text-gray-400 cursor-pointer hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all">
+                <Upload size={16} /> {idFile ? idFile.name : `Upload ${idType === 'passport' ? 'Passport' : 'License'} Image`}
+             </label>
+          </div>
+
+          <button disabled={kycSubmitting || ssn.length !== 9 || !idFile} className="w-full py-4 bg-white/10 hover:bg-[#D4AF37] hover:text-black disabled:opacity-50 disabled:cursor-not-allowed transition-all rounded-xl font-bold uppercase tracking-widest text-xs flex justify-center items-center gap-2">
+            {kycSubmitting && <Loader2 className="animate-spin" size={16} />}
+            {kycSubmitting ? 'Uploading to Secure Bucket...' : 'Submit Verification'}
+          </button>
+       </form>
+    </section>
   );
 }
