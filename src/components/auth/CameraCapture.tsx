@@ -1,151 +1,127 @@
 'use client';
 
-import { useRef, useState, useCallback } from 'react';
-import { Camera, RefreshCw, Check, Upload, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter } from 'next/navigation';
+import { Camera, Lock, User, Mail, ArrowRight, Eye, EyeOff, ScanFace, AlertTriangle } from 'lucide-react';
 
-export default function CameraCapture({ onCapture }: { onCapture: (file: File) => void }) {
+export default function AuthPage() {
+  const supabase = createClientComponentClient();
+  const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [image, setImage] = useState<string | null>(null);
-  const [isCameraMode, setIsCameraMode] = useState(false);
+  
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // --- CAMERA LOGIC ---
+  useEffect(() => {
+    startCamera();
+  }, []);
+
   const startCamera = async () => {
     try {
-      setIsCameraMode(true);
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
-      setStream(mediaStream);
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
+        videoRef.current.srcObject = stream;
+        setCameraActive(true);
       }
     } catch (err) {
-      console.error("Camera Error:", err);
-      alert("Unable to access camera. Please use the 'Upload File' option.");
+      setError("Camera permission required for proctoring.");
     }
   };
 
-  const takeSnapshot = useCallback(() => {
-    if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext('2d');
-      if (context) {
-        canvasRef.current.width = videoRef.current.videoWidth;
-        canvasRef.current.height = videoRef.current.videoHeight;
-        context.drawImage(videoRef.current, 0, 0);
-        
-        canvasRef.current.toBlob((blob) => {
-          if (blob) {
-            const file = new File([blob], "id-snapshot.jpg", { type: "image/jpeg" });
-            const previewUrl = URL.createObjectURL(blob);
-            setImage(previewUrl);
-            onCapture(file);
-            stopCamera();
-          }
-        }, 'image/jpeg', 0.8);
+  const captureAndUpload = async (userId: string) => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const context = canvasRef.current.getContext('2d');
+    context?.drawImage(videoRef.current, 0, 0, 640, 480);
+    
+    const blob = await new Promise<Blob | null>(resolve => canvasRef.current?.toBlob(resolve, 'image/jpeg'));
+
+    if (blob) {
+      // Save to 'proctor-snapshots' bucket
+      const filename = `${userId}/${Date.now()}.jpg`;
+      await supabase.storage.from('proctor-snapshots').upload(filename, blob);
+    }
+  };
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cameraActive) {
+      setError("Camera not active. Please allow permissions.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+
+    try {
+      let userId = '';
+      if (isLogin) {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        userId = data.user.id;
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName } }
+        });
+        if (error) throw error;
+        if (data.user) userId = data.user.id;
       }
-    }
-  }, [onCapture]);
 
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
+      if (userId) await captureAndUpload(userId);
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    setIsCameraMode(false);
-  };
-
-  // --- FILE UPLOAD LOGIC ---
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const previewUrl = URL.createObjectURL(file);
-      setImage(previewUrl);
-      onCapture(file);
-      setIsCameraMode(false);
-    }
-  };
-
-  const retake = () => {
-    setImage(null);
-    setIsCameraMode(false);
   };
 
   return (
-    <div className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 overflow-hidden">
+    <main className="min-h-screen bg-[#050505] flex items-center justify-center p-6 text-white relative">
+      <canvas ref={canvasRef} width="640" height="480" className="hidden" />
       
-      {/* 1. INITIAL STATE: CHOOSE METHOD */}
-      {!isCameraMode && !image && (
-         <div className="grid grid-cols-2 gap-4">
-            <button 
-              type="button"
-              onClick={startCamera}
-              className="py-8 flex flex-col items-center justify-center text-gray-400 hover:text-[#D4AF37] hover:bg-white/5 transition-all rounded-xl border border-dashed border-white/20"
-            >
-              <Camera size={32} className="mb-2" />
-              <span className="uppercase tracking-widest text-[10px] font-bold">Take Photo</span>
-            </button>
-            
-            <button 
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="py-8 flex flex-col items-center justify-center text-gray-400 hover:text-[#D4AF37] hover:bg-white/5 transition-all rounded-xl border border-dashed border-white/20"
-            >
-              <Upload size={32} className="mb-2" />
-              <span className="uppercase tracking-widest text-[10px] font-bold">Upload File</span>
-            </button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept="image/*,application/pdf" 
-              onChange={handleFileUpload}
-            />
-         </div>
-      )}
-
-      {/* 2. CAMERA ACTIVE STATE */}
-      {isCameraMode && !image && (
-        <div className="relative rounded-xl overflow-hidden bg-black">
-          <video ref={videoRef} autoPlay playsInline muted className="w-full h-64 object-cover" />
-          
-          <button 
-            type="button"
-            onClick={takeSnapshot}
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 w-14 h-14 bg-white rounded-full border-4 border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.5)] active:scale-90 transition-transform z-20"
-          />
-          
-          <button 
-            type="button"
-            onClick={stopCamera}
-            className="absolute top-2 right-2 p-2 bg-black/50 rounded-full text-white hover:text-red-500 transition-colors z-20"
-          >
-            <X size={20} />
-          </button>
-        </div>
-      )}
-
-      {/* 3. IMAGE PREVIEW STATE */}
-      {image && (
-        <div className="relative">
-          <img src={image} alt="ID Document" className="w-full h-64 object-cover rounded-xl border border-[#D4AF37]" />
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-4">
-            <button 
-              type="button"
-              onClick={retake}
-              className="p-3 bg-red-600/80 rounded-full hover:bg-red-600 transition-colors shadow-lg"
-            >
-              <RefreshCw size={20} className="text-white" />
-            </button>
-            <div className="p-3 bg-green-500 rounded-full shadow-lg">
-              <Check size={20} className="text-white" />
-            </div>
+      <div className="w-full max-w-md bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[2rem] p-8 shadow-2xl relative z-10">
+        <div className="mb-8 relative w-full h-40 bg-black rounded-xl overflow-hidden border border-white/10">
+          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover opacity-60" />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {cameraActive ? <ScanFace className="text-[#D4AF37] animate-pulse" size={32} /> : <Camera className="text-red-500" size={32} />}
           </div>
-          <p className="text-center text-green-500 text-[10px] font-bold uppercase tracking-widest mt-3">Document Ready</p>
         </div>
-      )}
-      
-      <canvas ref={canvasRef} className="hidden" />
-    </div>
+
+        <h2 className="text-3xl font-serif font-bold text-center mb-6">{isLogin ? 'Secure Login' : 'New Account'}</h2>
+        
+        {error && <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-red-400 text-xs">{error}</div>}
+
+        <form onSubmit={handleAuth} className="space-y-4">
+           {!isLogin && (
+             <input type="text" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl py-4 px-4 text-sm text-white focus:border-[#D4AF37] outline-none" required />
+           )}
+           <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl py-4 px-4 text-sm text-white focus:border-[#D4AF37] outline-none" required />
+           
+           <div className="relative">
+              <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl py-4 pl-4 pr-12 text-sm text-white focus:border-[#D4AF37] outline-none" required />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+           </div>
+
+           <button disabled={loading} className="w-full py-4 bg-[#D4AF37] text-black font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all mt-6">
+             {loading ? 'Processing...' : (isLogin ? 'Access Dashboard' : 'Create Account')}
+           </button>
+        </form>
+
+        <button onClick={() => setIsLogin(!isLogin)} className="w-full text-center mt-6 text-xs text-gray-500 hover:text-[#D4AF37] uppercase tracking-widest">
+          {isLogin ? 'Create Account' : 'Back to Login'}
+        </button>
+      </div>
+    </main>
   );
 }
