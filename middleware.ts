@@ -1,23 +1,20 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/request';
 
 export function middleware(request: NextRequest) {
-  // 1. Supabase stores the session in a cookie starting with 'sb-'
-  // We check for any cookie that contains the 'auth-token'
+  // 1. Supabase cookies usually start with 'sb-' followed by your project ref
   const allCookies = request.cookies.getAll();
-  const supabaseSession = allCookies.find(cookie => cookie.name.includes('auth-token'));
+  const hasSupabaseSession = allCookies.some(c => c.name.includes('auth-token'));
   
   const { pathname } = request.nextUrl;
 
-  // 2. Protect the Dashboard
-  // If no Supabase cookie exists, send them to /auth
-  if (pathname.startsWith('/dashboard') && !supabaseSession) {
-    // Change '/portal/auth' to just '/auth' if that is your path
+  // 2. Protect Dashboard: If NO session, go to /auth
+  if (pathname.startsWith('/dashboard') && !hasSupabaseSession) {
     return NextResponse.redirect(new URL('/auth', request.url));
   }
 
-  // 3. Prevent logged-in users from seeing the login page
-  if (pathname.startsWith('/auth') && supabaseSession) {
+  // 3. Prevent Double Login: If HAS session, go to /dashboard
+  if (pathname.startsWith('/auth') && hasSupabaseSession) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
