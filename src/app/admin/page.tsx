@@ -1,142 +1,142 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseClient'; // <--- FIXED IMPORT
 import { motion } from 'framer-motion';
-import { ShieldAlert, RefreshCw, User, Lock, Grid } from 'lucide-react';
+import { ShieldAlert, RefreshCw, User, Lock, Grid, CheckCircle, XCircle } from 'lucide-react';
 import Image from 'next/image';
 
-export default function AdminDashboard() {
-  const [feeds, setFeeds] = useState<any[]>([]);
+export default function AdminPage() {
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [passcode, setPasscode] = useState('');
+  const [authenticated, setAuthenticated] = useState(false);
 
-  // 🔄 REFRESH FUNCTION: GETS LATEST SNAPSHOTS
-  const fetchFeeds = async () => {
+  useEffect(() => {
+    if (authenticated) fetchUsers();
+  }, [authenticated]);
+
+  const fetchUsers = async () => {
     setLoading(true);
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
     
-    // 1. List all folders (User IDs) in the bucket
-    const { data: folders, error } = await supabase.storage.from('proctor_evidence').list();
-    
-    if (error || !folders) {
-      console.error("Error fetching users:", error);
-      setLoading(false);
-      return;
-    }
-
-    const liveFeeds = [];
-
-    // 2. For each user, get their LATEST photo
-    for (const folder of folders) {
-      if (folder.id === null) continue; // Skip random files
-
-      const { data: files } = await supabase.storage
-        .from('proctor_evidence')
-        .list(folder.name, { limit: 1, sortBy: { column: 'name', order: 'desc' } }); // Get newest
-
-      if (files && files.length > 0) {
-        const latestFile = files[0];
-        
-        // Construct Public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('proctor_evidence')
-          .getPublicUrl(`${folder.name}/${latestFile.name}`);
-
-        liveFeeds.push({
-          userId: folder.name,
-          lastActive: new Date(latestFile.created_at).toLocaleTimeString(),
-          url: publicUrl,
-          timestamp: latestFile.created_at
-        });
-      }
-    }
-
-    setFeeds(liveFeeds);
+    if (data) setUsers(data);
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchFeeds();
+  const toggleStatus = async (userId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'approved' ? 'locked' : 'approved';
     
-    // Auto-refresh every 5 seconds to simulate "Live Video"
-    const interval = setInterval(fetchFeeds, 5000);
-    return () => clearInterval(interval);
-  }, []);
+    // Optimistic UI update
+    setUsers(users.map(u => u.id === userId ? { ...u, deposit_status: newStatus } : u));
+
+    await supabase
+      .from('profiles')
+      .update({ deposit_status: newStatus })
+      .eq('id', userId);
+  };
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passcode === 'admin123') { // Simple passcode for demo
+      setAuthenticated(true);
+    } else {
+      alert('Access Denied');
+    }
+  };
+
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <form onSubmit={handleLogin} className="bg-[#111] p-8 rounded-2xl border border-red-900/30 text-center">
+          <ShieldAlert size={48} className="text-red-600 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-6">Restricted Access</h1>
+          <input 
+            type="password" 
+            placeholder="Enter Passcode" 
+            value={passcode}
+            onChange={(e) => setPasscode(e.target.value)}
+            className="w-full bg-black border border-white/10 p-3 rounded-lg text-white mb-4 text-center focus:border-red-500 outline-none"
+          />
+          <button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg">
+            Authenticate
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-black text-white p-8">
-      
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-10 border-b border-white/10 pb-6">
-        <div className="flex items-center gap-4">
-          <div className="bg-red-600/20 p-3 rounded-xl border border-red-600/50">
-            <ShieldAlert className="text-red-500 animate-pulse" size={32} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black uppercase tracking-[0.2em]">Master Control</h1>
-            <p className="text-gray-500 text-xs uppercase tracking-widest">Surveillance Grid • Active Nodes: {feeds.length}</p>
-          </div>
-        </div>
-        
-        <button 
-          onClick={fetchFeeds}
-          className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-lg transition-all text-xs font-bold uppercase tracking-widest"
-        >
-          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-          {loading ? 'Scanning...' : 'Refresh Signal'}
+    <main className="min-h-screen bg-black text-white p-6 md:p-12">
+      <header className="flex justify-between items-center mb-10">
+        <h1 className="text-3xl font-bold flex items-center gap-3">
+          <Grid className="text-indigo-500" /> Master Control
+        </h1>
+        <button onClick={fetchUsers} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition">
+          <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
         </button>
+      </header>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="text-gray-500 text-xs uppercase border-b border-white/10">
+              <th className="p-4">User Identity</th>
+              <th className="p-4">KYC Status</th>
+              <th className="p-4">Deposit Access</th>
+              <th className="p-4">Balance</th>
+              <th className="p-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="text-sm">
+            {users.map((user) => (
+              <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition">
+                <td className="p-4">
+                  <div className="font-bold text-white">{user.full_name || 'Unknown'}</div>
+                  <div className="text-xs text-gray-500">{user.id}</div>
+                </td>
+                <td className="p-4">
+                  <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
+                    user.kyc_status === 'verified' ? 'bg-green-900 text-green-400' : 
+                    user.kyc_status === 'submitted' ? 'bg-yellow-900 text-yellow-400' : 'bg-red-900 text-red-400'
+                  }`}>
+                    {user.kyc_status || 'Pending'}
+                  </span>
+                </td>
+                <td className="p-4">
+                  {user.deposit_status === 'approved' ? (
+                    <div className="flex items-center gap-2 text-green-500">
+                      <CheckCircle size={16} /> Unlocked
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-red-500">
+                      <Lock size={16} /> Locked
+                    </div>
+                  )}
+                </td>
+                <td className="p-4 font-mono">
+                  ${user.balance?.toLocaleString()}
+                </td>
+                <td className="p-4">
+                  <button 
+                    onClick={() => toggleStatus(user.id, user.deposit_status)}
+                    className={`px-4 py-2 rounded font-bold text-xs uppercase transition ${
+                      user.deposit_status === 'approved' 
+                        ? 'bg-red-600 hover:bg-red-700 text-white' 
+                        : 'bg-green-600 hover:bg-green-700 text-white'
+                    }`}
+                  >
+                    {user.deposit_status === 'approved' ? 'Lock Deposit' : 'Approve Deposit'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      {/* CCTV GRID */}
-      {feeds.length === 0 && !loading ? (
-        <div className="flex flex-col items-center justify-center h-[60vh] text-gray-600">
-          <Grid size={64} className="mb-4 opacity-20" />
-          <p className="uppercase tracking-[0.3em] text-sm">No Active Signals Detected</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {feeds.map((feed) => (
-            <motion.div 
-              key={feed.userId}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden relative group"
-            >
-              {/* STATUS OVERLAY */}
-              <div className="absolute top-0 left-0 right-0 z-10 flex justify-between items-center p-3 bg-gradient-to-b from-black/90 to-transparent">
-                <div className="flex items-center gap-2">
-                   <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_red]" />
-                   <span className="text-[10px] font-bold text-red-400 font-mono">LIVE</span>
-                </div>
-                <span className="text-[10px] font-mono text-gray-400">{feed.lastActive}</span>
-              </div>
-
-              {/* IMAGE FEED */}
-              <div className="relative aspect-video bg-gray-900">
-                <img 
-                  src={feed.url} 
-                  alt="Surveillance Feed" 
-                  className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                />
-                {/* Scanline Effect */}
-                <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px] pointer-events-none opacity-20" />
-              </div>
-
-              {/* FOOTER */}
-              <div className="p-4 border-t border-white/5 bg-white/[0.02]">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/5 rounded-full">
-                    <User size={14} className="text-gray-400" />
-                  </div>
-                  <div className="overflow-hidden">
-                    <p className="text-[10px] text-gray-500 uppercase tracking-widest truncate">Target ID</p>
-                    <p className="text-xs font-mono text-[#D4AF37] truncate w-full">{feed.userId}</p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
     </main>
   );
 }
