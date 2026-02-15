@@ -1,6 +1,6 @@
 'use client';
 
-import Navbar from '@/components/landing/Navbar';
+import Navbar from '@/components/portal/PortalNavbar';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, ShieldCheck, TrendingUp, Zap, Globe, CheckCircle } from 'lucide-react';
