@@ -2,16 +2,22 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const session = request.cookies.get('portal_session');
+  // 1. Supabase stores the session in a cookie starting with 'sb-'
+  // We check for any cookie that contains the 'auth-token'
+  const allCookies = request.cookies.getAll();
+  const supabaseSession = allCookies.find(cookie => cookie.name.includes('auth-token'));
+  
   const { pathname } = request.nextUrl;
 
-  // 1. If user is trying to access dashboard WITHOUT a session, send to /portal/auth
-  if (pathname.startsWith('/dashboard') && !session) {
-    return NextResponse.redirect(new URL('/portal/auth', request.url));
+  // 2. Protect the Dashboard
+  // If no Supabase cookie exists, send them to /auth
+  if (pathname.startsWith('/dashboard') && !supabaseSession) {
+    // Change '/portal/auth' to just '/auth' if that is your path
+    return NextResponse.redirect(new URL('/auth', request.url));
   }
 
-  // 2. If user is logged in and tries to go to /portal/auth, send to /dashboard
-  if (pathname.startsWith('/portal/auth') && session) {
+  // 3. Prevent logged-in users from seeing the login page
+  if (pathname.startsWith('/auth') && supabaseSession) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
@@ -19,5 +25,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/portal/auth'],
+  matcher: ['/dashboard/:path*', '/auth'],
 };
