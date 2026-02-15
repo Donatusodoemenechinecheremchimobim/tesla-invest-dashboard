@@ -31,7 +31,7 @@ export default function PortalNavbar() {
         {/* RIGHT ACTIONS */}
         <div className="flex items-center gap-3">
           {!isDashboard ? (
-            <Link href="/dashboard" className="px-5 py-2 bg-[#D4AF37] text-black text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg transition-transform active:scale-95">
+            <Link href="/portal/auth" className="px-5 py-2 bg-[#D4AF37] text-black text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg transition-transform active:scale-95">
               Access
             </Link>
           ) : (
