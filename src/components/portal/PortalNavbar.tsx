@@ -2,13 +2,20 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, UserPlus, Menu, X, Activity, LogOut } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function PortalNavbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const isDashboard = pathname.includes('/dashboard');
+
+  // Defined routes for easy management
+  const navLinks = [
+    { name: 'Personal', href: '/portal/personal' },
+    { name: 'Founders', href: '/portal/founders' },
+    { name: 'Insurance', href: '/portal/insurance' },
+  ];
 
   return (
     <nav className="fixed w-full z-[100] bg-black/90 backdrop-blur-xl border-b border-[#D4AF37]/10 py-4 px-4 md:px-6">
@@ -19,11 +26,17 @@ export default function PortalNavbar() {
           INVESTMENT<span className="text-[#D4AF37] italic font-light">TESLA</span>
         </Link>
         
-        {/* CENTER LINKS (Hidden on Mobile) */}
+        {/* CENTER LINKS (Desktop) */}
         <div className="hidden lg:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
-          {['Personal', 'Founders', 'Insurance'].map((item) => (
-            <Link key={item} href={`/portal/${item.toLowerCase()}`} className="text-[10px] uppercase tracking-[0.25em] font-bold text-gray-400 hover:text-[#D4AF37]">
-              {item}
+          {navLinks.map((link) => (
+            <Link 
+              key={link.name} 
+              href={link.href} 
+              className={`text-[10px] uppercase tracking-[0.25em] font-bold transition-colors ${
+                pathname === link.href ? 'text-[#D4AF37]' : 'text-gray-400 hover:text-[#D4AF37]'
+              }`}
+            >
+              {link.name}
             </Link>
           ))}
         </div>
@@ -40,9 +53,12 @@ export default function PortalNavbar() {
                 <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse" />
                 <span className="text-[9px] font-bold uppercase text-[#D4AF37]">Live</span>
               </div>
-              <Link href="/portal" className="p-2 bg-white/5 rounded-full text-white">
+              <button 
+                onClick={() => window.location.href = '/portal/auth'} 
+                className="p-2 bg-white/5 rounded-full text-white hover:bg-red-500/20 hover:text-red-500 transition-all"
+              >
                 <LogOut size={16} />
-              </Link>
+              </button>
             </div>
           )}
           <button className="lg:hidden text-[#D4AF37]" onClick={() => setIsOpen(!isOpen)}>
@@ -54,10 +70,24 @@ export default function PortalNavbar() {
       {/* MOBILE DRAWER */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="lg:hidden bg-black border-t border-white/5 overflow-hidden">
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }} 
+            animate={{ opacity: 1, height: 'auto' }} 
+            exit={{ opacity: 0, height: 0 }} 
+            className="lg:hidden bg-black border-t border-white/5 overflow-hidden"
+          >
             <div className="flex flex-col p-6 gap-6">
-              {['Personal', 'Founders', 'Insurance'].map((item) => (
-                <Link key={item} href={`/portal/${item.toLowerCase()}`} onClick={() => setIsOpen(false)} className="text-sm uppercase tracking-widest text-white">{item}</Link>
+              {navLinks.map((link) => (
+                <Link 
+                  key={link.name} 
+                  href={link.href} 
+                  onClick={() => setIsOpen(false)} 
+                  className={`text-sm uppercase tracking-widest font-bold ${
+                    pathname === link.href ? 'text-[#D4AF37]' : 'text-white'
+                  }`}
+                >
+                  {link.name}
+                </Link>
               ))}
             </div>
           </motion.div>
