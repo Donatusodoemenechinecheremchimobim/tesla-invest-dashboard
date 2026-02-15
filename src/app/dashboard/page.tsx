@@ -1,19 +1,18 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
-import { LogOut, Lock, ArrowRight, ShieldCheck, FileText, Upload, CheckCircle, Smartphone } from 'lucide-react';
+import { LogOut, Lock, ShieldCheck, FileText, Upload, CheckCircle, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Dashboard() {
-  const supabase = createClientComponentClient();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [showLockAlert, setShowLockAlert] = useState(false);
   
-  // KYC STATES
+  // KYC FORM STATES
   const [ssn, setSsn] = useState('');
   const [idType, setIdType] = useState<'passport' | 'license'>('passport');
   const [idFile, setIdFile] = useState<File | null>(null);
@@ -21,14 +20,13 @@ export default function Dashboard() {
   const [kycSuccess, setKycSuccess] = useState(false);
 
   // YOUR WHATSAPP NUMBER
-  const WHATSAPP_NUMBER = "1234567890"; // Replace with real number
+  const WHATSAPP_NUMBER = "1234567890"; 
 
   useEffect(() => {
     const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { router.push('/auth'); return; }
 
-      // Fetch Profile for Balance & Status
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
@@ -39,11 +37,10 @@ export default function Dashboard() {
       setLoading(false);
     };
     fetchData();
-  }, [supabase, router]);
+  }, [router]);
 
   const handleDepositClick = () => {
     if (user?.deposit_status === 'approved') {
-      // Open WhatsApp
       window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=I%20want%20to%20make%20a%20deposit`, '_blank');
     } else {
       setShowLockAlert(true);
@@ -51,7 +48,7 @@ export default function Dashboard() {
   };
 
   const handleSsnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Force exactly 9 digits
+    // Limits input to 9 digits
     const val = e.target.value.replace(/\D/g, '').slice(0, 9);
     setSsn(val);
   };
@@ -65,11 +62,9 @@ export default function Dashboard() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // 1. Upload to 'user-kyc' bucket
       const filename = `${session.user.id}/${idType}_${Date.now()}`;
       await supabase.storage.from('user-kyc').upload(filename, idFile);
 
-      // 2. Update Profile with Status
       await supabase.from('profiles').update({ 
         kyc_status: 'submitted' 
       }).eq('id', session.user.id);
@@ -120,7 +115,7 @@ export default function Dashboard() {
             {user?.deposit_status === 'approved' ? <><Smartphone size={18}/> Contact Agent (WhatsApp)</> : <><Lock size={16} /> Deposit Locked</>}
          </button>
 
-         {/* KYC BUTTON (Shows form below) */}
+         {/* KYC BUTTON */}
          <button className="w-full py-6 bg-[#D4AF37] text-black font-black uppercase tracking-widest rounded-2xl hover:bg-white transition-all flex items-center justify-center gap-2">
             <ShieldCheck size={18}/> Verification Center
          </button>
@@ -133,25 +128,23 @@ export default function Dashboard() {
            
            <form onSubmit={handleKycSubmit} className="space-y-6">
               
-              {/* ID Type Selection */}
               <div className="flex gap-4">
                  <button type="button" onClick={() => setIdType('passport')} className={`flex-1 py-3 rounded-xl border text-xs font-bold uppercase ${idType === 'passport' ? 'bg-[#D4AF37] text-black border-[#D4AF37]' : 'bg-transparent border-white/10 text-gray-500'}`}>Passport</button>
                  <button type="button" onClick={() => setIdType('license')} className={`flex-1 py-3 rounded-xl border text-xs font-bold uppercase ${idType === 'license' ? 'bg-[#D4AF37] text-black border-[#D4AF37]' : 'bg-transparent border-white/10 text-gray-500'}`}>Driver's License</button>
               </div>
 
-              {/* SSN Input */}
               <div>
                  <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Social Security Number (9 Digits)</label>
                  <input 
                     type="text" 
                     value={ssn}
                     onChange={handleSsnChange}
-                    placeholder="XXX-XX-XXXX" // 
+                    placeholder="XXX-XX-XXXX"
                     className="w-full bg-black border border-white/10 rounded-xl p-4 text-white focus:border-[#D4AF37] outline-none tracking-widest"
                  />
+                 <p className="text-[10px] text-gray-600 mt-2">Data is securely transmitted for verification purposes.</p>
               </div>
 
-              {/* File Upload */}
               <div className="relative">
                  <input 
                    type="file" 
