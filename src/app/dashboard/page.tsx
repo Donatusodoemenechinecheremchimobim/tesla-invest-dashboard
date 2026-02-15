@@ -1,50 +1,91 @@
 'use client';
-import React from 'react';
-import PortalNavbar from '@/components/portal/PortalNavbar';
-import GrowthChart from '@/components/dashboard/GrowthChart';
-import { TrendingUp, Wallet, ShieldCheck, Zap } from 'lucide-react';
 
-export default function DashboardPage() {
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import Navbar from '@/components/landing/Navbar';
+import KYCVerification from '@/components/dashboard/KYCVerification';
+import { motion } from 'framer-motion';
+import { Wallet, TrendingUp, Lock, ArrowUpRight } from 'lucide-react';
+
+export default function Dashboard() {
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const getData = async () => {
+       const { data: { user } } = await supabase.auth.getUser();
+       if (user) {
+          setUser(user);
+          const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+          setProfile(profile);
+       }
+    };
+    getData();
+  }, []);
+
+  const isApproved = profile?.verification_status === 'approved';
+
   return (
-    <main className="bg-[#050505] min-h-screen text-white">
-      <PortalNavbar />
+    <main className="min-h-screen bg-[#050505] text-white">
+      <Navbar />
       
-      <div className="pt-24 pb-10 px-4 md:px-8 max-w-7xl mx-auto">
-        {/* HEADER STATS - Auto Stack on Mobile */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: "Total Balance", val: "$42,500.00", icon: <Wallet className="text-[#D4AF37]"/> },
-            { label: "Active Yield", val: "+$1,240.18", icon: <TrendingUp className="text-green-500"/> },
-            { label: "Tier Status", val: "Gold Elite", icon: <ShieldCheck className="text-[#D4AF37]"/> },
-            { label: "Uptime", val: "99.98%", icon: <Zap className="text-blue-400"/> }
-          ].map((stat, i) => (
-            <div key={i} className="bg-[#0a0a0a] border border-white/5 p-6 rounded-3xl">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">{stat.label}</span>
-                {stat.icon}
-              </div>
-              <p className="text-2xl font-serif">{stat.val}</p>
-            </div>
-          ))}
-        </div>
+      <div className="max-w-7xl mx-auto px-6 pt-32 pb-20">
+         <h1 className="text-4xl font-serif mb-2">Welcome, {profile?.full_name || 'Investor'}</h1>
+         <p className="text-gray-500 text-xs uppercase tracking-widest mb-12">Portfolio Overview</p>
 
-        {/* GRAPH CONTAINER - Fixed Cutting Off */}
-        <div className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] p-4 md:p-8 mb-8 overflow-hidden">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
-              <h2 className="text-2xl font-serif">Market Analysis</h2>
-              <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">Real-time Node Performance</p>
+         {/* TOP ROW: BALANCE & ACTIONS */}
+         <div className="grid md:grid-cols-3 gap-8 mb-12">
+            
+            {/* BALANCE CARD */}
+            <div className="md:col-span-2 bg-[#111] border border-white/5 p-8 rounded-3xl relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-64 h-64 bg-[#D4AF37]/5 rounded-full blur-[80px]" />
+               <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-2">Total Balance</p>
+               <h2 className="text-5xl font-serif text-white mb-4">$0.00</h2>
+               <div className="flex gap-4">
+                  {/* DEPOSIT BUTTON - LOCKED IF NOT APPROVED */}
+                  <button 
+                    disabled={!isApproved}
+                    className={`px-8 py-3 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all \${isApproved ? 'bg-[#D4AF37] text-black hover:bg-white' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
+                  >
+                    {isApproved ? (
+                       <>Deposit Funds <ArrowUpRight size={16}/></>
+                    ) : (
+                       <><Lock size={14}/> Deposit Locked</>
+                    )}
+                  </button>
+                  <button className="px-8 py-3 bg-white/5 border border-white/10 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white/10">
+                    Withdraw
+                  </button>
+               </div>
             </div>
-            <div className="flex gap-2">
-              <span className="px-3 py-1 bg-[#D4AF37]/10 text-[#D4AF37] text-[10px] font-bold rounded-full">LIVE FEED</span>
+
+            {/* STATUS CARD */}
+            <div className="bg-[#111] border border-white/5 p-8 rounded-3xl flex flex-col justify-center">
+               <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-4">Account Status</p>
+               <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full \${isApproved ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-red-500 shadow-[0_0_10px_#ef4444]'}`} />
+                  <span className={`text-xl font-bold \${isApproved ? 'text-green-500' : 'text-red-500'}`}>
+                     {isApproved ? 'Active & Verified' : 'Restricted'}
+                  </span>
+               </div>
+               {!isApproved && <p className="text-xs text-gray-500 mt-2">Verification required to unlock funding.</p>}
             </div>
-          </div>
-          
-          {/* Chart Wrapper to ensure no overflow */}
-          <div className="w-full h-[300px] md:h-[450px] relative">
-            <GrowthChart />
-          </div>
-        </div>
+
+         </div>
+
+         {/* KYC SECTION (Shows if not approved) */}
+         {!isApproved && profile && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
+               <KYCVerification user={profile} onVerificationComplete={() => window.location.reload()} />
+            </motion.div>
+         )}
+
+         {/* PLACEHOLDER CHART AREA */}
+         <div className="bg-[#111] border border-white/5 h-64 rounded-3xl flex items-center justify-center text-gray-600">
+            <TrendingUp size={48} className="opacity-20" />
+            <span className="ml-4 text-xs font-bold uppercase tracking-widest">Market Data Inactive</span>
+         </div>
+
       </div>
     </main>
   );
