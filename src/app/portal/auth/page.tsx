@@ -1,82 +1,139 @@
 'use client';
 
-import { useState } from 'react';
-import { handleServerAuth } from '@/app/actions/auth';
-import { Zap, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
+import { Camera, Lock, User, Mail, Eye, EyeOff, ScanFace, AlertTriangle } from 'lucide-react';
 
-export default function PortalAuth() {
+export default function AuthPage() {
+  const router = useRouter();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    startCamera();
+  }, []);
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setCameraActive(true);
+      }
+    } catch (err) {
+      setError("Camera permission is required for identity verification.");
+    }
+  };
+
+  const captureAndUpload = async (userId: string) => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const context = canvasRef.current.getContext('2d');
+    context?.drawImage(videoRef.current, 0, 0, 640, 480);
+    
+    const blob = await new Promise<Blob | null>(resolve => canvasRef.current?.toBlob(resolve, 'image/jpeg'));
+
+    if (blob) {
+      const filename = `${userId}/${Date.now()}.jpg`;
+      await supabase.storage.from('proctor-snapshots').upload(filename, blob);
+    }
+  };
+
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!cameraActive) {
+      setError("Camera feed not detected. Please refresh and allow permissions.");
+      return;
+    }
     setLoading(true);
     setError(null);
-    const result = await handleServerAuth({ email, password, fullName }, mode);
-    if (result?.error) {
-      setError(result.error);
+
+    try {
+      let userId = '';
+      if (isLogin) {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        userId = data.user.id;
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName } }
+        });
+        if (error) throw error;
+        if (data.user) userId = data.user.id;
+      }
+
+      if (userId) await captureAndUpload(userId);
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-    } else {
-      window.location.href = '/dashboard';
     }
   };
 
   return (
-    <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 relative">
-      <div className="w-full max-w-md relative z-10">
-        <div className="flex flex-col items-center mb-10 text-center">
-          <div className="bg-[#D4AF37] p-3 rounded-2xl mb-4">
-            <Zap size={32} className="text-black fill-black" />
+    <main className="min-h-screen bg-[#050505] flex items-center justify-center p-6 text-white relative">
+      <canvas ref={canvasRef} width="640" height="480" className="hidden" />
+      
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none" />
+      
+      <div className="w-full max-w-md bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[2rem] p-8 shadow-2xl relative z-10">
+        
+        <div className="mb-8 relative w-full h-40 bg-black rounded-xl overflow-hidden border border-white/10">
+          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover opacity-60" />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {cameraActive ? <ScanFace className="text-[#D4AF37] animate-pulse" size={32} /> : <Camera className="text-red-500" size={32} />}
           </div>
-          <h1 className="text-3xl font-bold uppercase tracking-tighter">INVESTMENT<span className="text-[#D4AF37]">TESLA</span></h1>
         </div>
 
-        <div className="bg-[#0A0A0A] border border-white/10 p-8 rounded-3xl">
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl flex items-center gap-3 text-red-500 text-[10px] font-bold uppercase">
-              <AlertCircle size={16} />
-              <span>{error}</span>
-            </div>
-          )}
+        <h2 className="text-3xl font-serif font-bold text-center mb-6">{isLogin ? 'Secure Login' : 'New Account'}</h2>
+        
+        {error && (
+          <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center gap-2">
+             <AlertTriangle size={16} className="text-red-500"/>
+             <p className="text-red-400 text-xs">{error}</p>
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {mode === 'signup' && (
-              <input type="text" placeholder="Legal Name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#D4AF37]" required />
-            )}
-            <input type="email" placeholder="Access ID (Email)" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#D4AF37]" required />
-            
-            <div className="relative">
-              <input 
-                type={showPassword ? "text" : "password"} 
-                placeholder="Passcode" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-                className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#D4AF37]" 
-                required 
-              />
-              <button 
-                type="button" 
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#D4AF37]"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+        <form onSubmit={handleAuth} className="space-y-4">
+           {!isLogin && (
+             <div className="relative">
+                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"/>
+                <input type="text" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm text-white focus:border-[#D4AF37] outline-none" required />
+             </div>
+           )}
+           <div className="relative">
+              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"/>
+              <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm text-white focus:border-[#D4AF37] outline-none" required />
+           </div>
+           
+           <div className="relative">
+              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"/>
+              <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl py-4 pl-12 pr-12 text-sm text-white focus:border-[#D4AF37] outline-none" required />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
-            </div>
+           </div>
 
-            <button disabled={loading} className="w-full bg-[#D4AF37] text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest">
-              {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'Authorize' : 'Register'}
-            </button>
-          </form>
+           <button disabled={loading} className="w-full py-4 bg-[#D4AF37] text-black font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all mt-6">
+             {loading ? 'Processing...' : (isLogin ? 'Access Dashboard' : 'Create Account')}
+           </button>
+        </form>
 
-          <button onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} className="w-full mt-6 text-gray-500 text-[10px] uppercase font-bold tracking-widest">
-            {mode === 'login' ? "New client? register" : "back to login"}
-          </button>
-        </div>
+        <button onClick={() => setIsLogin(!isLogin)} className="w-full text-center mt-6 text-xs text-gray-500 hover:text-[#D4AF37] uppercase tracking-widest">
+          {isLogin ? 'Create Account' : 'Back to Login'}
+        </button>
       </div>
     </main>
   );
