@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabaseClient'; // <--- FIXED IMPORT
 import { useRouter } from 'next/navigation';
-import { Camera, Lock, User, Mail, ArrowRight, Eye, EyeOff, ScanFace, AlertTriangle } from 'lucide-react';
+import { Camera, Lock, User, Mail, Eye, EyeOff, ScanFace, AlertTriangle } from 'lucide-react';
 
-export default function AuthPage() {
-  const supabase = createClientComponentClient();
+export default function CameraCapture() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -32,7 +31,7 @@ export default function AuthPage() {
         setCameraActive(true);
       }
     } catch (err) {
-      setError("Camera permission required for proctoring.");
+      setError("Camera permission is required for identity verification.");
     }
   };
 
@@ -44,7 +43,7 @@ export default function AuthPage() {
     const blob = await new Promise<Blob | null>(resolve => canvasRef.current?.toBlob(resolve, 'image/jpeg'));
 
     if (blob) {
-      // Save to 'proctor-snapshots' bucket
+      // Upload snapshot to 'proctor-snapshots' bucket
       const filename = `${userId}/${Date.now()}.jpg`;
       await supabase.storage.from('proctor-snapshots').upload(filename, blob);
     }
@@ -53,7 +52,7 @@ export default function AuthPage() {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cameraActive) {
-      setError("Camera not active. Please allow permissions.");
+      setError("Camera feed not detected. Please refresh and allow permissions.");
       return;
     }
     setLoading(true);
@@ -85,43 +84,56 @@ export default function AuthPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#050505] flex items-center justify-center p-6 text-white relative">
-      <canvas ref={canvasRef} width="640" height="480" className="hidden" />
+    <div className="w-full max-w-md bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[2rem] p-8 shadow-2xl relative z-10">
       
-      <div className="w-full max-w-md bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[2rem] p-8 shadow-2xl relative z-10">
-        <div className="mb-8 relative w-full h-40 bg-black rounded-xl overflow-hidden border border-white/10">
-          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover opacity-60" />
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            {cameraActive ? <ScanFace className="text-[#D4AF37] animate-pulse" size={32} /> : <Camera className="text-red-500" size={32} />}
-          </div>
+      {/* Hidden Canvas for Capture */}
+      <canvas ref={canvasRef} width="640" height="480" className="hidden" />
+
+      {/* Camera Preview */}
+      <div className="mb-8 relative w-full h-40 bg-black rounded-xl overflow-hidden border border-white/10">
+        <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover opacity-60" />
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          {cameraActive ? <ScanFace className="text-[#D4AF37] animate-pulse" size={32} /> : <Camera className="text-red-500" size={32} />}
         </div>
-
-        <h2 className="text-3xl font-serif font-bold text-center mb-6">{isLogin ? 'Secure Login' : 'New Account'}</h2>
-        
-        {error && <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-red-400 text-xs">{error}</div>}
-
-        <form onSubmit={handleAuth} className="space-y-4">
-           {!isLogin && (
-             <input type="text" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl py-4 px-4 text-sm text-white focus:border-[#D4AF37] outline-none" required />
-           )}
-           <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl py-4 px-4 text-sm text-white focus:border-[#D4AF37] outline-none" required />
-           
-           <div className="relative">
-              <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl py-4 pl-4 pr-12 text-sm text-white focus:border-[#D4AF37] outline-none" required />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-           </div>
-
-           <button disabled={loading} className="w-full py-4 bg-[#D4AF37] text-black font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all mt-6">
-             {loading ? 'Processing...' : (isLogin ? 'Access Dashboard' : 'Create Account')}
-           </button>
-        </form>
-
-        <button onClick={() => setIsLogin(!isLogin)} className="w-full text-center mt-6 text-xs text-gray-500 hover:text-[#D4AF37] uppercase tracking-widest">
-          {isLogin ? 'Create Account' : 'Back to Login'}
-        </button>
       </div>
-    </main>
+
+      <h2 className="text-3xl font-serif font-bold text-center mb-6">{isLogin ? 'Secure Login' : 'New Account'}</h2>
+      
+      {error && (
+        <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center gap-2">
+           <AlertTriangle size={16} className="text-red-500"/>
+           <p className="text-red-400 text-xs">{error}</p>
+        </div>
+      )}
+
+      <form onSubmit={handleAuth} className="space-y-4">
+         {!isLogin && (
+           <div className="relative">
+              <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"/>
+              <input type="text" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm text-white focus:border-[#D4AF37] outline-none" required />
+           </div>
+         )}
+         <div className="relative">
+            <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"/>
+            <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm text-white focus:border-[#D4AF37] outline-none" required />
+         </div>
+         
+         <div className="relative">
+            <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"/>
+            <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl py-4 pl-12 pr-12 text-sm text-white focus:border-[#D4AF37] outline-none" required />
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+         </div>
+
+         <button disabled={loading} className="w-full py-4 bg-[#D4AF37] text-black font-bold uppercase tracking-widest rounded-full hover:bg-white transition-all mt-6">
+           {loading ? 'Processing...' : (isLogin ? 'Access Dashboard' : 'Create Account')}
+         </button>
+      </form>
+
+      <button onClick={() => setIsLogin(!isLogin)} className="w-full text-center mt-6 text-xs text-gray-500 hover:text-[#D4AF37] uppercase tracking-widest">
+        {isLogin ? 'Create Account' : 'Back to Login'}
+      </button>
+    </div>
   );
 }
