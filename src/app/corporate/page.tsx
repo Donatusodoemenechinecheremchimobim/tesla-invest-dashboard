@@ -22,7 +22,7 @@ export default function CorporatePage() {
           transition={{ duration: 1 }} 
           className="relative z-10 max-w-3xl w-full"
         >
-          <p className="text-[#D4AF37] text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] mb-4 md:mb-6">Verde Corporate Solutions</p>
+          <p className="text-[#D4AF37] text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] mb-4 md:mb-6"
           
           <h1 className="text-5xl sm:text-7xl md:text-9xl font-serif mb-8 md:mb-10 leading-[0.9] md:leading-none break-words">
             Liquidity <br /> Engineered.
