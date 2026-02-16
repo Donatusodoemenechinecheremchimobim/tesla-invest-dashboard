@@ -40,17 +40,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* FLOATING ACTION BUTTON - SINGLE WHATSAPP BUBBLE */}
-      <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[9999]">
-        <a 
-          href="https://wa.me/YOUR_NUMBER" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="w-14 h-14 md:w-16 md:h-16 bg-[#25D366] rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(37,211,102,0.3)] hover:scale-110 active:scale-95 transition-all"
-        >
-          <Phone className="text-white fill-white w-6 h-6 md:w-7 md:h-7" />
-        </a>
-      </div>
+      {/* Removed local floating bubble to prevent duplication with global Navbar/Footer bubble */}
 
       <Footer />
     </main>
