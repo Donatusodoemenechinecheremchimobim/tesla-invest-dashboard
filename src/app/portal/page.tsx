@@ -3,7 +3,7 @@
 import Navbar from '@/components/portal/PortalNavbar';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, ShieldCheck, TrendingUp, Zap, Globe, CheckCircle } from 'lucide-react';
+import { ShieldCheck, Zap, Globe, CheckCircle } from 'lucide-react';
 import TradeTicker from '@/components/dashboard/TradeTicker';
 import GrowthChart from '@/components/dashboard/GrowthChart';
 
@@ -43,13 +43,13 @@ export default function OldSitePortal() {
               </div>
            </motion.div>
 
-           {/* CHART */}
-           <div className="relative w-full max-w-4xl mx-auto h-[300px] md:h-[400px] bg-[#0a0a0a] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl overflow-hidden mb-20">
-              <div className="absolute top-4 left-6 z-10">
-                 <h3 className="text-left text-xs font-bold uppercase tracking-widest text-gray-400">Live Performance</h3>
-                 <p className="text-left text-2xl font-serif text-[#D4AF37]">+127.4% <span className="text-xs text-gray-500 font-sans tracking-normal">(YTD)</span></p>
+           {/* CHART CONTAINER */}
+           <div className="relative w-full max-w-4xl mx-auto h-[350px] md:h-[450px] bg-[#0a0a0a] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl overflow-hidden mb-20">
+              <div className="absolute top-6 left-6 z-10">
+                 <h3 className="text-left text-xs font-bold uppercase tracking-widest text-gray-400">Live Asset Performance</h3>
+                 <p className="text-left text-3xl font-serif text-[#D4AF37]">$1.24T <span className="text-xs text-gray-500 font-sans tracking-normal align-middle ml-2">Total AUM</span></p>
               </div>
-              <div className="w-full h-full opacity-80" style={{ transform: 'translateZ(0)' }}>
+              <div className="w-full h-full">
                  <GrowthChart />
               </div>
            </div>
@@ -70,19 +70,26 @@ export default function OldSitePortal() {
 
         <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto snap-x snap-mandatory px-6 pb-12 w-full no-scrollbar">
           {[
-            { name: "Silver", price: "$500-$4999", roi: "120% Weekly", features: ["Basic AI Trading", "Weekly Withdrawals", "Email Support"] },
-            { name: "Gold", price: "$5,000-$19,999", roi: "200% Weekly", features: ["Advanced Dojo AI", "Instant Withdrawals", "24/7 Priority Support", "Capital Insured"], popular: true },
+            { name: "Silver", price: "$500 - $4,999", roi: "120% Weekly", features: ["Basic AI Trading", "Weekly Withdrawals", "Email Support"] },
+            { name: "Gold", price: "$5,000 - $19,999", roi: "200% Weekly", features: ["Advanced Dojo AI", "Instant Withdrawals", "24/7 Priority Support", "Capital Insured"], popular: true },
             { name: "Diamond", price: "$20,000+", roi: "300% Weekly", features: ["Quantum Execution", "Dedicated Account Manager", "Full Insurance Coverage"] }
           ].map((plan, i) => (
             <div key={i} className={`
                 relative flex-shrink-0 w-[85vw] md:w-auto snap-center 
                 bg-[#0a0a0a] border p-8 rounded-[2rem] flex flex-col 
-                ${plan.popular ? 'border-[#D4AF37] shadow-[0_0_30px_rgba(212,175,55,0.1)]' : 'border-white/10'}
+                ${plan.popular ? 'border-[#D4AF37] shadow-[0_0_30px_rgba(212,175,55,0.1)] scale-[1.02] z-10' : 'border-white/10'}
             `}>
-              {plan.popular && <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#D4AF37] text-black text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-b-lg">Most Popular</div>}
-              <h3 className="text-xl font-serif text-gray-400 mb-2">{plan.name}</h3>
-              <div className="text-4xl font-bold text-white mb-1">{plan.price}<span className="text-sm text-gray-600 font-normal">+</span></div>
+              {plan.popular && <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#D4AF37] text-black text-[9px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-b-lg">Most Popular</div>}
+              
+              <h3 className="text-xl font-serif text-gray-400 mb-2 mt-2">{plan.name}</h3>
+              
+              {/* FIXED: Responsive text sizing to prevent overflow */}
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight break-words">
+                {plan.price}
+              </div>
+              
               <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest mb-8">Est. ROI: {plan.roi}</p>
+              
               <ul className="space-y-4 mb-8 flex-1">
                 {plan.features.map((f, j) => (
                   <li key={j} className="flex items-center gap-3 text-sm text-gray-400">
@@ -107,8 +114,8 @@ export default function OldSitePortal() {
             { icon: <Zap size={32}/>, title: "Quantum Speed", desc: "Trades executed in 0.04ms using Dojo Compute clusters." },
             { icon: <Globe size={32}/>, title: "Global Access", desc: "Trade TSLA, CRYPTO, and FX from anywhere in the world." }
           ].map((item, i) => (
-            <div key={i} className="bg-[#0a0a0a] border border-white/10 p-8 rounded-3xl">
-              <div className="text-[#D4AF37] mb-4">{item.icon}</div>
+            <div key={i} className="bg-[#0a0a0a] border border-white/10 p-8 rounded-3xl group hover:border-[#D4AF37]/50 transition-colors">
+              <div className="text-[#D4AF37] mb-4 group-hover:scale-110 transition-transform">{item.icon}</div>
               <h3 className="text-xl font-serif mb-2">{item.title}</h3>
               <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
             </div>
@@ -120,11 +127,11 @@ export default function OldSitePortal() {
       <section className="py-20 border-y border-white/5 bg-[#050505] text-center">
          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto px-6">
             <div><h3 className="text-3xl font-serif text-white">14.5K</h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Clients</p></div>
-            <div><h3 className="text-3xl font-serif text-white">$850M</h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Managed</p></div>
+            <div><h3 className="text-3xl font-serif text-white">$1.2B</h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Managed</p></div>
             <div><h3 className="text-3xl font-serif text-white">0.0%</h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Hacks</p></div>
             <div><h3 className="text-3xl font-serif text-white">24/7</h3><p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Support</p></div>
          </div>
       </section>
     </main>
   );
-}
+            }
