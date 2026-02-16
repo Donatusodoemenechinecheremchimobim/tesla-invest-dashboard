@@ -1,7 +1,6 @@
 'use client';
 import React from 'react';
-// 1. UPDATED IMPORT: Using PortalNavbar as requested
-import Navbar from '@/components/portal/PortalNavbar'; 
+import Navbar from '@/components/portal/PortalNavbar';
 import Footer from '@/components/landing/Footer';
 import { motion } from 'framer-motion';
 import { Shield, Lock, Award } from 'lucide-react';
@@ -12,7 +11,6 @@ export default function PersonalPage() {
       <Navbar />
       
       {/* HERO WITH BACKGROUND IMAGE */}
-      {/* Changed h-[80vh] to min-h-[80vh] to prevent overlap on small screens */}
       <section className="relative min-h-[80vh] flex items-center justify-center text-center px-4 md:px-6 pt-20 md:pt-0">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1565514020176-8c2cb576a08c?q=80&w=2574&auto=format&fit=crop')] bg-cover bg-center opacity-40"></div>
@@ -29,7 +27,6 @@ export default function PersonalPage() {
             Private Client Group
           </p>
           
-          {/* RESPONSIVE TEXT: text-5xl on mobile, scaling to 9xl on desktop */}
           <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-serif mb-6 md:mb-10 leading-[0.9] md:leading-none tracking-tight break-words">
             Legacy <br /> Architecture.
           </h1>
@@ -56,13 +53,12 @@ export default function PersonalPage() {
             whileInView={{ opacity: 1, y: 0 }} 
             transition={{ delay: i*0.2 }} 
             key={i} 
-            // Responsive padding: p-8 on mobile, p-12 on desktop
             className="bg-[#111] p-8 md:p-12 rounded-[2rem] border border-white/5 hover:border-[#D4AF37] transition-colors group flex flex-col justify-between min-h-[250px]"
           >
             <div>
               <div className="text-[#D4AF37] mb-6 md:mb-8 group-hover:scale-110 transition-transform">
-                {/* Responsive Icon Size */}
-                {React.cloneElement(item.icon as React.ReactElement, { className: "w-10 h-10 md:w-12 md:h-12" })}
+                {/* FIXED: Added <any> to ReactElement to allow className injection */}
+                {React.cloneElement(item.icon as React.ReactElement<any>, { className: "w-10 h-10 md:w-12 md:h-12" })}
               </div>
               <h3 className="text-2xl md:text-3xl font-serif mb-3 md:mb-4 text-white">
                 {item.title}
