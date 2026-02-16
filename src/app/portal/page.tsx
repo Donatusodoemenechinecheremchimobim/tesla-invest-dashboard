@@ -3,7 +3,7 @@
 import Navbar from '@/components/portal/PortalNavbar';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, ShieldCheck, TrendingUp, Zap, Globe, CheckCircle } from 'lucide-react';
+import { ShieldCheck, Zap, Globe, CheckCircle } from 'lucide-react';
 import TradeTicker from '@/components/dashboard/TradeTicker';
 import GrowthChart from '@/components/dashboard/GrowthChart';
 
@@ -70,7 +70,7 @@ export default function OldSitePortal() {
 
         <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto snap-x snap-mandatory px-6 pb-12 w-full no-scrollbar">
           {[
-            { name: "Silver", price: "$500-$4999", roi: "120% Weekly", features: ["Basic AI Trading", "Weekly Withdrawals", "Email Support"] },
+            { name: "Silver", price: "$500-$4,999", roi: "120% Weekly", features: ["Basic AI Trading", "Weekly Withdrawals", "Email Support"] },
             { name: "Gold", price: "$5,000-$19,999", roi: "200% Weekly", features: ["Advanced Dojo AI", "Instant Withdrawals", "24/7 Priority Support", "Capital Insured"], popular: true },
             { name: "Diamond", price: "$20,000+", roi: "300% Weekly", features: ["Quantum Execution", "Dedicated Account Manager", "Full Insurance Coverage"] }
           ].map((plan, i) => (
@@ -81,7 +81,13 @@ export default function OldSitePortal() {
             `}>
               {plan.popular && <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#D4AF37] text-black text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-b-lg">Most Popular</div>}
               <h3 className="text-xl font-serif text-gray-400 mb-2">{plan.name}</h3>
-              <div className="text-4xl font-bold text-white mb-1">{plan.price}<span className="text-sm text-gray-600 font-normal">+</span></div>
+              
+              {/* FIXED: Adjusted text size and wrapping for price */}
+              <div className="text-2xl md:text-4xl font-bold text-white mb-1 break-words leading-tight">
+                {plan.price}
+                <span className="text-sm text-gray-600 font-normal align-top ml-1">+</span>
+              </div>
+              
               <p className="text-[#D4AF37] text-xs font-bold uppercase tracking-widest mb-8">Est. ROI: {plan.roi}</p>
               <ul className="space-y-4 mb-8 flex-1">
                 {plan.features.map((f, j) => (
