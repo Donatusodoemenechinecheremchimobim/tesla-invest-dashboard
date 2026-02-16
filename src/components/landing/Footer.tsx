@@ -41,7 +41,7 @@ export default function Footer() {
           <p className="text-xs text-gray-400 leading-loose">
             214 North Tryon St<br />
             Charlotte, NC 28202<br />
-            <span className="text-white mt-2 block">+1 (800) VERDE-VIP</span>
+            <span className="text-white mt-2 block">+1(980) 348-7946</span>
           </p>
         </div>
       </div>
