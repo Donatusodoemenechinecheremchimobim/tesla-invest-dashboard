@@ -32,7 +32,7 @@ const Navbar = () => {
 
           <div className="flex items-center gap-4">
             <Link href="/portal" className="hidden sm:flex px-6 py-2 bg-[#D4AF37] text-black text-[10px] font-bold uppercase rounded-full">
-              Open Account
+              InvestmentTesla
             </Link>
             <button className="md:hidden text-[#D4AF37]" onClick={() => setIsOpen(true)}>
               <Menu size={24} />
