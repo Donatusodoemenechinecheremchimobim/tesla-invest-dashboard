@@ -1,8 +1,9 @@
-'use client';
+'s 'use client';
 import React from 'react';
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
 import { motion } from 'framer-motion';
+import Link from 'next/link'; // 1. Import Link
 
 export default function ServicesPage() {
   const services = [
@@ -34,9 +35,16 @@ export default function ServicesPage() {
                <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
             </motion.div>
           ))}
+          
           <div className="bg-[#D4AF37] p-12 rounded-[2rem] flex flex-col justify-center items-center text-black">
              <h3 className="text-4xl font-serif mb-6 text-center">Start Today</h3>
-             <button className="px-10 py-4 bg-black text-white text-xs font-bold uppercase tracking-widest rounded hover:scale-105 transition-transform">Open Account</button>
+             {/* 2. UPDATED BUTTON: Replaced <button> with <Link> */}
+             <Link 
+               href="/portal" 
+               className="px-10 py-4 bg-black text-white text-xs font-bold uppercase tracking-widest rounded hover:scale-105 transition-transform"
+             >
+               Open Account
+             </Link>
           </div>
         </div>
       </section>
