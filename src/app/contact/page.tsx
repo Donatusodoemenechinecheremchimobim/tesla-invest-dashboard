@@ -2,7 +2,7 @@
 import React from 'react';
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
-import { MessageSquare, Phone } from 'lucide-react';
+import { MessageSquare, MapPin } from 'lucide-react'; // Changed Phone to MapPin
 
 export default function ContactPage() {
   return (
@@ -30,17 +30,18 @@ export default function ContactPage() {
               <p className="text-gray-500 text-xs md:text-sm">Encrypted P2P terminal messaging.</p>
            </div>
            
-           {/* Card 2 */}
+           {/* Card 2: Updated to Headquarters */}
            <div className="bg-[#0a0a0a] p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] border border-white/5 hover:border-[#D4AF37]/30 transition-all group flex flex-col items-center">
-              <Phone className="text-[#D4AF37] mb-6 group-hover:scale-110 transition-transform w-10 h-10 md:w-12 md:h-12" />
-              <h3 className="text-2xl md:text-3xl font-serif mb-2 text-white">Priority Line</h3>
-              <p className="text-gray-500 text-xs md:text-sm">Direct institutional voice link.</p>
+              <MapPin className="text-[#D4AF37] mb-6 group-hover:scale-110 transition-transform w-10 h-10 md:w-12 md:h-12" />
+              <h3 className="text-2xl md:text-3xl font-serif mb-2 text-white">Headquarters</h3>
+              <p className="text-gray-500 text-xs md:text-sm text-center leading-relaxed">
+                214 North Tryon St,<br />
+                Charlotte, NC 28202
+              </p>
            </div>
 
         </div>
       </section>
-
-      {/* Removed local floating bubble to prevent duplication with global Navbar/Footer bubble */}
 
       <Footer />
     </main>
