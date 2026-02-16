@@ -1,4 +1,4 @@
-import IntroNavbar from '@/components/intro/IntroNavbar';
+import Navbar from '@/components/landing/Navbar';
 import IntroFooter from '@/components/intro/IntroFooter';
 import WhatsAppBubble from '@/components/ui/WhatsAppBubble';
 
