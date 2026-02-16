@@ -75,7 +75,7 @@ export default function VerdeStockLanding() {
             <p className="text-gray-400 text-sm md:text-lg leading-relaxed max-w-lg mb-8 md:mb-12 font-light mx-auto lg:mx-0">
               Access mathematically secured global equity clusters. Powered by physical reserves and zero-knowledge architecture.
             </p>
-            <Link href="/portal/auth" className="inline-flex px-10 py-4 md:px-12 md:py-5 bg-[#D4AF37] text-black font-black text-xs uppercase tracking-[0.2em] rounded-full hover:bg-white transition-all items-center gap-3 shadow-[0_0_40px_rgba(212,175,55,0.4)]">
+            <Link href="/portal/" className="inline-flex px-10 py-4 md:px-12 md:py-5 bg-[#D4AF37] text-black font-black text-xs uppercase tracking-[0.2em] rounded-full hover:bg-white transition-all items-center gap-3 shadow-[0_0_40px_rgba(212,175,55,0.4)]">
               Access Gateway <ArrowRight size={14} />
             </Link>
           </motion.div>
