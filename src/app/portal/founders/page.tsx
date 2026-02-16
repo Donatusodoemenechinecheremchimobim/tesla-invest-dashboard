@@ -1,6 +1,6 @@
 'use client';
 
-import Navbar from '@/components/landing/Navbar';
+import Navbar from '@/components/portal/PortalNavbar'; 
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Crown, Globe, Award, TrendingUp, Zap } from 'lucide-react';
