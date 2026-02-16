@@ -1,7 +1,7 @@
 'use client';
 
 // CHANGED: Using Landing Navbar for better Desktop View responsiveness on mobile
-import Navbar from '@/components/landing/Navbar'; 
+import Navbar from '@/components/portal/PortalNavbar'; 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Zap, Globe, CheckCircle } from 'lucide-react';
