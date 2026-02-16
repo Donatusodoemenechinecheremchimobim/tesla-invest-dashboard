@@ -3,19 +3,19 @@ import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const data = [
-  { month: 'Jan', value: 120 },
-  { month: 'Feb', value: 180 },
-  { month: 'Mar', value: 250 },
-  { month: 'Apr', value: 390 },
-  { month: 'May', value: 580 },
-  { month: 'Jun', value: 720 },
-  { month: 'Jul', value: 850 },
-  { month: 'Aug', value: 980 },
-  { month: 'Sep', value: 1100 },
-  { month: 'Oct', value: 1240 }, // Hits 1.24 Trillion equivalent
+  { month: 'Jan', value: 200 },
+  { month: 'Feb', value: 350 },
+  { month: 'Mar', value: 500 },
+  { month: 'Apr', value: 650 },
+  { month: 'May', value: 800 },
+  { month: 'Jun', value: 950 },
+  { month: 'Jul', value: 1100 },
+  { month: 'Aug', value: 1250 },
+  { month: 'Sep', value: 1350 },
+  { month: 'Oct', value: 1400 }, // Matches the image reference ($1400B)
 ];
 
-// Custom tooltip to show Billions/Trillions
+// Custom tooltip
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
@@ -36,7 +36,7 @@ export default function GrowthChart() {
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={data}
-          margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
+          margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
         >
           <defs>
             <linearGradient id="colorGold" x1="0" y1="0" x2="0" y2="1">
@@ -53,6 +53,7 @@ export default function GrowthChart() {
             tickLine={false} 
             tick={{ fill: '#666', fontSize: 10, fontWeight: 'bold' }} 
             dy={10}
+            interval={1} // Show fewer labels on mobile if needed
           />
           
           <YAxis 
@@ -60,8 +61,8 @@ export default function GrowthChart() {
             tickLine={false} 
             tick={{ fill: '#666', fontSize: 10, fontWeight: 'bold' }}
             tickFormatter={(value) => `$${value}B`}
-            domain={[0, 'auto']}
-            dx={-10}
+            domain={[0, 1600]} // Adjusted domain to fit 1400 comfortably
+            dx={-5}
           />
           
           <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#D4AF37', strokeWidth: 1, strokeDasharray: '4 4' }} />
