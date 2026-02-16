@@ -69,7 +69,6 @@ export default function VerdeStockLanding() {
           {/* Text Content */}
           <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1 }} className="text-center lg:text-left">
             <span className="inline-block py-1.5 px-4 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] mb-6 md:mb-8">Institutional Wealth Management</span>
-            {/* Responsive Text Sizing: Smaller on mobile to prevent cut-off */}
             <h1 className="text-5xl sm:text-7xl md:text-[8.5rem] font-serif mb-6 md:mb-8 leading-[0.9] md:leading-[0.8] tracking-tighter">
               WEALTH <br /><span className="text-[#D4AF37] italic">REFINED.</span>
             </h1>
@@ -134,15 +133,15 @@ export default function VerdeStockLanding() {
                </div>
             </div>
 
-            {/* Neural Architecture Card */}
+            {/* Neural Architecture Card - FIXED: Removed md:size, used className for sizing */}
             <div className="bg-[#111] rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 border border-white/5 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-colors min-h-[250px]">
-               <Cpu className="text-[#D4AF37]" size={32} md:size={40} />
+               <Cpu className="text-[#D4AF37] w-8 h-8 md:w-10 md:h-10" />
                <h3 className="text-2xl md:text-3xl font-serif text-white">Neural <br/> Architecture</h3>
             </div>
 
-            {/* Security Card */}
+            {/* Security Card - FIXED: Removed md:size, used className for sizing */}
             <div className="bg-[#D4AF37] rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 flex flex-col justify-between text-black min-h-[250px]">
-               <Shield size={32} md:size={40} />
+               <Shield className="w-8 h-8 md:w-10 md:h-10 text-black" />
                <h3 className="text-2xl md:text-3xl font-serif font-bold text-black">Tier 4 <br/> Security</h3>
             </div>
 
@@ -212,4 +211,4 @@ export default function VerdeStockLanding() {
       `}</style>
     </main>
   );
-}
+             }
