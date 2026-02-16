@@ -16,7 +16,7 @@ export default function OldSitePortal() {
       <section className="relative min-h-screen flex items-center justify-center pt-24 pb-20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#1a1a1a_0%,#000_100%)] z-0" />
         
-        <div className="relative z-10 text-center px-6 max-w-5xl w-full">
+        <div className="relative z-10 text-center px-4 md:px-6 max-w-5xl w-full">
            <motion.div 
              initial={{ opacity: 0, y: 30 }} 
              animate={{ opacity: 1, y: 0 }} 
@@ -43,13 +43,20 @@ export default function OldSitePortal() {
               </div>
            </motion.div>
 
-           {/* CHART CONTAINER */}
-           <div className="relative w-full max-w-4xl mx-auto h-[350px] md:h-[450px] bg-[#0a0a0a] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl overflow-hidden mb-20">
-              <div className="absolute top-6 left-6 z-10">
-                 <h3 className="text-left text-xs font-bold uppercase tracking-widest text-gray-400">Live Asset Performance</h3>
-                 <p className="text-left text-3xl font-serif text-[#D4AF37]">$1.24T <span className="text-xs text-gray-500 font-sans tracking-normal align-middle ml-2">Total AUM</span></p>
+           {/* CHART CONTAINER - FIXED OVERLAP */}
+           <div className="relative w-full max-w-4xl mx-auto bg-[#0a0a0a] border border-white/10 rounded-3xl shadow-2xl overflow-hidden mb-20 flex flex-col">
+              
+              {/* Header Section (Now separate from chart) */}
+              <div className="p-6 md:p-8 border-b border-white/5 bg-[#0a0a0a] z-10 relative text-left">
+                 <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Live Asset Performance</h3>
+                 <div className="flex items-baseline gap-3">
+                   <p className="text-3xl md:text-4xl font-serif text-[#D4AF37]">$1.24T</p>
+                   <span className="text-xs text-gray-500 font-sans tracking-normal uppercase">Total Assets Managed</span>
+                 </div>
               </div>
-              <div className="w-full h-full">
+
+              {/* Chart Section */}
+              <div className="w-full h-[300px] md:h-[400px] relative">
                  <GrowthChart />
               </div>
            </div>
@@ -83,8 +90,8 @@ export default function OldSitePortal() {
               
               <h3 className="text-xl font-serif text-gray-400 mb-2 mt-2">{plan.name}</h3>
               
-              {/* FIXED: Responsive text sizing to prevent overflow */}
-              <div className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight break-words">
+              {/* FIXED: Smaller text on mobile (text-2xl) prevents overflowing box */}
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight break-words leading-tight">
                 {plan.price}
               </div>
               
@@ -98,7 +105,7 @@ export default function OldSitePortal() {
                   </li>
                 ))}
               </ul>
-              <Link href="/auth" className={`w-full py-4 font-bold uppercase tracking-widest text-[10px] rounded-xl text-center transition-all ${plan.popular ? 'bg-[#D4AF37] text-black hover:bg-white' : 'bg-white/5 text-white hover:bg-white hover:text-black'}`}>
+              <Link href="/portal/auth" className={`w-full py-4 font-bold uppercase tracking-widest text-[10px] rounded-xl text-center transition-all ${plan.popular ? 'bg-[#D4AF37] text-black hover:bg-white' : 'bg-white/5 text-white hover:bg-white hover:text-black'}`}>
                 Start {plan.name}
               </Link>
             </div>
@@ -134,4 +141,4 @@ export default function OldSitePortal() {
       </section>
     </main>
   );
-            }
+                    }
