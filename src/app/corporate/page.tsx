@@ -3,8 +3,8 @@ import React from 'react';
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
 import { motion } from 'framer-motion';
-import { Globe, TrendingUp, Building2 } from 'lucide-react';
-import Link from 'next/link'; // 1. Import Link
+import { Globe, TrendingUp } from 'lucide-react';
+import Link from 'next/link';
 
 export default function CorporatePage() {
   return (
@@ -22,7 +22,7 @@ export default function CorporatePage() {
           transition={{ duration: 1 }} 
           className="relative z-10 max-w-3xl w-full"
         >
-          <p className="text-[#D4AF37] text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] mb-4 md:mb-6"
+          {/* REMOVED: The clashing "Verde Corporate Solutions" label is gone now */}
           
           <h1 className="text-5xl sm:text-7xl md:text-9xl font-serif mb-8 md:mb-10 leading-[0.9] md:leading-none break-words">
             Liquidity <br /> Engineered.
@@ -32,7 +32,6 @@ export default function CorporatePage() {
             Optimize your company's treasury with AI-driven cash flow management, high-yield corporate accounts, and instant global payroll.
           </p>
           
-          {/* 2. UPDATED BUTTON: Changed <button> to <Link> pointing to /portal */}
           <Link 
             href="/portal"
             className="inline-block px-8 py-4 md:px-12 md:py-5 border border-[#D4AF37] text-[#D4AF37] font-bold text-[10px] md:text-xs uppercase tracking-widest rounded hover:bg-[#D4AF37] hover:text-black transition-colors"
