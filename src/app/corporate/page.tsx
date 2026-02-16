@@ -4,6 +4,7 @@ import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
 import { motion } from 'framer-motion';
 import { Globe, TrendingUp, Building2 } from 'lucide-react';
+import Link from 'next/link'; // 1. Import Link
 
 export default function CorporatePage() {
   return (
@@ -11,7 +12,6 @@ export default function CorporatePage() {
       <Navbar />
       
       {/* HERO SECTION */}
-      {/* Changed h-[80vh] to min-h-[80vh] to prevent text overlap on small landscape screens */}
       <section className="relative min-h-[80vh] flex items-center px-4 md:px-6 max-w-[1400px] mx-auto pt-20 md:pt-0">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2670&auto=format&fit=crop')] bg-cover bg-center opacity-30"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-[#050505] to-transparent"></div>
@@ -24,7 +24,6 @@ export default function CorporatePage() {
         >
           <p className="text-[#D4AF37] text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] mb-4 md:mb-6">Verde Corporate Solutions</p>
           
-          {/* RESPONSIVE TEXT: text-5xl on mobile, scaling to 9xl on desktop */}
           <h1 className="text-5xl sm:text-7xl md:text-9xl font-serif mb-8 md:mb-10 leading-[0.9] md:leading-none break-words">
             Liquidity <br /> Engineered.
           </h1>
@@ -33,9 +32,13 @@ export default function CorporatePage() {
             Optimize your company's treasury with AI-driven cash flow management, high-yield corporate accounts, and instant global payroll.
           </p>
           
-          <button className="px-8 py-4 md:px-12 md:py-5 border border-[#D4AF37] text-[#D4AF37] font-bold text-[10px] md:text-xs uppercase tracking-widest rounded hover:bg-[#D4AF37] hover:text-black transition-colors">
+          {/* 2. UPDATED BUTTON: Changed <button> to <Link> pointing to /portal */}
+          <Link 
+            href="/portal"
+            className="inline-block px-8 py-4 md:px-12 md:py-5 border border-[#D4AF37] text-[#D4AF37] font-bold text-[10px] md:text-xs uppercase tracking-widest rounded hover:bg-[#D4AF37] hover:text-black transition-colors"
+          >
             Open Corporate Account
-          </button>
+          </Link>
         </motion.div>
       </section>
 
