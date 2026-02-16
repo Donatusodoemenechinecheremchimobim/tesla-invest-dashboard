@@ -1,9 +1,10 @@
 'use client';
 import React from 'react';
-import Navbar from '@/components/portal/PortalNavbar';
+import Navbar from '@/components/portal/PortalNavbar'; 
 import Footer from '@/components/landing/Footer';
 import { motion } from 'framer-motion';
 import { Shield, Lock, Award } from 'lucide-react';
+import Link from 'next/link'; // Import Link
 
 export default function PersonalPage() {
   return (
@@ -35,9 +36,13 @@ export default function PersonalPage() {
             Wealth is not just about accumulation; it is about preservation, transfer, and impact. We build fortresses around your capital.
           </p>
           
-          <button className="px-10 py-4 md:px-12 md:py-5 bg-[#D4AF37] text-black font-bold text-[10px] md:text-xs uppercase tracking-widest rounded hover:bg-white transition-colors shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+          {/* UPDATED BUTTON: Linked to /portal/auth */}
+          <Link 
+            href="/portal/auth"
+            className="inline-block px-10 py-4 md:px-12 md:py-5 bg-[#D4AF37] text-black font-bold text-[10px] md:text-xs uppercase tracking-widest rounded hover:bg-white transition-colors shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+          >
             Request Access
-          </button>
+          </Link>
         </motion.div>
       </section>
       
@@ -57,7 +62,7 @@ export default function PersonalPage() {
           >
             <div>
               <div className="text-[#D4AF37] mb-6 md:mb-8 group-hover:scale-110 transition-transform">
-                {/* FIXED: Added <any> to ReactElement to allow className injection */}
+                {/* Fixed TypeScript error by casting to ReactElement<any> */}
                 {React.cloneElement(item.icon as React.ReactElement<any>, { className: "w-10 h-10 md:w-12 md:h-12" })}
               </div>
               <h3 className="text-2xl md:text-3xl font-serif mb-3 md:mb-4 text-white">
