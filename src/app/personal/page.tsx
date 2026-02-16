@@ -4,6 +4,7 @@ import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
 import { motion } from 'framer-motion';
 import { Shield, Lock, Award, Key } from 'lucide-react';
+import Link from 'next/link'; // 1. Added Link Import
 
 export default function PersonalPage() {
   return (
@@ -21,7 +22,15 @@ export default function PersonalPage() {
           <p className="text-gray-300 text-lg md:text-xl leading-relaxed mb-12 px-4">
             Wealth is not just about accumulation; it is about preservation, transfer, and impact. We build fortresses around your capital.
           </p>
-          <button className="px-12 py-5 bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-widest rounded hover:bg-white transition-colors">Request Access</button>
+          
+          {/* 2. UPDATED BUTTON: Changed <button> to <Link> pointing to /portal */}
+          <Link 
+            href="/portal" 
+            className="inline-block px-12 py-5 bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-widest rounded hover:bg-white transition-colors"
+          >
+            Request Access
+          </Link>
+
         </motion.div>
       </section>
       
@@ -41,4 +50,4 @@ export default function PersonalPage() {
       <Footer />
     </main>
   );
-            }
+}
