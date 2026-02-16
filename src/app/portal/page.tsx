@@ -1,6 +1,7 @@
 'use client';
 
-import Navbar from '@/components/portal/PortalNavbar';
+// CHANGED: Using Landing Navbar for better Desktop View responsiveness on mobile
+import Navbar from '@/components/landing/Navbar'; 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Zap, Globe, CheckCircle } from 'lucide-react';
@@ -43,11 +44,10 @@ export default function OldSitePortal() {
               </div>
            </motion.div>
 
-           {/* CHART CONTAINER - FIXED OVERLAP */}
-           {/* The flex-col ensures the Header and Chart are stacked vertically */}
+           {/* CHART CONTAINER */}
            <div className="relative w-full max-w-4xl mx-auto bg-[#0a0a0a] border border-white/10 rounded-3xl shadow-2xl overflow-hidden mb-20 flex flex-col">
               
-              {/* 1. Header Section (Top - No Overlap) */}
+              {/* 1. Header Section */}
               <div className="w-full p-6 md:p-8 border-b border-white/5 bg-[#0a0a0a] z-10 text-left">
                  <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Live Asset Performance</h3>
                  <div className="flex flex-wrap items-baseline gap-3">
@@ -57,7 +57,7 @@ export default function OldSitePortal() {
                  <p className="text-sm text-gray-500 mt-1">Total Assets: <span className="text-white">$1.4T Managed</span></p>
               </div>
 
-              {/* 2. Chart Section (Bottom) */}
+              {/* 2. Chart Section */}
               <div className="w-full h-[300px] md:h-[400px] relative bg-black/40">
                  <GrowthChart />
               </div>
@@ -143,4 +143,4 @@ export default function OldSitePortal() {
       </section>
     </main>
   );
-              }
+}
