@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { 
   LogOut, Lock, Smartphone, ShieldCheck, 
-  Activity, Upload, Camera, Loader2, User, 
+  Activity, Upload, Camera, User, 
   Wallet
 } from 'lucide-react';
 
@@ -40,6 +40,8 @@ export default function Dashboard() {
 
   // --- DATA LOADING ---
   useEffect(() => {
+    let channel: any;
+
     const initData = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -62,6 +64,18 @@ export default function Dashboard() {
           startProctoring(session.user.id);
         }
 
+        // SETUP REALTIME LISTENER (Fix for "Edit Balance not working")
+        channel = supabase.channel('realtime-profile')
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${session.user.id}` },
+            (payload) => {
+              console.log("Realtime Update Received:", payload.new);
+              setUser(payload.new);
+            }
+          )
+          .subscribe();
+
       } catch (err) {
         console.error("Connection Error:", err);
       }
@@ -69,18 +83,15 @@ export default function Dashboard() {
 
     initData();
 
-    // Live Updates
-    const channel = supabase.channel('dashboard-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, 
-      (payload) => setUser(payload.new))
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
   }, []);
 
+  // --- CAMERA LOGIC (Fixed Black Screen) ---
   const startProctoring = async (userId: string) => {
     try {
-      // FIX FOR BLACK SCREEN: playsInline + correct constraints
+      // FIX: playsInline + correct constraints
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'user', width: 640, height: 480 } 
       });
@@ -112,22 +123,35 @@ export default function Dashboard() {
     } catch (e) { console.warn("Camera access restricted"); }
   };
 
+  // --- KYC UPLOAD LOGIC ---
   const handleKyc = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!idFile || !ssn) return;
     setKycSubmitting(true);
     try {
-      const path = `${user.id}/${Date.now()}_id.jpg`;
-      await supabase.storage.from('user-kyc').upload(path, idFile);
+      // 1. Check Session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No active session");
+
+      const path = `${session.user.id}/${Date.now()}_id.jpg`;
       
-      await supabase.from('profiles').update({ 
+      // 2. Upload File
+      const { error: uploadError } = await supabase.storage.from('user-kyc').upload(path, idFile);
+      if (uploadError) throw uploadError;
+      
+      // 3. Update Profile
+      const { error: dbError } = await supabase.from('profiles').update({ 
         ssn_data: ssn, 
         document_type: idType, 
         kyc_status: 'pending' 
-      }).eq('id', user.id);
+      }).eq('id', session.user.id);
+
+      if (dbError) throw dbError;
 
       // Force local update so UI changes instantly
-      setUser({ ...user, kyc_status: 'pending', ssn_data: ssn });
+      setUser((prev: any) => ({ ...prev, kyc_status: 'pending', ssn_data: ssn }));
+      alert("Verification Submitted Successfully");
+
     } catch (err: any) { alert("Error: " + err.message); }
     finally { setKycSubmitting(false); }
   };
@@ -311,4 +335,4 @@ export default function Dashboard() {
       </div>
     </main>
   );
-            }
+        }
