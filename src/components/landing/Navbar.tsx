@@ -55,7 +55,7 @@ const Navbar = () => {
                 </Link>
               ))}
               <Link href="/portal" onClick={() => setIsOpen(false)} className="w-full py-4 bg-[#D4AF37] text-black text-center font-bold rounded-xl mt-4">
-                OPEN ACCOUNT
+                InvestmentTesla
               </Link>
             </div>
           </motion.div>
