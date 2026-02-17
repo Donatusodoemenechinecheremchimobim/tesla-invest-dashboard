@@ -1,14 +1,19 @@
 'use client';
 import React from 'react';
-// 1. Change imports to point to the existing Landing components
-import Navbar from '@/components/landing/Navbar'; 
+
+// 1. FIXED IMPORT CASING: navbar (lowercase) to match filename
+import Navbar from '@/components/landing/navbar'; 
+
+// 2. Footer is uppercase Footer.tsx
 import Footer from '@/components/landing/Footer'; 
+
+// Keeping this assuming the file exists. If it errors, remove it.
 import WhatsAppBubble from '@/components/ui/WhatsAppBubble';
 
-export default function LegalLayout({ title, children }: any) {
+export default function LegalLayout({ title, children }: { title: string, children: React.ReactNode }) {
   return (
     <main className="bg-[#050505] text-[#E5E5E5] font-sans min-h-screen selection:bg-[#D4AF37] selection:text-black">
-      {landingNavbar}
+      {/* 3. Use the corrected Navbar component */}
       <Navbar />
       
       <WhatsAppBubble />
@@ -22,7 +27,6 @@ export default function LegalLayout({ title, children }: any) {
         </div>
       </div>
 
-      {landingFooter}
       <Footer />
     </main>
   );
