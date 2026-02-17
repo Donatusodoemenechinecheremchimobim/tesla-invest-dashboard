@@ -10,12 +10,11 @@ export default function PortalNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const isDashboard = pathname.includes('/dashboard');
 
-  // UPDATED: Added VerdeStock to the links list
   const navLinks = [
     { name: 'Personal', href: '/portal/personal' },
     { name: 'Founders', href: '/portal/founders' },
     { name: 'Insurance', href: '/portal/insurance' },
-    { name: 'VerdeStock', href: '/' }, // Added here
+    { name: 'VerdeStock', href: '/', isSpecial: true }, // Added special flag
   ];
 
   return (
@@ -33,8 +32,11 @@ export default function PortalNavbar() {
             <Link 
               key={link.name} 
               href={link.href} 
-              className={`text-[10px] uppercase tracking-[0.25em] font-bold transition-colors ${
-                pathname === link.href ? 'text-[#D4AF37]' : 'text-gray-400 hover:text-[#D4AF37]'
+              className={`text-[10px] uppercase tracking-[0.25em] font-bold transition-all duration-300 ${
+                // SPECIAL STYLING FOR VERDESTOCK
+                link.isSpecial 
+                  ? 'px-4 py-2 border border-[#D4AF37] text-[#D4AF37] rounded-full hover:bg-[#D4AF37] hover:text-black hover:shadow-[0_0_15px_rgba(212,175,55,0.4)]'
+                  : pathname === link.href ? 'text-[#D4AF37]' : 'text-gray-400 hover:text-[#D4AF37]'
               }`}
             >
               {link.name}
@@ -86,7 +88,9 @@ export default function PortalNavbar() {
                   href={link.href} 
                   onClick={() => setIsOpen(false)} 
                   className={`text-sm uppercase tracking-widest font-bold ${
-                    pathname === link.href ? 'text-[#D4AF37]' : 'text-white'
+                    link.isSpecial 
+                      ? 'text-[#D4AF37] border border-[#D4AF37] p-3 text-center rounded-lg bg-[#D4AF37]/10'
+                      : pathname === link.href ? 'text-[#D4AF37]' : 'text-white'
                   }`}
                 >
                   {link.name}
@@ -98,4 +102,4 @@ export default function PortalNavbar() {
       </AnimatePresence>
     </nav>
   );
-}
+              }
