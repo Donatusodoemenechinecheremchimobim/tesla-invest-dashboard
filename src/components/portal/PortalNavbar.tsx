@@ -10,10 +10,12 @@ export default function PortalNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const isDashboard = pathname.includes('/dashboard');
 
+  // UPDATED: Added VerdeStock to the links list
   const navLinks = [
     { name: 'Personal', href: '/portal/personal' },
     { name: 'Founders', href: '/portal/founders' },
     { name: 'Insurance', href: '/portal/insurance' },
+    { name: 'VerdeStock', href: '/' }, // Added here
   ];
 
   return (
@@ -25,7 +27,7 @@ export default function PortalNavbar() {
           INVESTMENT<span className="text-[#D4AF37] italic font-light">TESLA</span>
         </Link>
         
-        {/* CENTER LINKS (Desktop) - Changed lg:flex to md:flex */}
+        {/* CENTER LINKS (Desktop) */}
         <div className="hidden md:flex items-center space-x-8 absolute left-1/2 -translate-x-1/2">
           {navLinks.map((link) => (
             <Link 
@@ -61,14 +63,14 @@ export default function PortalNavbar() {
             </div>
           )}
           
-          {/* MOBILE MENU TOGGLE - Changed lg:hidden to md:hidden */}
+          {/* MOBILE MENU TOGGLE */}
           <button className="md:hidden text-[#D4AF37]" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
 
-      {/* MOBILE DRAWER - Changed lg:hidden to md:hidden */}
+      {/* MOBILE DRAWER */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
