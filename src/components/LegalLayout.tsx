@@ -1,12 +1,18 @@
-import Navbar from '@/components/landing/Navbar';
-import IntroFooter from '@/components/intro/IntroFooter';
+'use client';
+import React from 'react';
+// 1. Change imports to point to the existing Landing components
+import Navbar from '@/components/landing/Navbar'; 
+import Footer from '@/components/landing/Footer'; 
 import WhatsAppBubble from '@/components/ui/WhatsAppBubble';
 
 export default function LegalLayout({ title, children }: any) {
   return (
     <main className="bg-[#050505] text-[#E5E5E5] font-sans min-h-screen selection:bg-[#D4AF37] selection:text-black">
-      <IntroNavbar />
+      {landingNavbar}
+      <Navbar />
+      
       <WhatsAppBubble />
+      
       <div className="pt-40 pb-32 px-6 max-w-5xl mx-auto">
         <div className="bg-[#111] border border-[#333] rounded-[4rem] p-12 md:p-20 shadow-2xl">
            <h1 className="text-5xl md:text-6xl font-serif font-bold mb-12 text-[#D4AF37] border-b border-[#333] pb-8">{title}</h1>
@@ -15,7 +21,9 @@ export default function LegalLayout({ title, children }: any) {
            </div>
         </div>
       </div>
-      <IntroFooter />
+
+      {landingFooter}
+      <Footer />
     </main>
   );
 }
