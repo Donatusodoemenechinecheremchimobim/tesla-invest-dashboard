@@ -1,5 +1,5 @@
 'use client';
-import Navbar from '@/components/landing/Navbar';
+import Navbar from '@/components/portal/PortalNavbar';
 import { ShieldCheck, Lock } from 'lucide-react';
 
 export default function InsurancePage() {
