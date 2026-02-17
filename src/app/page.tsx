@@ -194,7 +194,7 @@ export default function VerdeStockLanding() {
         {/* Text Content */}
         <div className="text-center lg:text-left">
            <h2 className="text-5xl md:text-7xl font-serif text-white tracking-tighter mb-8 leading-tight">Your Control <br /><span className="text-[#D4AF37]">Interface.</span></h2>
-           <Link href="/portal/auth" className="px-10 py-4 md:px-12 md:py-5 bg-white text-black font-black text-xs uppercase tracking-[0.2em] rounded-full hover:bg-[#D4AF37] transition-all inline-block">Get Started</Link>
+           <Link href="/portal" className="px-10 py-4 md:px-12 md:py-5 bg-white text-black font-black text-xs uppercase tracking-[0.2em] rounded-full hover:bg-[#D4AF37] transition-all inline-block">Get Started</Link>
         </div>
       </section>
 
