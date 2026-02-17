@@ -76,18 +76,18 @@ export default function AuthPage() {
 
         <form onSubmit={handleAuth} className="space-y-4">
           {!isLogin && <input type="text" placeholder="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl p-4 outline-none focus:border-[#D4AF37]" required />}
-          <input type="email" placeholder="Institutional Email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl p-4 outline-none focus:border-[#D4AF37]" required />
+          <input type="email" placeholder="User Email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl p-4 outline-none focus:border-[#D4AF37]" required />
           <div className="relative">
             <input type={showPassword ? "text" : "password"} placeholder="Passcode" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl p-4 outline-none focus:border-[#D4AF37]" required />
             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
           </div>
           <button disabled={loading} className="w-full py-4 bg-[#D4AF37] text-black font-black uppercase tracking-widest rounded-full hover:bg-white transition-all mt-4">
-            {loading ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'Establish Connection'}
+            {loading ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'Logging in'}
           </button>
         </form>
 
         <button onClick={() => setIsLogin(!isLogin)} className="w-full text-center mt-8 text-[10px] text-gray-600 uppercase tracking-widest hover:text-white transition-colors">
-          {isLogin ? 'Request New Terminal' : 'Return to Login'}
+          {isLogin ? 'Create New Account' : 'Return to Login'}
         </button>
       </div>
     </main>
