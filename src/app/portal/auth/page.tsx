@@ -87,7 +87,7 @@ export default function AuthPage() {
         </form>
 
         <button onClick={() => setIsLogin(!isLogin)} className="w-full text-center mt-8 text-[10px] text-gray-600 uppercase tracking-widest hover:text-white transition-colors">
-          {isLogin ? 'Dont Have An Account? Create New Account' : 'Return to Login'}
+          {isLogin ? Create New Account' : 'Return to Login'}
         </button>
       </div>
     </main>
