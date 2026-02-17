@@ -82,7 +82,7 @@ export default function AuthPage() {
             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
           </div>
           <button disabled={loading} className="w-full py-4 bg-[#D4AF37] text-black font-black uppercase tracking-widest rounded-full hover:bg-white transition-all mt-4">
-            {loading ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'Log in'}
+            {loading ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'Login'}
           </button>
         </form>
 
