@@ -34,7 +34,7 @@ export default function OldSitePortal() {
               </p>
 
               <div className="flex flex-col md:flex-row gap-4 justify-center items-center w-full mb-16">
-                {/* UPDATED LINK: Points to /portal/auth */}
+                {/* LINK UPDATED */}
                 <Link href="/portal/auth" className="w-full md:w-auto px-8 py-4 bg-[#D4AF37] text-black font-bold uppercase tracking-widest text-xs rounded-full hover:bg-white transition-all shadow-[0_0_20px_rgba(212,175,55,0.2)]">
                   Access Client Portal
                 </Link>
@@ -44,21 +44,21 @@ export default function OldSitePortal() {
               </div>
            </motion.div>
 
-           {/* CHART CONTAINER */}
+           {/* CHART CONTAINER - FIXED LAYOUT */}
+           {/* We used flex-col to stack the text header ABOVE the chart, preventing overlap */}
            <div className="relative w-full max-w-4xl mx-auto bg-[#0a0a0a] border border-white/10 rounded-3xl shadow-2xl overflow-hidden mb-20 flex flex-col">
               
-              {/* 1. Header Section */}
-              <div className="w-full p-6 md:p-8 border-b border-white/5 bg-[#0a0a0a] z-10 text-left">
+              {/* 1. Header Section (Top) */}
+              <div className="p-6 md:p-8 border-b border-white/5 bg-[#0a0a0a] z-10 text-left">
                  <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Live Asset Performance</h3>
                  <div className="flex flex-wrap items-baseline gap-3">
-                   <p className="text-4xl md:text-5xl font-serif text-[#D4AF37] tracking-tight">+127.4%</p>
-                   <span className="text-xs text-gray-500 font-sans tracking-normal uppercase">(YTD)</span>
+                   <p className="text-3xl md:text-4xl font-serif text-[#D4AF37]">$1.24T</p>
+                   <span className="text-xs text-gray-500 font-sans tracking-normal uppercase">Total Assets Managed</span>
                  </div>
-                 <p className="text-sm text-gray-500 mt-1">Total Assets: <span className="text-white">$1.4T Managed</span></p>
               </div>
 
-              {/* 2. Chart Section */}
-              <div className="w-full h-[300px] md:h-[400px] relative bg-black/40">
+              {/* 2. Chart Section (Bottom) */}
+              <div className="w-full h-[300px] md:h-[400px] relative">
                  <GrowthChart />
               </div>
            </div>
@@ -92,6 +92,7 @@ export default function OldSitePortal() {
               
               <h3 className="text-xl font-serif text-gray-400 mb-2 mt-2">{plan.name}</h3>
               
+              {/* Responsive Text for Pricing */}
               <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight break-words leading-tight">
                 {plan.price}
               </div>
@@ -107,7 +108,7 @@ export default function OldSitePortal() {
                 ))}
               </ul>
               
-              {/* UPDATED LINK: Points to /portal/auth */}
+              {/* LINK UPDATED to /portal/auth */}
               <Link href="/portal/auth" className={`w-full py-4 font-bold uppercase tracking-widest text-[10px] rounded-xl text-center transition-all ${plan.popular ? 'bg-[#D4AF37] text-black hover:bg-white' : 'bg-white/5 text-white hover:bg-white hover:text-black'}`}>
                 Start {plan.name}
               </Link>
@@ -144,4 +145,4 @@ export default function OldSitePortal() {
       </section>
     </main>
   );
-}
+              }
