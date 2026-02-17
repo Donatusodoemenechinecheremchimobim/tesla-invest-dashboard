@@ -1,21 +1,19 @@
 'use client';
 import React from 'react';
 
-// 1. FIXED IMPORT CASING: navbar (lowercase) to match filename
-import Navbar from '@/components/landing/navbar'; 
-
-// 2. Footer is uppercase Footer.tsx
+// 1. REVERTED TO UPPERCASE: matches your other working pages
+import Navbar from '@/components/landing/Navbar'; 
 import Footer from '@/components/landing/Footer'; 
 
-// Keeping this assuming the file exists. If it errors, remove it.
+// Optional: Remove if this file doesn't exist
 import WhatsAppBubble from '@/components/ui/WhatsAppBubble';
 
 export default function LegalLayout({ title, children }: { title: string, children: React.ReactNode }) {
   return (
     <main className="bg-[#050505] text-[#E5E5E5] font-sans min-h-screen selection:bg-[#D4AF37] selection:text-black">
-      {/* 3. Use the corrected Navbar component */}
       <Navbar />
       
+      {/* Remove this line if WhatsAppBubble doesn't exist */}
       <WhatsAppBubble />
       
       <div className="pt-40 pb-32 px-6 max-w-5xl mx-auto">
