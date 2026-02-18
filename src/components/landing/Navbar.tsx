@@ -8,9 +8,9 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Define links clearly for both views
-  const desktopLinks = ['Personal', 'Corporate', 'Services', 'Trading', 'Technology', 'Press'];
-  const mobileLinks = ['Personal', 'Corporate', 'Services', 'Trading', 'Technology', 'Press', 'Contact'];
+  // REMOVED 'Trading' from both lists
+  const desktopLinks = ['Personal', 'Corporate', 'Services', 'Technology', 'Press'];
+  const mobileLinks = ['Personal', 'Corporate', 'Services', 'Technology', 'Press', 'Contact'];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,7 +33,6 @@ const Navbar = () => {
           </Link>
 
           {/* DESKTOP LINKS (Hidden on Tablet/Mobile, Visible on Large Screens) */}
-          {/* Changed to lg:flex to prevent overlapping on tablets now that we have more links */}
           <div className="hidden lg:flex items-center space-x-6 xl:space-x-8">
             {desktopLinks.map((item) => (
               <Link 
