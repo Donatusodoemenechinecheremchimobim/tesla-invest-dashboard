@@ -22,7 +22,7 @@ export default function PortalNavbar() {
       <div className="max-w-7xl mx-auto flex justify-between items-center relative">
         
         {/* LOGO */}
-        <Link href="/portal/auth" className="text-lg md:text-2xl font-serif font-bold text-white shrink-0">
+        <Link href="/portal/" className="text-lg md:text-2xl font-serif font-bold text-white shrink-0">
           INVESTMENT<span className="text-[#D4AF37] italic font-light">TESLA</span>
         </Link>
         
