@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- NOTIFICATION TOAST ---
+// --- CUSTOM NOTIFICATION TOAST ---
 const Notification = ({ message, type, onClose }: { message: string, type: 'success' | 'error', onClose: () => void }) => (
   <motion.div 
     initial={{ opacity: 0, y: 50 }} 
@@ -213,7 +213,6 @@ export default function Dashboard() {
       showToast("Withdrawal Request Sent to Admin", "success");
       setWithdrawModalOpen(false);
       setWithdrawAmount('');
-      // Note: Realtime listener will catch the new 'pending' row and update UI immediately
     } catch (err: any) {
       showToast(err.message || "Request failed", "error");
     } finally {
@@ -401,6 +400,5 @@ export default function Dashboard() {
              )}
           </div>
 
-          {/* STATUS CARDS */}
           <div className="lg:col-span-4 space-y-6">
-            
+             <div className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[2.5rem] flex flex-col justify-center h-full space-y
