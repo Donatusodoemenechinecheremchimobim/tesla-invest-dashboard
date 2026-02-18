@@ -8,6 +8,10 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
+  // UPDATED LINK LISTS
+  const desktopLinks = ['Personal', 'Corporate', 'Services', 'Trading', 'Technology', 'Press'];
+  const mobileLinks = ['Personal', 'Corporate', 'Services', 'Trading', 'Technology', 'Press', 'Contact'];
+
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 20) {
@@ -22,7 +26,6 @@ const Navbar = () => {
 
   return (
     <>
-      {/* REMOVED: border-b border-white/5 */}
       <nav 
         className={`fixed w-full z-[100] transition-all duration-500 
         ${isScrolled ? 'bg-black/95 py-4 shadow-lg' : 'bg-transparent py-6'}`}
@@ -32,13 +35,13 @@ const Navbar = () => {
             VERDE<span className="text-[#D4AF37] italic font-light">STOCK</span>
           </Link>
 
-          {/* DESKTOP LINKS */}
-          <div className="hidden md:flex space-x-8 items-center">
-            {['Personal', 'Corporate', 'Services'].map((item) => (
+          {/* DESKTOP LINKS - Updated Map */}
+          <div className="hidden lg:flex space-x-8 items-center">
+            {desktopLinks.map((item) => (
               <Link 
                 key={item} 
                 href={`/${item.toLowerCase()}`} 
-                className="text-[10px] uppercase tracking-[0.3em] text-gray-400 hover:text-[#D4AF37] transition-colors"
+                className="text-[10px] uppercase tracking-[0.2em] text-gray-400 hover:text-[#D4AF37] transition-colors"
               >
                 {item}
               </Link>
@@ -54,7 +57,8 @@ const Navbar = () => {
               InvestmentTesla
             </Link>
             
-            <button className="md:hidden text-[#D4AF37]" onClick={() => setIsOpen(true)}>
+            {/* Mobile Menu Button - shows on screens smaller than LG now to accommodate more links */}
+            <button className="lg:hidden text-[#D4AF37]" onClick={() => setIsOpen(true)}>
               <Menu size={24} />
             </button>
           </div>
@@ -69,22 +73,22 @@ const Navbar = () => {
             animate={{ x: 0 }} 
             exit={{ x: '100%' }} 
             transition={{ type: "tween", duration: 0.3 }}
-            className="fixed inset-0 bg-black z-[200] p-8 flex flex-col"
+            className="fixed inset-0 bg-black z-[200] p-8 flex flex-col overflow-y-auto"
           >
-            <div className="flex justify-between mb-20 items-center">
+            <div className="flex justify-between mb-10 items-center">
               <span className="font-serif text-white text-xl font-bold">VERDE<span className="text-[#D4AF37] italic font-light">STOCK</span></span>
               <button onClick={() => setIsOpen(false)} className="p-2">
                 <X size={32} className="text-[#D4AF37]" />
               </button>
             </div>
             
-            <div className="flex flex-col gap-8">
-              {['Personal', 'Corporate', 'Services', 'Contact'].map((item) => (
+            <div className="flex flex-col gap-6">
+              {mobileLinks.map((item) => (
                 <Link 
                   key={item} 
                   href={`/${item.toLowerCase()}`} 
                   onClick={() => setIsOpen(false)} 
-                  className="text-4xl font-serif text-white uppercase italic hover:text-[#D4AF37] transition-colors"
+                  className="text-3xl font-serif text-white uppercase italic hover:text-[#D4AF37] transition-colors"
                 >
                   {item}
                 </Link>
