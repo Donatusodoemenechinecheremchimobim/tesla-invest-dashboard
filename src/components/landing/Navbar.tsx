@@ -131,7 +131,7 @@ const Navbar = () => {
                 onClick={() => setIsOpen(false)} 
                 className="w-full flex items-center justify-center gap-3 py-4 bg-[#D4AF37] text-black text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white transition-colors shadow-lg"
               >
-                Access InvestmentTesla
+                InvestmentTesla
               </Link>
               
               <div className="flex justify-between items-center px-2 pt-2">
