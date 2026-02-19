@@ -7,7 +7,7 @@ import { ArrowRight, Shield, Search, Lock, Zap, Cpu, Globe, Database, Activity, 
 import Link from 'next/link';
 
 // --- PAGANI-TIER ANIMATION VARIANTS ---
-const engineCurve = [0.16, 1, 0.3, 1] as const; // Added 'as const' to prevent TS build errors
+const engineCurve = [0.16, 1, 0.3, 1] as const; 
 
 const staggerContainer: Variants = {
   hidden: { opacity: 0 },
@@ -131,7 +131,7 @@ export default function VerdeStockLanding() {
             </motion.div>
           </motion.div>
 
-          {/* 3D Flip Card (Preserved perfectly) */}
+          {/* 3D Flip Card */}
           <motion.div 
              initial={{ opacity: 0, scale: 0.8, rotateX: 10 }}
              animate={{ opacity: 1, scale: 1, rotateX: 0 }}
@@ -169,7 +169,7 @@ export default function VerdeStockLanding() {
         </div>
       </section>
 
-      {/* --- 2. DOUBLE TICKER (Added Depth) --- */}
+      {/* --- 2. DOUBLE TICKER --- */}
       <div className="border-y border-white/5 bg-[#030303] py-4 md:py-6 overflow-hidden w-full relative flex flex-col gap-2">
         <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-transparent to-[#050505] z-10 pointer-events-none" />
         {/* Row 1 - Left */}
@@ -183,7 +183,6 @@ export default function VerdeStockLanding() {
           <span>EUR/USD 1.0842 ▼</span><span>ETH/USD $3,105.20 ▲</span><span>AAPL $189.40 ▲</span><span>SPX 5,120.40 ▼</span>
         </div>
       </div>
-
       {/* --- 3. BENTO GRID --- */}
       <section className="py-20 md:py-32 px-4 md:px-6 max-w-[1400px] mx-auto overflow-hidden relative z-10">
          <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 h-auto md:h-[700px]">
@@ -221,7 +220,7 @@ export default function VerdeStockLanding() {
          </motion.div>
       </section>
 
-      {/* --- 4. NEW: THE ARCHITECTURE (Sticky Scroll) --- */}
+      {/* --- 4. THE ARCHITECTURE (Sticky Scroll) --- */}
       <section className="py-20 md:py-40 px-4 md:px-6 bg-[#080808] border-y border-white/5 relative z-10">
          <div className="max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-16">
             <div className="lg:sticky lg:top-32 h-[400px] md:h-[600px] bg-[#111] rounded-[3rem] border border-white/5 flex items-center justify-center overflow-hidden relative group">
@@ -270,7 +269,7 @@ export default function VerdeStockLanding() {
         </div>
       </section>
 
-      {/* --- 6. NEW: MARKET ACCESS (Hover Expand) --- */}
+      {/* --- 6. MARKET ACCESS (Hover Expand) --- */}
       <section className="py-20 px-4 md:px-6 max-w-[1400px] mx-auto relative z-10">
          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={slideUp} className="text-center mb-16">
             <span className="text-[#D4AF37] text-[10px] font-bold uppercase tracking-[0.3em] mb-4 block">Asset Classes</span>
@@ -297,4 +296,63 @@ export default function VerdeStockLanding() {
 
       {/* --- 7. SCANNING PHONE (Intersecting Slides + Floating Nodes) --- */}
       <section className="py-20 md:py-40 px-4 md:px-6 max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-12 md:gap-20 items-center overflow-hidden relative z-10">
-        <motion.div 
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={slideUp} className="relative flex justify-center w-full">
+          
+          {/* Floating UI Nodes */}
+          <motion.div animate={floatAnim} className="absolute -left-4 md:-left-12 top-20 bg-[#111] border border-white/10 p-3 rounded-2xl flex items-center gap-3 shadow-xl z-20">
+             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+             <span className="text-xs font-mono text-white">TSLA +2.4%</span>
+          </motion.div>
+          <motion.div animate={floatAnim} transition={{ delay: 1, duration: 7, repeat: Infinity, ease: "easeInOut" }} className="absolute -right-4 md:-right-12 bottom-32 bg-[#111] border border-[#D4AF37]/30 p-3 rounded-2xl flex items-center gap-3 shadow-xl z-20">
+             <Lock size={12} className="text-[#D4AF37]" />
+             <span className="text-xs font-mono text-[#D4AF37]">Secure Node</span>
+          </motion.div>
+
+          {/* Phone */}
+          <motion.div animate={{ y: [-15, 15, -15] }} transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }} className="w-[280px] h-[560px] md:w-[340px] md:h-[680px] bg-black border-[8px] md:border-[10px] border-[#1a1a1a] rounded-[3rem] md:rounded-[4rem] relative shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden shrink-0">
+            <div className="pt-20 md:pt-28 px-6 md:px-8 space-y-8 md:space-y-12 bg-[#050505] h-full relative">
+              <div className="flex justify-between text-[10px] text-gray-500 font-bold uppercase tracking-widest"><span>Net Worth</span><Shield size={14} className="text-[#D4AF37]" /></div>
+              <h3 className="text-3xl md:text-4xl font-serif text-white">$872,000,000</h3>
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent shadow-[0_0_20px_#D4AF37] animate-scan opacity-60" />
+            </div>
+          </motion.div>
+        </motion.div>
+
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={slideInRight} className="text-center lg:text-left">
+           <h2 className="text-5xl md:text-7xl font-serif text-white tracking-tighter mb-8 leading-tight">Your Control <br /><span className="text-[#D4AF37]">Interface.</span></h2>
+           <Link href="/portal" className="group px-10 py-4 md:px-12 md:py-5 bg-white text-black font-black text-xs uppercase tracking-[0.2em] rounded-full hover:bg-[#D4AF37] transition-all inline-block shadow-lg hover:shadow-[0_0_30px_rgba(212,175,55,0.4)]">
+             Get Started
+           </Link>
+        </motion.div>
+      </section>
+
+      {/* --- 8. FINAL CTA --- */}
+      <section className="py-32 md:py-48 text-center relative overflow-hidden">
+         <div className="absolute inset-0 bg-gradient-to-t from-[#D4AF37]/10 via-transparent to-transparent pointer-events-none" />
+         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={slideUp} className="relative z-10 max-w-4xl mx-auto px-6">
+            <h2 className="text-5xl md:text-[6rem] font-serif mb-8 leading-[0.9]">Initialize Your <br/><span className="italic text-[#D4AF37]">Legacy.</span></h2>
+            <p className="text-gray-400 mb-12 text-lg max-w-xl mx-auto">Join the private network of individuals engineering the future of capital.</p>
+            <Link href="/portal" className="inline-block px-14 py-6 bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-[0.3em] rounded-full hover:bg-white hover:scale-105 transition-all duration-300 shadow-[0_0_40px_rgba(212,175,55,0.3)]">
+               Deploy Capital
+            </Link>
+         </motion.div>
+      </section>
+
+      <Footer />
+      
+      {/* CSS STYLES */}
+      <style jsx global>{`
+        .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+        .preserve-3d { transform-style: preserve-3d; }
+        @keyframes pulse-cursor { 0%, 100% { border-color: transparent; } 50% { border-color: #D4AF37; } }
+        .animate-pulse-cursor { animation: pulse-cursor 0.8s step-end infinite; }
+        @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
+        .animate-scan { animation: scan 4s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .animate-marquee { animation: marquee 40s linear infinite; }
+        @keyframes marquee-reverse { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
+        .animate-marquee-reverse { animation: marquee-reverse 40s linear infinite; }
+      `}</style>
+    </main>
+  );
+                       }
