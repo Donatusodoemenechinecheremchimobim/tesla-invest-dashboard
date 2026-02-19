@@ -60,7 +60,7 @@ const Navbar = () => {
           {/* --- MAIN LOGO --- */}
           <Link href="/" className="flex items-center gap-3 shrink-0 z-[110] group relative" onClick={() => setIsOpen(false)}>
             <div className="relative w-8 h-8 md:w-10 md:h-10">
-               <Image src="/favicon.ico" alt="VerdeStock" fill className="object-contain" priority />
+               <Image src="/icon.png" alt="VerdeStock" fill className="object-contain" priority />
             </div>
             <span className="text-lg md:text-xl font-serif font-bold text-white tracking-tighter">
               VERDE<span className="text-[#D4AF37] italic font-light">STOCK</span>
