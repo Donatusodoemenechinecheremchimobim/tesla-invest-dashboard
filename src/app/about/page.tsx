@@ -3,7 +3,7 @@
 import React, { useRef } from 'react';
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
-import MoneyTree from '@/components/animations/MoneyTree'; // Your existing component
+import MoneyTree from '@/components/animations/MoneyTree'; 
 import { motion, useScroll, useTransform, Variants } from 'framer-motion';
 import { 
   Leaf, Users, History, Target, Award, 
@@ -46,7 +46,28 @@ export default function AboutPage() {
 
   const yHero = useTransform(scrollYProgress, [0, 0.2], [0, 300]);
   const opacityHero = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-  const scaleImage = useTransform(scrollYProgress, [0, 1], [1, 1.2]);
+
+  // --- UPDATED TEAM DATA WITH UNIQUE IMAGES ---
+  const teamMembers = [
+    { 
+      role: "Founder & CEO", 
+      name: "Alexander V.", 
+      spec: "Ex-Goldman Sachs / Quant",
+      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=2574&auto=format&fit=crop" // Professional Man
+    },
+    { 
+      role: "Head of AI", 
+      name: "Dr. Elena R.", 
+      spec: "PhD Neural Networks",
+      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=2669&auto=format&fit=crop" // Professional Woman
+    },
+    { 
+      role: "Chief Security", 
+      name: "Marcus T.", 
+      spec: "Ex-NSA Cybersecurity",
+      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2670&auto=format&fit=crop" // Tech/Security Lead
+    }
+  ];
 
   return (
     <main ref={containerRef} className="bg-[#050505] text-white w-full overflow-hidden selection:bg-[#D4AF37] selection:text-black">
@@ -238,11 +259,7 @@ export default function AboutPage() {
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-               {[
-                  { role: "Founder & CEO", name: "Alexander V.", spec: "Ex-Goldman Sachs / Quant" },
-                  { role: "Head of AI", name: "Dr. Elena R.", spec: "PhD Neural Networks" },
-                  { role: "Chief Security", name: "Marcus T.", spec: "Ex-NSA Cybersecurity" }
-               ].map((member, i) => (
+               {teamMembers.map((member, i) => (
                   <motion.div 
                      key={i}
                      initial={{ opacity: 0, scale: 0.9 }}
@@ -253,9 +270,12 @@ export default function AboutPage() {
                   >
                      {/* Image Placeholder with Abstract Gradient */}
                      <div className="absolute inset-0 bg-gradient-to-br from-[#111] via-[#0a0a0a] to-[#D4AF37]/20" />
-                     <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:opacity-100 transition-opacity duration-700">
-                         {/* Replace with actual team photos if available */}
-                         <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=2574&auto=format&fit=crop')] bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-700" />
+                     <div className="absolute inset-0 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity duration-700">
+                         {/* UNIQUE IMAGE FOR EACH MEMBER */}
+                         <div 
+                           className="w-full h-full bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-700" 
+                           style={{ backgroundImage: `url('${member.image}')` }}
+                         />
                      </div>
 
                      {/* Overlay Information */}
@@ -293,4 +313,4 @@ export default function AboutPage() {
       <Footer />
     </main>
   );
-        }
+                          }
