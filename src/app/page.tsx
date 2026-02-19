@@ -2,9 +2,39 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { ArrowRight, Shield, Search, Lock, Zap, Cpu } from 'lucide-react';
 import Link from 'next/link';
+
+// --- PAGANI-TIER ANIMATION VARIANTS ---
+const engineCurve = [0.16, 1, 0.3, 1]; // Fast acceleration, smooth mechanical lock
+
+const staggerContainer: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15, delayChildren: 0.1 }
+  }
+};
+
+const slideUp: Variants = {
+  hidden: { opacity: 0, y: 80 },
+  visible: { opacity: 1, y: 0, transition: { duration: 1.2, ease: engineCurve } }
+};
+
+const slideInLeft: Variants = {
+  hidden: { opacity: 0, x: -80 },
+  visible: { opacity: 1, x: 0, transition: { duration: 1.2, ease: engineCurve } }
+};
+
+const slideInRight: Variants = {
+  hidden: { opacity: 0, x: 80 },
+  visible: { opacity: 1, x: 0, transition: { duration: 1.2, ease: engineCurve } }
+};
+
+const cardHover = {
+  hover: { scale: 1.02, y: -5, transition: { duration: 0.4, ease: "easeOut" } }
+};
 
 // --- CUSTOM SVG DASHBOARD COMPONENT ---
 const NeuralDashboardSVG = () => (
@@ -46,6 +76,7 @@ export default function VerdeStockLanding() {
   const fullText = "verdestock.com";
   const [isTurned, setIsTurned] = useState(false);
 
+  // PRESERVED: Original Typing and Flipping Logic
   useEffect(() => {
     if (typedText.length < fullText.length) {
       const timeout = setTimeout(() => {
@@ -62,34 +93,53 @@ export default function VerdeStockLanding() {
     <main className="bg-[#050505] text-white overflow-x-hidden selection:bg-[#D4AF37] selection:text-black w-full">
       <Navbar />
 
-      {/* HERO SECTION */}
-      <section className="relative min-h-screen flex items-center pt-24 md:pt-32 px-4 md:px-6 max-w-[1400px] mx-auto overflow-hidden">
+      {/* --- HERO SECTION --- */}
+      <section className="relative min-h-[100dvh] flex items-center pt-24 md:pt-32 px-4 md:px-6 max-w-[1400px] mx-auto overflow-hidden">
         <div className="grid lg:grid-cols-2 gap-12 md:gap-20 items-center w-full relative z-10">
           
-          {/* Text Content */}
-          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1 }} className="text-center lg:text-left">
-            <span className="inline-block py-1.5 px-4 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] mb-6 md:mb-8">Institutional Wealth Management</span>
-            <h1 className="text-5xl sm:text-7xl md:text-[8.5rem] font-serif mb-6 md:mb-8 leading-[0.9] md:leading-[0.8] tracking-tighter">
+          {/* Text Content (Staggered Entrance) */}
+          <motion.div 
+            variants={staggerContainer} 
+            initial="hidden" 
+            animate="visible" 
+            className="text-center lg:text-left"
+          >
+            <motion.div variants={slideUp}>
+               <span className="inline-block py-1.5 px-4 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] mb-6 md:mb-8 shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+                  Institutional Wealth Management
+               </span>
+            </motion.div>
+            
+            <motion.h1 variants={slideUp} className="text-5xl sm:text-7xl md:text-[8.5rem] font-serif mb-6 md:mb-8 leading-[0.9] md:leading-[0.8] tracking-tighter">
               WEALTH <br /><span className="text-[#D4AF37] italic">REFINED.</span>
-            </h1>
-            <p className="text-gray-400 text-sm md:text-lg leading-relaxed max-w-lg mb-8 md:mb-12 font-light mx-auto lg:mx-0">
+            </motion.h1>
+            
+            <motion.p variants={slideUp} className="text-gray-400 text-sm md:text-lg leading-relaxed max-w-lg mb-8 md:mb-12 font-light mx-auto lg:mx-0">
               Access mathematically secured global equity clusters. Powered by physical reserves and zero-knowledge architecture.
-            </p>
-            <Link href="/portal/" className="inline-flex px-10 py-4 md:px-12 md:py-5 bg-[#D4AF37] text-black font-black text-xs uppercase tracking-[0.2em] rounded-full hover:bg-white transition-all items-center gap-3 shadow-[0_0_40px_rgba(212,175,55,0.4)]">
-              Access Gateway <ArrowRight size={14} />
-            </Link>
+            </motion.p>
+            
+            <motion.div variants={slideUp}>
+               <Link href="/portal/" className="group inline-flex px-10 py-4 md:px-12 md:py-5 bg-[#D4AF37] text-black font-black text-xs uppercase tracking-[0.2em] rounded-full hover:bg-white transition-all items-center gap-3 shadow-[0_0_40px_rgba(212,175,55,0.4)] hover:shadow-[0_0_60px_rgba(255,255,255,0.4)]">
+                 Access Gateway <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+               </Link>
+            </motion.div>
           </motion.div>
 
-          {/* 3D Flip Card */}
-          <div className="relative h-[400px] md:h-[600px] flex items-center justify-center perspective-[1500px] w-full">
+          {/* 3D Flip Card (Scale-in Entrance + Preserved Flip) */}
+          <motion.div 
+             initial={{ opacity: 0, scale: 0.8, rotateX: 10 }}
+             animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+             transition={{ duration: 1.5, ease: engineCurve, delay: 0.2 }}
+             className="relative h-[400px] md:h-[600px] flex items-center justify-center perspective-[1500px] w-full"
+          >
              <motion.div 
                 className="relative w-full max-w-[320px] md:max-w-md aspect-[4/5] preserve-3d" 
                 animate={{ rotateY: isTurned ? 180 : 0 }} 
-                transition={{ duration: 1.5, ease: "anticipate" }}
+                transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }} // Smoother flip
                 style={{ transformStyle: "preserve-3d" }}
              >
                 {/* FRONT OF CARD */}
-                <div className="absolute inset-0 backface-hidden bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 flex flex-col items-center justify-center gap-8 shadow-2xl z-20">
+                <div className="absolute inset-0 backface-hidden bg-gradient-to-br from-[#111] to-[#050505] border border-white/10 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 flex flex-col items-center justify-center gap-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] z-20">
                    <Lock size={32} className="text-[#D4AF37]" />
                    <div className="w-full h-14 md:h-16 bg-black border border-white/10 rounded-full flex items-center px-6 md:px-8 gap-3 md:gap-4 shadow-inner">
                       <Search size={18} className="text-gray-500" />
@@ -100,7 +150,7 @@ export default function VerdeStockLanding() {
                 </div>
 
                 {/* BACK OF CARD */}
-                <div className="absolute inset-0 backface-hidden rounded-[2.5rem] md:rounded-[3rem] overflow-hidden border border-[#D4AF37]/40 shadow-2xl bg-[#0a0a0a]" style={{ transform: "rotateY(180deg)", backfaceVisibility: "hidden" }}>
+                <div className="absolute inset-0 backface-hidden rounded-[2.5rem] md:rounded-[3rem] overflow-hidden border border-[#D4AF37]/40 shadow-[0_0_50px_rgba(212,175,55,0.15)] bg-[#0a0a0a]" style={{ transform: "rotateY(180deg)", backfaceVisibility: "hidden" }}>
                    <NeuralDashboardSVG />
                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10" />
                    <div className="absolute bottom-8 left-8 right-8 z-20">
@@ -109,96 +159,136 @@ export default function VerdeStockLanding() {
                    </div>
                 </div>
              </motion.div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* TICKER */}
-      <div className="border-y border-white/5 bg-black py-4 md:py-6 overflow-hidden w-full">
+      {/* --- TICKER --- */}
+      <div className="border-y border-white/5 bg-[#030303] py-4 md:py-6 overflow-hidden w-full relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-transparent to-[#050505] z-10 pointer-events-none" />
         <div className="flex gap-12 md:gap-24 text-[10px] md:text-[11px] font-mono text-[#D4AF37] uppercase tracking-[0.3em] animate-marquee whitespace-nowrap opacity-60">
           <span>XAU/USD $2,402.18 ▲</span><span>BTC/USD $64,230.50 ▲</span><span>TSLA $178.20 ▲</span><span>NDX 18,300.10 ▲</span>
           <span>XAU/USD $2,402.18 ▲</span><span>BTC/USD $64,230.50 ▲</span><span>TSLA $178.20 ▲</span><span>NDX 18,300.10 ▲</span>
         </div>
       </div>
 
-      {/* BENTO GRID */}
-      <section className="py-20 md:py-32 px-4 md:px-6 max-w-[1400px] mx-auto">
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 h-auto md:h-[700px]">
+      {/* --- BENTO GRID (Scroll-Animated) --- */}
+      <section className="py-20 md:py-32 px-4 md:px-6 max-w-[1400px] mx-auto overflow-hidden">
+         <motion.div 
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 h-auto md:h-[700px]"
+         >
             {/* Large Image Card */}
-            <div className="md:col-span-2 md:row-span-2 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden group min-h-[300px]">
-               <img src="https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=1200" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 opacity-40" alt="Hubs" />
-               <div className="absolute inset-0 bg-black/40" />
-               <div className="absolute bottom-8 left-8 md:bottom-12 md:left-12">
+            <motion.div variants={slideInLeft} whileHover="hover" className="md:col-span-2 md:row-span-2 relative rounded-[2.5rem] md:rounded-[3rem] overflow-hidden group min-h-[300px] border border-white/5 cursor-pointer">
+               <img src="https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=1200" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 group-hover:opacity-60 transition-all duration-1000 opacity-40 grayscale group-hover:grayscale-0" alt="Hubs" />
+               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+               <div className="absolute bottom-8 left-8 md:bottom-12 md:left-12 transform group-hover:-translate-y-2 transition-transform duration-500">
                  <h3 className="text-4xl md:text-5xl font-serif mb-4 text-white">Global Hubs</h3>
                </div>
-            </div>
+            </motion.div>
 
-            {/* Neural Architecture Card - FIXED: Removed md:size, used className for sizing */}
-            <div className="bg-[#111] rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 border border-white/5 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-colors min-h-[250px]">
-               <Cpu className="text-[#D4AF37] w-8 h-8 md:w-10 md:h-10" />
-               <h3 className="text-2xl md:text-3xl font-serif text-white">Neural <br/> Architecture</h3>
-            </div>
+            {/* Neural Architecture Card */}
+            <motion.div variants={slideUp} whileHover="hover" className="bg-gradient-to-br from-[#111] to-[#0a0a0a] rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 border border-white/5 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-colors min-h-[250px] group cursor-pointer shadow-lg">
+               <Cpu className="text-gray-500 group-hover:text-[#D4AF37] transition-colors duration-500 w-8 h-8 md:w-10 md:h-10" />
+               <h3 className="text-2xl md:text-3xl font-serif text-white group-hover:text-[#D4AF37] transition-colors duration-500">Neural <br/> Architecture</h3>
+            </motion.div>
 
-            {/* Security Card - FIXED: Removed md:size, used className for sizing */}
-            <div className="bg-[#D4AF37] rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 flex flex-col justify-between text-black min-h-[250px]">
-               <Shield className="w-8 h-8 md:w-10 md:h-10 text-black" />
-               <h3 className="text-2xl md:text-3xl font-serif font-bold text-black">Tier 4 <br/> Security</h3>
-            </div>
+            {/* Security Card */}
+            <motion.div variants={slideInRight} whileHover="hover" className="bg-[#D4AF37] rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 flex flex-col justify-between text-black min-h-[250px] group cursor-pointer overflow-hidden relative shadow-[0_0_30px_rgba(212,175,55,0.15)]">
+               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+               <Shield className="w-8 h-8 md:w-10 md:h-10 text-black relative z-10 group-hover:scale-110 transition-transform duration-500" />
+               <h3 className="text-2xl md:text-3xl font-serif font-bold text-black relative z-10">Tier 4 <br/> Security</h3>
+            </motion.div>
 
             {/* Private Credit Link */}
-            <Link href="/portal/auth" className="md:col-span-2 bg-[#0a0a0a] rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 border border-white/5 flex items-center justify-between group min-h-[150px]">
-               <div className="max-w-xs"><h3 className="text-3xl md:text-4xl font-serif text-white">Private Credit</h3></div>
-               <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-[#D4AF37] group-hover:text-black transition-all">
-                 <ArrowRight />
-               </div>
+            <Link href="/portal/auth" className="md:col-span-2 block group">
+               <motion.div variants={slideUp} whileHover="hover" className="bg-[#0a0a0a] rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 border border-white/5 flex items-center justify-between min-h-[150px] h-full hover:border-[#D4AF37]/50 transition-colors shadow-lg">
+                  <div className="max-w-xs"><h3 className="text-3xl md:text-4xl font-serif text-white group-hover:text-[#D4AF37] transition-colors duration-300">Private Credit</h3></div>
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-[#D4AF37] group-hover:text-black transition-all duration-300 group-hover:scale-110">
+                    <ArrowRight className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+                  </div>
+               </motion.div>
             </Link>
-         </div>
+         </motion.div>
       </section>
 
-      {/* TRACING GRAPH */}
+      {/* --- TRACING GRAPH (Scroll Animated Elements) --- */}
       <section className="py-12 md:py-20 px-4 md:px-6 max-w-[1400px] mx-auto">
-        <div className="bg-[#0a0a0a] border border-white/5 rounded-[3rem] md:rounded-[4rem] p-8 md:p-16 overflow-hidden relative">
-           <div className="flex flex-col md:flex-row justify-between items-start mb-12 md:mb-20 relative z-10 gap-4">
-             <h2 className="text-4xl md:text-6xl font-serif text-white">Equity <span className="text-gray-700 italic">Pulse</span></h2>
-             <h2 className="text-4xl md:text-6xl font-mono text-[#D4AF37] tracking-tight">$1.24T+</h2>
-           </div>
+        <div className="bg-[#0a0a0a] border border-white/5 rounded-[3rem] md:rounded-[4rem] p-8 md:p-16 overflow-hidden relative shadow-2xl">
+           <motion.div 
+             initial="hidden" 
+             whileInView="visible" 
+             viewport={{ once: true }} 
+             variants={staggerContainer} 
+             className="flex flex-col md:flex-row justify-between items-start mb-12 md:mb-20 relative z-10 gap-4"
+           >
+             <motion.h2 variants={slideInLeft} className="text-4xl md:text-6xl font-serif text-white">Equity <span className="text-gray-700 italic">Pulse</span></motion.h2>
+             <motion.h2 variants={slideInRight} className="text-4xl md:text-6xl font-mono text-[#D4AF37] tracking-tight">$1.24T+</motion.h2>
+           </motion.div>
+           
            <div className="relative w-full h-[200px] md:h-[400px]">
               <svg width="100%" height="100%" viewBox="0 0 1200 400" preserveAspectRatio="none" className="overflow-visible">
                  <motion.path 
                     d="M0,350 C100,340 200,380 300,300 C400,220 500,280 600,180 C700,80 800,220 900,120 C1000,20 1100,60 1200,40" 
                     fill="none" stroke="#D4AF37" strokeWidth="5" strokeLinecap="round"
-                    initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} transition={{ duration: 3, ease: "easeInOut" }}
+                    initial={{ pathLength: 0 }} 
+                    whileInView={{ pathLength: 1 }} 
+                    viewport={{ once: true, margin: "-100px" }}
+                    transition={{ duration: 2.5, ease: [0.22, 1, 0.36, 1] }} // Smooth draw
                  />
               </svg>
            </div>
         </div>
       </section>
 
-      {/* SCANNING PHONE */}
+      {/* --- SCANNING PHONE (Intersecting Slides) --- */}
       <section className="py-20 md:py-40 px-4 md:px-6 max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-12 md:gap-20 items-center overflow-hidden">
-        {/* Phone Container - Scaled for Mobile */}
-        <motion.div className="relative flex justify-center w-full">
+        
+        {/* Phone Container (Slides Up) */}
+        <motion.div 
+           initial="hidden"
+           whileInView="visible"
+           viewport={{ once: true, margin: "-100px" }}
+           variants={slideUp}
+           className="relative flex justify-center w-full"
+        >
           <motion.div 
             animate={{ y: [-15, 15, -15] }} 
-            transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }} 
-            className="w-[280px] h-[560px] md:w-[340px] md:h-[680px] bg-black border-[8px] md:border-[10px] border-[#1a1a1a] rounded-[3rem] md:rounded-[4rem] relative shadow-2xl overflow-hidden shrink-0"
+            transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }} // Slower, heavier float
+            className="w-[280px] h-[560px] md:w-[340px] md:h-[680px] bg-black border-[8px] md:border-[10px] border-[#1a1a1a] rounded-[3rem] md:rounded-[4rem] relative shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden shrink-0"
           >
             <div className="pt-20 md:pt-28 px-6 md:px-8 space-y-8 md:space-y-12 bg-[#050505] h-full relative">
               <div className="flex justify-between text-[10px] text-gray-500 font-bold uppercase tracking-widest"><span>Net Worth</span><Shield size={14} className="text-[#D4AF37]" /></div>
               <h3 className="text-3xl md:text-4xl font-serif text-white">$872,000,000</h3>
+              {/* CSS Scanner Line preserved */}
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent shadow-[0_0_20px_#D4AF37] animate-scan opacity-60" />
             </div>
           </motion.div>
         </motion.div>
 
-        {/* Text Content */}
-        <div className="text-center lg:text-left">
-           <h2 className="text-5xl md:text-7xl font-serif text-white tracking-tighter mb-8 leading-tight">Your Control <br /><span className="text-[#D4AF37]">Interface.</span></h2>
-           <Link href="/portal" className="px-10 py-4 md:px-12 md:py-5 bg-white text-black font-black text-xs uppercase tracking-[0.2em] rounded-full hover:bg-[#D4AF37] transition-all inline-block">Get Started</Link>
-        </div>
+        {/* Text Content (Slides Left) */}
+        <motion.div 
+           initial="hidden"
+           whileInView="visible"
+           viewport={{ once: true, margin: "-100px" }}
+           variants={slideInRight}
+           className="text-center lg:text-left"
+        >
+           <h2 className="text-5xl md:text-7xl font-serif text-white tracking-tighter mb-8 leading-tight">
+             Your Control <br /><span className="text-[#D4AF37]">Interface.</span>
+           </h2>
+           <Link href="/portal" className="group px-10 py-4 md:px-12 md:py-5 bg-white text-black font-black text-xs uppercase tracking-[0.2em] rounded-full hover:bg-[#D4AF37] transition-all inline-block shadow-lg hover:shadow-[0_0_30px_rgba(212,175,55,0.4)]">
+             Get Started
+           </Link>
+        </motion.div>
       </section>
 
       <Footer />
+      
+      {/* CSS STYLES PRESERVED */}
       <style jsx global>{`
         .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
         .preserve-3d { transform-style: preserve-3d; }
@@ -211,4 +301,4 @@ export default function VerdeStockLanding() {
       `}</style>
     </main>
   );
-             }
+          }
