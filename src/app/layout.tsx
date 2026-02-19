@@ -6,7 +6,7 @@ import WhatsAppBubble from '@/components/ui/WhatsAppBubble'; // 👈 IMPORTED
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Verde Capital | Sustainable Growth',
+  title: 'Verde Stock | Sustainable Growth',
   description: 'AI-driven investment platform.',
 };
 
