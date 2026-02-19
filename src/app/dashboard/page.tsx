@@ -34,7 +34,7 @@ export default function Dashboard() {
   const [user, setUser] = useState<any>({
     full_name: 'Valued Client',
     balance: 0,
-    profit_yield: 0, // <-- ADDED PROFIT YIELD TO STATE
+    profit_yield: 0,
     deposit_status: 'pending',
     kyc_status: 'unverified',
     email: 'client@secure.mail'
@@ -77,7 +77,7 @@ export default function Dashboard() {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) { window.location.href = '/portal/auth'; return; }
 
-        // 1. Fetch Profile (This automatically fetches profit_yield now!)
+        // 1. Fetch Profile
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
         if (profile) {
           setUser(profile);
@@ -351,36 +351,45 @@ export default function Dashboard() {
         
         {/* STATS AREA */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-8 bg-[#0a0a0a] border border-white/5 p-8 md:p-14 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[350px]">
-             <div>
-               <div className="flex items-center gap-2 mb-6">
-                 <Wallet size={14} className="text-[#D4AF37]" />
-                 <p className="text-gray-500 text-[10px] uppercase tracking-[0.4em] font-bold">Consolidated Equity</p>
+          <div className="lg:col-span-8 bg-[#0a0a0a] border border-white/5 p-8 md:p-14 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[350px] gap-10">
+             
+             {/* --- NEW REDESIGNED TOP SECTION (BALANCE & PROFIT YIELD) --- */}
+             <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-8">
+               
+               {/* 1. Main Balance */}
+               <div>
+                 <div className="flex items-center gap-2 mb-6">
+                   <Wallet size={14} className="text-[#D4AF37]" />
+                   <p className="text-gray-500 text-[10px] uppercase tracking-[0.4em] font-bold">Consolidated Equity</p>
+                 </div>
+                 <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-serif text-white tracking-tighter leading-none break-all">
+                   ${user?.balance?.toLocaleString() || '0.00'}
+                 </h2>
                </div>
-               <h2 className="text-5xl md:text-8xl font-serif text-white tracking-tighter leading-none break-all">
-                 ${user?.balance?.toLocaleString() || '0.00'}
-               </h2>
 
-               {/* --- PROFIT YIELD INDICATOR --- */}
-               <div className="mt-4 flex items-center gap-3">
-                 <div className="bg-green-500/10 border border-green-500/20 px-4 py-2 rounded-full flex items-center gap-2">
-                   <TrendingUp size={14} className="text-green-500" />
-                   <span className="text-green-500 text-sm font-mono font-bold">
+               {/* 2. Profit Yield Box (Elegant Right-Aligned / Full Width Mobile) */}
+               <div className="bg-gradient-to-br from-[#059669]/10 to-transparent border border-[#059669]/20 p-5 rounded-2xl md:rounded-3xl flex items-center gap-5 w-full xl:w-auto shrink-0 shadow-[0_0_30px_rgba(5,150,105,0.05)]">
+                 <div className="w-12 h-12 bg-[#059669]/20 rounded-full flex items-center justify-center shrink-0">
+                   <TrendingUp size={24} className="text-[#059669]" />
+                 </div>
+                 <div>
+                   <p className="text-[10px] uppercase tracking-[0.2em] text-[#059669]/80 font-bold mb-1">Profit Yield</p>
+                   <p className="text-[#059669] text-xl md:text-2xl font-mono font-bold tracking-tight">
                      +${user?.profit_yield?.toLocaleString() || '0.00'}
-                   </span>
-                   <span className="text-[10px] uppercase tracking-widest text-green-500/70 font-bold ml-1">Profit Yield</span>
+                   </p>
                  </div>
                </div>
-               {/* ------------------------------------- */}
+
              </div>
+             {/* ----------------------------------------------------------- */}
              
              {/* ACTION BUTTONS AREA */}
-             <div className="mt-10 md:mt-0 flex flex-col md:flex-row items-center gap-4">
+             <div className="flex flex-col sm:flex-row items-center gap-4">
                {/* 1. DEPOSIT BUTTON */}
                <a 
                  href={isUnlocked ? waLink : "#"} 
                  onClick={(e) => !isUnlocked && e.preventDefault()}
-                 className={`w-full md:w-auto px-10 py-5 rounded-full font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 transition-all duration-500 text-center
+                 className={`w-full sm:w-auto px-10 py-5 rounded-full font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 transition-all duration-500 text-center
                  ${isUnlocked ? 'bg-[#D4AF37] text-black shadow-[0_0_40px_rgba(212,175,55,0.3)] hover:scale-105' : 'bg-white/5 text-gray-500 cursor-not-allowed border border-white/10'}`}
                >
                  {isUnlocked ? <><Smartphone size={16}/> Initialize Deposit</> : <><Lock size={16}/> Deposit Restricted</>}
@@ -388,7 +397,7 @@ export default function Dashboard() {
 
                {/* 2. WITHDRAW BUTTON */}
                {latestWithdrawal && latestWithdrawal.status === 'pending' ? (
-                 <div className="w-full md:w-auto px-8 py-4 bg-yellow-500/10 border border-yellow-500/30 rounded-full flex items-center gap-3 text-yellow-500">
+                 <div className="w-full sm:w-auto px-8 py-4 bg-yellow-500/10 border border-yellow-500/30 rounded-full flex items-center gap-3 text-yellow-500">
                     <Clock size={18} className="animate-pulse" />
                     <div className="flex flex-col text-left">
                        <span className="text-[10px] font-bold uppercase tracking-wider">Pending Approval</span>
@@ -398,7 +407,7 @@ export default function Dashboard() {
                ) : (
                  <button 
                    onClick={() => setWithdrawModalOpen(true)}
-                   className="w-full md:w-auto px-10 py-5 bg-white/5 border border-white/10 rounded-full font-black uppercase tracking-widest text-[11px] text-white hover:bg-white hover:text-black transition-all flex items-center justify-center gap-3"
+                   className="w-full sm:w-auto px-10 py-5 bg-white/5 border border-white/10 rounded-full font-black uppercase tracking-widest text-[11px] text-white hover:bg-white hover:text-black transition-all flex items-center justify-center gap-3"
                  >
                    <ArrowDownLeft size={16} /> Withdraw Funds
                  </button>
@@ -406,7 +415,7 @@ export default function Dashboard() {
              </div>
              
              {!isUnlocked && (
-                 <p className="mt-4 text-[10px] text-gray-600 uppercase tracking-widest font-bold">Awaiting Compliance Review</p>
+                 <p className="mt-2 text-[10px] text-gray-600 uppercase tracking-widest font-bold">Awaiting Compliance Review</p>
              )}
           </div>
 
