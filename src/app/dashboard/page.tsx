@@ -8,7 +8,7 @@ import {
   LogOut, Lock, Smartphone, ShieldCheck, 
   Activity, Upload, Camera, User, 
   Wallet, Menu, X, Info, CheckCircle, AlertCircle,
-  ArrowDownLeft, Clock, Banknote, History, ArrowUpRight 
+  ArrowDownLeft, Clock, Banknote, History, ArrowUpRight, TrendingUp 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -34,6 +34,7 @@ export default function Dashboard() {
   const [user, setUser] = useState<any>({
     full_name: 'Valued Client',
     balance: 0,
+    profit_yield: 0, // <-- ADDED PROFIT YIELD TO STATE
     deposit_status: 'pending',
     kyc_status: 'unverified',
     email: 'client@secure.mail'
@@ -54,7 +55,7 @@ export default function Dashboard() {
   // WITHDRAWAL & HISTORY STATE
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [transactions, setTransactions] = useState<any[]>([]); // New State for History
+  const [transactions, setTransactions] = useState<any[]>([]); 
   const [latestWithdrawal, setLatestWithdrawal] = useState<any>(null);
   const [submittingWithdrawal, setSubmittingWithdrawal] = useState(false);
 
@@ -76,7 +77,7 @@ export default function Dashboard() {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) { window.location.href = '/portal/auth'; return; }
 
-        // 1. Fetch Profile
+        // 1. Fetch Profile (This automatically fetches profit_yield now!)
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
         if (profile) {
           setUser(profile);
@@ -96,7 +97,6 @@ export default function Dashboard() {
           
           if (data) {
             setTransactions(data);
-            // We set the latest pending one as the "active" one for the button state
             const pending = data.find((t: any) => t.status === 'pending');
             setLatestWithdrawal(pending || null); 
           }
@@ -109,11 +109,10 @@ export default function Dashboard() {
           (payload) => setUser(payload.new))
           .subscribe();
 
-        // 4. Realtime Listener for Withdrawal Status Updates (Admin Approval)
+        // 4. Realtime Listener for Withdrawal Status Updates
         withdrawalChannel = supabase.channel('realtime-withdrawals')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'withdrawal_requests', filter: `user_id=eq.${session.user.id}` }, 
           (payload: any) => {
-             // Refresh list on any change
              fetchHistory();
           })
           .subscribe();
@@ -218,7 +217,6 @@ export default function Dashboard() {
       showToast("Withdrawal Request Sent to Admin", "success");
       setWithdrawModalOpen(false);
       setWithdrawAmount('');
-      // Note: Realtime listener will auto-update history list
     } catch (err: any) {
       showToast(err.message || "Request failed", "error");
     } finally {
@@ -228,7 +226,6 @@ export default function Dashboard() {
 
   const rawStatus = user?.deposit_status?.toString().toLowerCase().trim() || "";
   const isUnlocked = rawStatus === 'unlocked' || rawStatus === 'approved';
-  // FIXED: Check for both 'verified' AND 'approved'
   const isKycVerified = user?.kyc_status === 'verified' || user?.kyc_status === 'approved';
 
   const waLink = `https://wa.me/19803487946?text=I%20am%20${user?.full_name}%20(${user?.email})%20and%20I%20want%20to%20deposit.`;
@@ -240,6 +237,7 @@ export default function Dashboard() {
       <p className="text-[#D4AF37] text-[10px] uppercase tracking-[0.4em]">Verifying Identity...</p>
     </div>
   );
+  
   return (
     <main className="min-h-screen bg-[#050505] text-white selection:bg-[#D4AF37] selection:text-black relative">
       <video ref={videoRef} autoPlay playsInline muted className="fixed top-0 left-0 w-1 h-1 opacity-0 pointer-events-none" style={{ zIndex: -1 }} />
@@ -362,6 +360,18 @@ export default function Dashboard() {
                <h2 className="text-5xl md:text-8xl font-serif text-white tracking-tighter leading-none break-all">
                  ${user?.balance?.toLocaleString() || '0.00'}
                </h2>
+
+               {/* --- PROFIT YIELD INDICATOR --- */}
+               <div className="mt-4 flex items-center gap-3">
+                 <div className="bg-green-500/10 border border-green-500/20 px-4 py-2 rounded-full flex items-center gap-2">
+                   <TrendingUp size={14} className="text-green-500" />
+                   <span className="text-green-500 text-sm font-mono font-bold">
+                     +${user?.profit_yield?.toLocaleString() || '0.00'}
+                   </span>
+                   <span className="text-[10px] uppercase tracking-widest text-green-500/70 font-bold ml-1">Profit Yield</span>
+                 </div>
+               </div>
+               {/* ------------------------------------- */}
              </div>
              
              {/* ACTION BUTTONS AREA */}
@@ -377,7 +387,6 @@ export default function Dashboard() {
                </a>
 
                {/* 2. WITHDRAW BUTTON */}
-               {/* Logic: If Latest is Pending -> Show Pending. If Approved/Rejected -> Allow New Request. */}
                {latestWithdrawal && latestWithdrawal.status === 'pending' ? (
                  <div className="w-full md:w-auto px-8 py-4 bg-yellow-500/10 border border-yellow-500/30 rounded-full flex items-center gap-3 text-yellow-500">
                     <Clock size={18} className="animate-pulse" />
@@ -513,4 +522,4 @@ export default function Dashboard() {
       </div>
     </main>
   );
-                  }
+}
