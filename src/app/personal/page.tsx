@@ -6,7 +6,7 @@ import { motion, useScroll, useTransform, Variants } from 'framer-motion';
 import { Shield, Lock, Award, ArrowDown, ChevronRight, Fingerprint } from 'lucide-react';
 import Link from 'next/link';
 
-// --- FIXED TYPING HERE (Added ': Variants') ---
+// --- ANIMATION VARIANTS (Fixed Typing) ---
 const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 60 },
   visible: { 
@@ -172,19 +172,46 @@ export default function PersonalPage() {
                </Link>
             </motion.div>
             
+            {/* --- REPLACED IMAGE BLOCK START --- */}
             <motion.div 
-               initial={{ opacity: 0, scale: 0.9 }}
+               initial={{ opacity: 0, scale: 0.95 }}
                whileInView={{ opacity: 1, scale: 1 }}
                viewport={{ once: true }}
                transition={{ duration: 0.8 }}
-               className="relative h-[400px] md:h-[600px] bg-[url('https://images.unsplash.com/photo-1614064641938-3bcee529cfae?q=80&w=2574&auto=format&fit=crop')] bg-cover bg-center rounded-[2rem] overflow-hidden filter grayscale hover:grayscale-0 transition-all duration-700"
+               className="relative h-[400px] md:h-[600px] rounded-[2rem] overflow-hidden border border-white/10 group"
             >
-               <div className="absolute inset-0 bg-black/40 hover:bg-transparent transition-colors duration-500" />
-               <div className="absolute bottom-8 left-8">
-                  <p className="text-white font-mono text-xs">SECURE_NODE_04</p>
-                  <p className="text-[#D4AF37] font-mono text-xs">STATUS: LOCKED</p>
+               {/* 1. BACKUP GRADIENT (If image fails, this shows) */}
+               <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-[#050505]" />
+
+               {/* 2. MAIN IMAGE (High-Tech Server Room) */}
+               <div 
+                 className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1558494949-ef526b01201b?q=80&w=2670&auto=format&fit=crop')] bg-cover bg-center opacity-60 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+               />
+               
+               {/* 3. DARK OVERLAY (Makes text readable) */}
+               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+               
+               {/* 4. STATUS TEXT */}
+               <div className="absolute bottom-8 left-8 z-10">
+                  <div className="flex items-center gap-2 mb-2">
+                     <div className="w-2 h-2 bg-[#D4AF37] rounded-full animate-pulse shadow-[0_0_10px_#D4AF37]" />
+                     <p className="text-[#D4AF37] font-mono text-[10px] font-bold tracking-widest uppercase">
+                        System Active
+                     </p>
+                  </div>
+                  <p className="text-white font-mono text-xs tracking-widest opacity-80">
+                     SECURE_NODE_04 // ENCRYPTED
+                  </p>
+                  <p className="text-red-500 font-mono text-[10px] mt-1 font-bold">
+                     STATUS: LOCKED
+                  </p>
                </div>
+
+               {/* 5. DECORATIVE GRID LINES */}
+               <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
             </motion.div>
+            {/* --- REPLACED IMAGE BLOCK END --- */}
+
          </div>
       </section>
 
