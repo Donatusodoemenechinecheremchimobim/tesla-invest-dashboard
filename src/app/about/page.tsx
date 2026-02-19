@@ -90,7 +90,7 @@ export default function AboutPage() {
             className="overflow-hidden mb-6 flex justify-center"
           >
              <motion.div variants={revealText} className="inline-flex items-center gap-2 px-4 py-2 border border-[#D4AF37]/30 rounded-full bg-[#D4AF37]/5 backdrop-blur-md text-[#D4AF37] text-xs font-bold uppercase tracking-[0.2em]">
-                <Leaf size={12} /> Since 2024
+                <Leaf size={12} /> Since 2015
              </motion.div>
           </motion.div>
 
@@ -184,7 +184,7 @@ export default function AboutPage() {
                   </div>
                   <h2 className="text-4xl md:text-5xl font-serif">The <span className="text-[#D4AF37] italic">Genesis.</span></h2>
                   <p className="text-gray-400 text-lg leading-relaxed">
-                     Founded in 2024, <span className="text-white font-bold">VerdeStock</span> began as a black-box research unit specializing in sustainable algorithmic trading. We realized that by focusing on high-liquidity, volatility-neutral markets, we could engineer consistent returns without the chaos of traditional speculation.
+                     Founded in 2015, <span className="text-white font-bold">VerdeStock</span> began as a black-box research unit specializing in sustainable algorithmic trading. We realized that by focusing on high-liquidity, volatility-neutral markets, we could engineer consistent returns without the chaos of traditional speculation.
                   </p>
                </div>
 
@@ -221,10 +221,10 @@ export default function AboutPage() {
                <div className="hidden md:block absolute top-12 left-0 w-full h-[1px] bg-gradient-to-r from-[#D4AF37]/0 via-[#D4AF37]/50 to-[#D4AF37]/0" />
 
                {[
-                  { year: "2023", title: "Inception", desc: "VerdeStock algorithms enter beta testing with $50M seed capital." },
-                  { year: "2024", title: "Public Launch", desc: "Platform opens to private investors. $1B AUM reached in Q3." },
-                  { year: "2025", title: "Global Scale", desc: "Expansion into Dubai & Singapore. Release of Neural Core V4." },
-                  { year: "2026", title: "The Future", desc: "Full banking license acquisition and real-world asset tokenization." }
+                  { year: "2015", title: "Inception", desc: "VerdeStock algorithms enter beta testing with $50M seed capital." },
+                  { year: "2016", title: "Public Launch", desc: "Platform opens to private investors. $1B AUM reached in Q3." },
+                  { year: "2017", title: "Global Scale", desc: "Expansion into Dubai & Singapore. Release of Neural Core V4." },
+                  { year: "2018", title: "The Future", desc: "Full banking license acquisition and real-world asset tokenization." }
                ].map((item, i) => (
                   <motion.div 
                      key={i}
