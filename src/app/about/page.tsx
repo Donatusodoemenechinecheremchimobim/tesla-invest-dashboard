@@ -47,25 +47,25 @@ export default function AboutPage() {
   const yHero = useTransform(scrollYProgress, [0, 0.2], [0, 300]);
   const opacityHero = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
-  // --- UPDATED TEAM DATA WITH UNIQUE IMAGES ---
+  // --- TEAM DATA ---
   const teamMembers = [
     { 
       role: "Founder & CEO", 
       name: "Alexander V.", 
       spec: "Ex-Goldman Sachs / Quant",
-      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=2574&auto=format&fit=crop" // Professional Man
+      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=2574&auto=format&fit=crop" 
     },
     { 
       role: "Head of AI", 
       name: "Dr. Elena R.", 
       spec: "PhD Neural Networks",
-      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=2669&auto=format&fit=crop" // Professional Woman
+      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=2669&auto=format&fit=crop" 
     },
     { 
       role: "Chief Security", 
       name: "Marcus T.", 
       spec: "Ex-NSA Cybersecurity",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2670&auto=format&fit=crop" // Tech/Security Lead
+      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2670&auto=format&fit=crop" 
     }
   ];
 
@@ -118,7 +118,7 @@ export default function AboutPage() {
 
           <motion.p 
             variants={fadeInUp}
-            initial="hidden"
+            initial="hidden" 
             animate="visible"
             transition={{ delay: 0.4 }}
             className="text-gray-400 text-lg md:text-2xl font-light max-w-3xl mx-auto leading-relaxed"
@@ -201,7 +201,7 @@ export default function AboutPage() {
          </div>
       </section>
 
-      {/* --- SECTION 3: THE TIMELINE (Horizontal Scroll Feel) --- */}
+      {/* --- SECTION 3: THE TIMELINE --- */}
       <section className="py-32 px-6 bg-[#050505] relative overflow-hidden">
          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-[#111] to-transparent pointer-events-none" />
          
@@ -270,10 +270,10 @@ export default function AboutPage() {
                   >
                      {/* Image Placeholder with Abstract Gradient */}
                      <div className="absolute inset-0 bg-gradient-to-br from-[#111] via-[#0a0a0a] to-[#D4AF37]/20" />
-                     <div className="absolute inset-0 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity duration-700">
-                         {/* UNIQUE IMAGE FOR EACH MEMBER */}
+                     <div className="absolute inset-0 flex items-center justify-center opacity-100 transition-opacity duration-700">
+                         {/* UNIQUE IMAGE FOR EACH MEMBER - ALWAYS COLORED */}
                          <div 
-                           className="w-full h-full bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-700" 
+                           className="w-full h-full bg-cover bg-center transition-all duration-700 group-hover:scale-110" 
                            style={{ backgroundImage: `url('${member.image}')` }}
                          />
                      </div>
@@ -313,4 +313,4 @@ export default function AboutPage() {
       <Footer />
     </main>
   );
-                          }
+              }
