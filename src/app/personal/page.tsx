@@ -2,12 +2,12 @@
 import React from 'react';
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, Variants } from 'framer-motion';
 import { Shield, Lock, Award, ArrowDown, ChevronRight, Fingerprint } from 'lucide-react';
 import Link from 'next/link';
 
-// Animation Variants
-const fadeInUp = {
+// --- FIXED TYPING HERE (Added ': Variants') ---
+const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 60 },
   visible: { 
     opacity: 1, 
@@ -16,7 +16,7 @@ const fadeInUp = {
   }
 };
 
-const staggerContainer = {
+const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -29,8 +29,8 @@ const staggerContainer = {
 
 export default function PersonalPage() {
   const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 500], [0, 200]); // Parallax text
-  const y2 = useTransform(scrollY, [0, 500], [0, -150]); // Parallax background
+  const y1 = useTransform(scrollY, [0, 500], [0, 200]); 
+  const y2 = useTransform(scrollY, [0, 500], [0, -150]); 
 
   return (
     <main className="bg-[#050505] text-white overflow-hidden selection:bg-[#D4AF37] selection:text-black">
@@ -191,4 +191,4 @@ export default function PersonalPage() {
       <Footer />
     </main>
   );
-}
+              }
