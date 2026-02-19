@@ -190,9 +190,12 @@ export default function InsurancePage() {
                <motion.h2 variants={slideUp} className="text-4xl md:text-6xl font-serif mb-8 leading-tight">
                   Verifiable <br/><span className="text-gray-600">Reserves.</span>
                </motion.h2>
+               
+               {/* FIX: Properly closed the motion.p tag here! */}
                <motion.p variants={slideUp} className="text-gray-400 text-lg leading-relaxed mb-8">
                   Trust is good, but mathematical proof is better. Our insurance policy is backed by publicly verifiable proof-of-reserves, audited quarterly by top-tier global accounting firms.
-               </p>
+               </motion.p>
+               
                <motion.ul variants={staggerContainer} className="space-y-4">
                   {['SOC 2 Type II Certified', 'ISO 27001 Compliant', 'Quarterly Penetration Testing'].map((item, i) => (
                      <motion.li key={i} variants={slideUp} className="flex items-center gap-3 text-sm text-gray-300 font-mono">
@@ -243,4 +246,4 @@ export default function InsurancePage() {
 
     </main>
   );
-           }
+}
