@@ -154,7 +154,7 @@ const Navbar = () => {
                     onClick={() => setIsOpen(false)} // <--- CRITICAL FIX
                     className="w-full py-4 bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-widest rounded-xl flex items-center justify-center gap-3 mb-4 active:scale-95 transition-transform"
                  >
-                    Access Portal <ChevronRight size={16} />
+                    InvestmentTesla<ChevronRight size={16} />
                  </Link>
                  
                  <div className="flex justify-between items-center text-gray-500 text-[10px] font-mono uppercase">
